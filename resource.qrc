@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="burger">img/burger_icon.svg</file>
+        <file>img/tray_icon.svg</file>
+        <file>img/icon0.ico</file>
+        <file>img/icon1.ico</file>
+        <file>img/icon2.ico</file>
+        <file>img/icon3.ico</file>
+        <file>img/icon4.ico</file>
+        <file>img/icon5.ico</file>
+        <file>img/icon6.ico</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>img/arrow_collapsed.png</file>
+        <file>img/arrow_expanded.png</file>
+    </qresource>
+</RCC>
