@@ -31,9 +31,9 @@ ChannelList::~ChannelList () = default;
  * 2. creates a QTreeWidgetItem for this team
  * 3. gets all channels of the team, where the user is member and creates QTreeWidgetItem for each of them
  */
-ChannelListForTeam* ChannelList::addTeam (Backend& backend, const QString& name)
+ChannelListForTeam* ChannelList::addTeam (Backend& backend, const QString& name, const QString& teamId)
 {
-	ChannelListForTeam* teamList = new ChannelListForTeam (*this, backend, name);
+	ChannelListForTeam* teamList = new ChannelListForTeam (*this, backend, name, teamId);
 	teams.push_back (teamList);
 	addTopLevelItem (teamList);
 	//header()->resizeSection (0, 200);
@@ -47,15 +47,17 @@ void ChannelList::removeTeam (BackendTeam& team)
 {
 	qDebug() << "Remove team " << team.id;
 
-#warning "fix"
-#if 0
 	for (int i = 0; i < teams.size(); ++i) {		
-		if (teams[i]->team.id == team.id) {
-			delete (*(teams.begin() + i));
+		if (teams[i]->teamId == team.id) {
+			qDebug() << "delete() team " << team.id;
+			QTreeWidgetItem* item = takeTopLevelItem (i);
+
+			delete (item);
+			//delete (*(teams.begin() + i));
 			teams.erase (teams.begin() + i);
+			break;
 		}
 	}
-#endif
 }
 
 } /* namespace Mattermost */

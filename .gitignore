@@ -2,6 +2,14 @@
 # The build directory
 build/
 
+# Ignore all IDE project files
+.*
+
+# This file holds per-user configuration for the project
+CMakeLists.txt.user
+
+# Keep the auto-generated list for C++ files from git, in case someone builds not in separate build directory
+
 # Prerequisites
 *.d
 

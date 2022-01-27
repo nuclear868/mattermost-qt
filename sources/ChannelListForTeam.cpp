@@ -11,9 +11,10 @@
 
 namespace Mattermost {
 
-ChannelListForTeam::ChannelListForTeam (QTreeWidget& parent, Backend& backend, const QString& name)
+ChannelListForTeam::ChannelListForTeam (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId)
 :QTreeWidgetItem (&parent, QStringList() << name)
 ,backend (backend)
+,teamId (teamId)
 {
 	QFont font;
 	font.setBold (true);
@@ -28,10 +29,6 @@ ChannelListForTeam::~ChannelListForTeam () = default;
 void ChannelListForTeam::addChannel (BackendChannel& channel, QWidget *parent)
 {
 	ChatArea *chatArea = new ChatArea (backend, channel, this, parent);
-
-	backend.getChannelPosts (channel, 0, 200, [this, chatArea]() {
-		chatArea->fillChannelPosts ();
-	});
 }
 
 } /* namespace Mattermost */

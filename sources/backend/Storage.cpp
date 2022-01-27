@@ -12,6 +12,7 @@ namespace Mattermost {
 
 Storage::Storage ()
 :totalUsersCount (0)
+ ,nonFilledTeams (0)
 {
 }
 
@@ -48,6 +49,12 @@ BackendChannel* Storage::getChannelById (const QString& channelID)
 	}
 
 	return *it;
+}
+
+void Storage::addTeam (BackendTeam& team)
+{
+	teams[team.id] = team;
+	++nonFilledTeams;
 }
 
 void Storage::addChannel (BackendTeam& team, BackendChannel* channel)

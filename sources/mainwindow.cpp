@@ -16,13 +16,13 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 ,trayIconMenu (std::make_unique<QMenu> (this))
 ,backend (_backend)
 ,currentPage (nullptr)
-,teamsToLoad (0)
 ,currentTeamRestoredFromSettings (false)
 {
 	LOG_DEBUG ("MainWindow create start");
 
 	ui->setupUi(this);
 
+	trayIconMenu->addAction("Open Mattermost", this, &MainWindow::show);
 	trayIconMenu->addAction("Quit", this, &MainWindow::onQuit);
 
 	trayIcon = std::make_unique<QSystemTrayIcon> (QIcon(":/icons/img/icon0.ico"),this);
@@ -56,22 +56,18 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 
 		backend.getOwnTeams ([this](QMap<QString, BackendTeam>& teams) {
 
-			teamsToLoad = teams.size();
-			uint32_t teamSeq = 0;
-
 			/*
 			 * Adds each team in which the LoginUser participates
 			 */
 			for (auto& team: teams) {
 
 				//Add team here, so that they are added in the proper order
-				ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name);
-				//backend.getTeamMembers (team);
+				ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
 
 				/*
 				 * Gets all channels of the team, where the user is member
 				 */
-				backend.getOwnChannelMemberships (team, [this, teamChannelList, teamSeq] (QList<BackendChannel*>& channels){
+				backend.getOwnChannelMemberships (team, [this, teamChannelList] (QList<BackendChannel*>& channels){
 
 					for (auto &channel: channels) {
 						teamChannelList->addChannel (*channel, ui->centralwidget);
@@ -79,50 +75,49 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 							this->messageNotify (*channel, post);
 						});
 					}
-
-
-					QSettings settings;
-					QString currentTeam (settings.value ("current_team", 0).toString());
-
-					//Activate the same team that was active during the last session
-	//				if (teamChannelList->team.id == currentTeam) {
-	//					LOG_DEBUG ("MainWindow activate team " << currentTeam);
-	//					//ui->teamComboBox->setCurrentIndex (teamSeq);
-	//					//channelList.activateTeam (teamSeq);
-	//					currentTeamRestoredFromSettings = true;
-	//				}
-
-					--teamsToLoad;
-
-					if (teamsToLoad == 0) {
-
-						ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, "Direct Messages");
-
-						for (auto &channel: backend.getDirectChannels()) {
-							teamChannelList->addChannel (*channel, ui->centralwidget);
-							connect (channel, &BackendChannel::onNewPost, [this, channel] (BackendPost& post) {
-								this->messageNotify (*channel, post);
-							});
-						}
-
-						initializationComplete ();
-					}
 				}); //on getOwnChannelMemberships()
-
-				++teamSeq;
-			}
+			} //teams loop
 		}); //on getOwnTeams()
 	}); //on getTotalUsersCount()
-
 
 	/*
 	 * Register for signals
 	 */
-
 	connect (ui->channelList, &QTreeWidget::itemClicked, this, &MainWindow::channelListWidget_itemClicked);
 
 	//getAllUsers is called from onShowEvent()
 	connect (&backend, &Backend::onAllUsers, [this]() {
+	});
+
+	/*
+	 * After all team channels are received from the server, create tree items for the direct channels.
+	 * For some reason the server duplicates the direct channels in each team.
+	 * Here they are in a single list (The official Mattermost client shows them in each team, which IMHO looks like a total mess).
+	 * So, all team channels have to be received in order to know all (unique) direct channels
+	 */
+	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this]() {
+		LOG_DEBUG ("All Team Channels filled");
+		ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, "Direct Messages", "");
+
+		for (auto &channel: backend.getDirectChannels()) {
+			teamChannelList->addChannel (*channel, ui->centralwidget);
+			connect (channel, &BackendChannel::onNewPost, [this, channel] (BackendPost& post) {
+				this->messageNotify (*channel, post);
+			});
+		}
+
+//		QSettings settings;
+//		QString currentTeam (settings.value ("current_team", 0).toString());
+
+		//Activate the same team that was active during the last session
+//				if (teamChannelList->team.id == currentTeam) {
+//					LOG_DEBUG ("MainWindow activate team " << currentTeam);
+//					//ui->teamComboBox->setCurrentIndex (teamSeq);
+//					//channelList.activateTeam (teamSeq);
+//					currentTeamRestoredFromSettings = true;
+//				}
+
+		initializationComplete ();
 	});
 
 
@@ -134,8 +129,7 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 		/**
 		 * Adds each team in which the LoginUser participates
 		 */
-		ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name);
-		//backend.getTeamMembers (team);
+		ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
 
 		/*
 		 * Gets all channels of the team, where the user is member
@@ -144,6 +138,9 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 
 			for (auto &channel: channels) {
 				teamChannelList->addChannel (*channel, ui->centralwidget);
+				connect (channel, &BackendChannel::onNewPost, [this, channel] (BackendPost& post) {
+					this->messageNotify (*channel, post);
+				});
 			}
 		});
 	});

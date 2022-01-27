@@ -320,7 +320,7 @@ void Backend::getOwnTeams (std::function<void(QMap<QString, BackendTeam>&)> call
 		for (const auto &itemRef: qAsConst(root)) {
 			BackendTeam team;
 			team.deserialize (itemRef.toObject());
-			storage.teams[team.id] = team;
+			storage.addTeam (team);
 		}
 
 		callback (storage.teams);
@@ -329,7 +329,7 @@ void Backend::getOwnTeams (std::function<void(QMap<QString, BackendTeam>&)> call
 
 void Backend::getTeam (QString teamID)
 {
-    QNetworkRequest request ("teams/" + teamID);
+	NetworkRequest request ("teams/" + teamID);
 
     std::cout << "get team " << teamID.toStdString() << std::endl;
 
@@ -374,6 +374,11 @@ void Backend::getOwnChannelMemberships (BackendTeam& team, std::function<void(QL
 		}
 
 		callback (team.channels);
+		--storage.nonFilledTeams;
+
+		if (storage.nonFilledTeams == 0) {
+			emit onAllTeamChannelsPopulated ();
+		}
     });
 }
 

@@ -62,7 +62,6 @@ private:
 	QSet<const BackendChannel*>			channelsWithNewPosts;
 	Backend&							backend;
 	ChatArea*							currentPage;
-	uint32_t							teamsToLoad;
 	bool								currentTeamRestoredFromSettings;
 };
 

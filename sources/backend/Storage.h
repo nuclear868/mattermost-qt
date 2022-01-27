@@ -24,6 +24,8 @@ public:
 
 	BackendUser* getUserById (const QString& userID);
 
+	void addTeam (BackendTeam& team);
+
 	void addChannel (BackendTeam& team, BackendChannel* channel);
 
 	void eraseTeam (const QString& teamID);
@@ -36,6 +38,7 @@ public:
 	BackendUser						loginUser;
 	QList<BackendChannel*>			directChannels;
 	uint32_t						totalUsersCount;
+	uint32_t						nonFilledTeams;
 };
 
 } /* namespace Mattermost */

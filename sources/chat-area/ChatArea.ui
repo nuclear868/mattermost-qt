@@ -80,6 +80,15 @@
        <property name="styleSheet">
         <string notr="true">padding-left:10px</string>
        </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="lineWidth">
+        <number>5</number>
+       </property>
        <property name="text">
         <string>title</string>
        </property>

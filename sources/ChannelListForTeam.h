@@ -28,12 +28,13 @@ class ChatArea;
 class ChannelListForTeam: public QObject, public QTreeWidgetItem {
 	Q_OBJECT
 public:
-	ChannelListForTeam (QTreeWidget& parent, Backend& backend, const QString& name);
+	ChannelListForTeam (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId);
 	virtual ~ChannelListForTeam ();
 public:
 	void addChannel (BackendChannel& channel, QWidget *parent);
 public:
 	Backend&					backend;
+	QString						teamId;
 };
 
 } /* namespace Mattermost */

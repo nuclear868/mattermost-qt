@@ -76,9 +76,24 @@ public:
     Storage& getStorage ();
 signals:
 	void onNewTeam (BackendTeam&);
+
+	/**
+	 * Called when unread posts for a channel are received at startup
+	 * @param channel
+	 */
 	void onUnreadPostsAtStartup (const BackendChannel&);
+
+	/**
+	 * Called when the logged-in user has left a team
+	 * @param team
+	 */
 	void onLeaveTeam (BackendTeam&);
     void onAllUsers ();
+
+    /**
+     * Called when all public and direct channels for all teams are received and filled in storage
+     */
+    void onAllTeamChannelsPopulated ();
     void onHttpError (uint32_t errorNumber, const QString& errorText);
     void onNetworkError (uint32_t errorNumber, const QString& errorText);
 private:

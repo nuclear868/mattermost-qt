@@ -22,7 +22,10 @@ void PostsListWidget::resizeEvent (QResizeEvent* event)
 			return;
 		}
 
-		item->setSizeHint(QSize (event->size().width(), widget->heightForWidth(event->size().width())));
+		if (widget->heightForWidth(event->size().width()) != -1) {
+			item->setSizeHint(QSize (event->size().width(), widget->heightForWidth(event->size().width())));
+			//qDebug() << "SetSizeHint " << event->size().width() << " " << widget->heightForWidth(event->size().width());
+		}
 	}
 
 	QListWidget::resizeEvent (event);

@@ -5,6 +5,7 @@
 #include <QScrollBar>
 #include "ui_ChatArea.h"
 #include "MessageWidget.h"
+#include "MessageSeparatorWidget.h"
 #include "backend/Backend.h"
 #include "log.h"
 
@@ -42,6 +43,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		ui->userAvatar->clear();
 		ui->userAvatar->hide();
 	}
+
+	backend.getChannelPosts (channel, 0, 200, [this]() {
+		fillChannelPosts ();
+	});
 
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
 
@@ -87,6 +92,16 @@ void ChatArea::fillChannelPosts ()
 
 		ui->listWidget->addItem (newItem);
 		ui->listWidget->setItemWidget (newItem, message);
+
+#if 0
+		if (post.author) {
+			MessageSeparatorWidget* separator = new MessageSeparatorWidget (post.author->getDisplayName());
+		//separator->setText("<s>------------------------------------------</s>Hello World<hr width=50%>");
+		QListWidgetItem* separatorItem = new QListWidgetItem();
+		ui->listWidget->addItem (separatorItem);
+		ui->listWidget->setItemWidget (separatorItem, separator);
+		}
+#endif
 	}
 
 	backend.getChannelUnreadPost (channel, [this] (const QString& postId){
