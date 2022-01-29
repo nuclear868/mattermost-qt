@@ -59,8 +59,13 @@ WebSocketConnector::WebSocketConnector ()
 	});
 
 	connect(&webSocket, &QWebSocket::disconnected, [this]{
-		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode());
-		webSocket.open (webSocket.requestUrl());
+		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
+		pingTimer.stop();
+		pongTimer.stop();
+		QTimer::singleShot (100000, [this] {
+			LOG_DEBUG ("WebSocket Reconnecting");
+			webSocket.open (webSocket.requestUrl());
+		});
 	});
 
     connect(&webSocket, &QWebSocket::textMessageReceived, this, &WebSocketConnector::onNewPacket);

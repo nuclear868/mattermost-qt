@@ -27,6 +27,9 @@ public:
     //login to server (/users/login)
     void login (const BackendLoginData& loginData, std::function<void()> callback);
 
+    //login retry - after a HTTP error
+    void loginRetry ();
+
     //get specific user (/users/userID);
     void getUser (QString userID, std::function<void(BackendUser&)> callback);
 
@@ -101,6 +104,8 @@ private:
 
     HTTPConnector 					httpConnector;
     WebSocketConnector				webSocketConnector;
+    BackendLoginData				loginData;
+    bool							isLoggedIn;
 };
 
 } /* namespace Mattermost */

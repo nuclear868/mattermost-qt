@@ -32,10 +32,22 @@
 namespace Mattermost {
 
 Backend::Backend(QObject *parent)
-:QObject(parent)
+:QObject (parent)
+,isLoggedIn (false)
 {
 	connect (&httpConnector, &HTTPConnector::onNetworkError, this, &Backend::onNetworkError);
-	connect (&httpConnector, &HTTPConnector::onHttpError, this, &Backend::onHttpError);
+
+
+	connect (&httpConnector, &HTTPConnector::onHttpError, [this] (uint32_t errorNumber, const QString& errorText) {
+
+		emit onHttpError (errorNumber, errorText);
+
+		if (errorNumber == 401 && isLoggedIn) { //invalid session, login again
+			QTimer::singleShot (1000, [this] {
+				loginRetry ();
+			});
+		}
+	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onChannelViewed, [this](const ChannelViewedEvent& event) {
 		BackendChannel* channel = storage.getChannelById (event.channel_id);
@@ -44,7 +56,8 @@ Backend::Backend(QObject *parent)
 	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onAddedToTeam, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id);
+		BackendTeam* team = storage.getTeamById (event.team_id
+				);
 		QString teamName = team ? team->name : event.team_id;
 		LOG_DEBUG ("User " << event.user_id << " added to team: " << teamName);
 
@@ -118,6 +131,7 @@ Backend::Backend(QObject *parent)
 
 void Backend::login (const BackendLoginData& loginData, std::function<void()> callback)
 {
+	this->loginData = loginData;
 	NetworkRequest::setHost (loginData.domain);
 
 	QJsonDocument  json;
@@ -156,6 +170,54 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 		}
 
 		webSocketConnector.open (NetworkRequest::host(), loginToken);
+		isLoggedIn = true;
+	});
+}
+
+void Backend::loginRetry ()
+{
+	NetworkRequest::clearToken ();
+
+	QJsonDocument  json;
+	QJsonObject  jsonRoot;
+
+	LOG_DEBUG ("Login retry");
+
+	jsonRoot.insert("login_id", loginData.username);
+	jsonRoot.insert("password", loginData.password);
+	jsonRoot.insert("device_id", "QT Client");
+#if 0
+	if (!token.isEmpty())
+		jsonRoot.insert("token", token);
+#endif
+	json.setObject(jsonRoot);
+	QByteArray data = json.toJson(QJsonDocument::Compact);
+
+	NetworkRequest request ("users/login");
+	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	httpConnector.post(request, data, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		LOG_DEBUG ("Login retry successful");
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
+#endif
+		//storage.loginUser = BackendUser (doc.object());
+
+		//callback ();
+
+		QString loginToken = reply.rawHeader ("Token");
+		NetworkRequest::setToken (loginToken);
+
+		if (loginToken.isEmpty()) {
+			qCritical() << "Login Token is empty. WebSocket communication may not work";
+		}
+
+		//webSocketConnector.open (NetworkRequest::host(), loginToken);
+		isLoggedIn = true;
 	});
 }
 

@@ -19,6 +19,7 @@ public:
 	virtual ~NetworkRequest ();
 public:
 	static void setHost (const QString& host);
+	static void clearToken ();
 	static void setToken (const QString& token);
 	static const QString& host ();
 private:

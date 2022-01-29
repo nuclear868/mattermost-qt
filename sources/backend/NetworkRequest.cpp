@@ -20,6 +20,8 @@ NetworkRequest::NetworkRequest (const QString& url)
 {
 	setUrl (httpHost + url);
 
+	setRawHeader("User-Agent", "QT");
+
 	if (!httpToken.isEmpty()) {
 		setRawHeader("Authorization", httpToken.toUtf8());
 	}
@@ -38,6 +40,11 @@ void NetworkRequest::setHost (const QString& host)
 	httpHost += API_V4;
 }
 
+void NetworkRequest::clearToken ()
+{
+	NetworkRequest::httpToken = "";
+}
+
 void NetworkRequest::setToken (const QString& token)
 {
 	NetworkRequest::httpToken = "Bearer " + token;
@@ -47,5 +54,6 @@ const QString& NetworkRequest::host ()
 {
 	return httpHost;
 }
+
 
 } /* namespace Mattermost */
