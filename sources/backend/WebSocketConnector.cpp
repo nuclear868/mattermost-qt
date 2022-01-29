@@ -21,6 +21,14 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	{"channel_viewed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		emit conn.onChannelViewed (ChannelViewedEvent (data));
 	}},
+	{"posted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		PostEvent event (data);
+		emit conn.onPost (event);
+	}},
+	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		TypingEvent event (data, broadcast);
+		emit conn.onTyping (event);
+	}},
 	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		emit conn.onUserAdded (UserTeamEvent (data));
 	}},
@@ -29,14 +37,6 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	}},
 	{"leave_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		emit conn.onLeaveTeam (UserTeamEvent (data));
-	}},
-	{"posted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		PostEvent event (data);
-		emit conn.onPost (event);
-	}},
-	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		TypingEvent event (data, broadcast);
-		emit conn.onTyping (event);
 	}},
 };
 

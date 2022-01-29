@@ -2,11 +2,14 @@
 #pragma once
 
 #include <QWidget>
+#include <QTimer>
 #include <QTreeWidgetItem>
 
 namespace Ui {
 class ChatArea;
 }
+
+class QListWidgetItem;
 
 namespace Mattermost {
 
@@ -22,7 +25,7 @@ public:
 	~ChatArea();
 public:
 	BackendChannel& getChannel ();
-	void fillChannelPosts ();
+	void fillChannelPosts (const QString& lastReadPostID);
 	void appendChannelPost (const BackendPost& post);
 	void handleUserTyping (const BackendUser& user);
 	void sendNewPost ();
@@ -33,14 +36,21 @@ public:
 	void onActivate ();
 
 	/**
-	 * Called when the entire Mattermost window is being activated (gains focus)
+	 * Called when the entire Mattermost window is being activated (gains focus).
+	 * Called only if the chat area is the currently active one (so that it's contents is shown)
 	 */
 	void onWindowActivate ();
+private:
+	void addNewMessagesSeparator ();
+	void removeNewMessagesSeparator ();
+	void setUnreadMessagesCount (uint32_t count);
 private:
 	Ui::ChatArea 		*ui;
 	Backend& 			backend;
 	BackendChannel& 	channel;
+	QTimer				removeNewMessagesSeparatorTimer;
 	QTreeWidgetItem		*treeItem;
+	QListWidgetItem		*newMessagesSeparator;
 	uint32_t			unreadMessagesCount;
 };
 

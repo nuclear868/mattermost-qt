@@ -78,7 +78,6 @@ public:
 
     Storage& getStorage ();
 signals:
-	void onNewTeam (BackendTeam&);
 
 	/**
 	 * Called when unread posts for a channel are received at startup
@@ -86,19 +85,41 @@ signals:
 	 */
 	void onUnreadPostsAtStartup (const BackendChannel&);
 
+
 	/**
-	 * Called when the logged-in user has left a team
-	 * @param team
+	 * Called when a channel is being viewed, either from this or from another Mattermost instance
+	 * @param channel channel
 	 */
-	void onLeaveTeam (BackendTeam&);
+	void onChannelViewed (const BackendChannel& channel);
+
+	/**
+	 * Called when new post arrives. Same notification as Channel::onNewPost
+	 * @param channel channel, in which the post was added
+	 * @param post post
+	 */
+	void onNewPost (BackendChannel& channel, const BackendPost& post);
     void onAllUsers ();
 
     /**
      * Called when all public and direct channels for all teams are received and filled in storage
      */
     void onAllTeamChannelsPopulated ();
-    void onHttpError (uint32_t errorNumber, const QString& errorText);
+
+    /**
+     * Called when the logged-in user was added to a team.
+     * In most cases this is a new team
+     * @param team
+     */
+	void onAddedToTeam (BackendTeam&);
+
+	/**
+	 * Called when the logged-in user has left a team
+	 * @param team
+	 */
+	void onLeaveTeam (BackendTeam&);
+
     void onNetworkError (uint32_t errorNumber, const QString& errorText);
+    void onHttpError (uint32_t errorNumber, const QString& errorText);
 private:
     Storage							storage;
 

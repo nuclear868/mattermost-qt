@@ -17,6 +17,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 ,backend (backend)
 ,channel (channel)
 ,treeItem (new QTreeWidgetItem (tree))
+,newMessagesSeparator (nullptr)
 ,unreadMessagesCount (0)
 {
 	ui->setupUi(this);
@@ -24,6 +25,9 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	ui->title->setText (channel.display_name);
 	treeItem->setText (0, channel.display_name);
 	treeItem->setData(0, Qt::UserRole, QVariant::fromValue(this));
+
+	removeNewMessagesSeparatorTimer.setSingleShot (true);
+	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &ChatArea::removeNewMessagesSeparator);
 
 	QFont font1;
 	font1.setPixelSize(14);
@@ -44,13 +48,28 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		ui->userAvatar->hide();
 	}
 
-	backend.getChannelPosts (channel, 0, 200, [this]() {
-		fillChannelPosts ();
+	/*
+	 * First, get the first unread post (if any). So that a separator can be inserted before it
+	 */
+	backend.getChannelUnreadPost (channel, [this, &backend, &channel] (const QString& postId){
+		qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
+
+		backend.getChannelPosts (channel, 0, 200, [this, postId]() {
+			fillChannelPosts (postId);
+		});
+	});
+
+	connect (&channel, &BackendChannel::onViewed, [this] {
+		LOG_DEBUG ("Channel viewed: " << this->channel.name);
+		if (newMessagesSeparator) {
+			removeNewMessagesSeparatorTimer.start (5000);
+		}
 	});
 
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
+
 
 	/*
 	 * Send new post after pressing enter or clicking the 'Send' button
@@ -79,7 +98,7 @@ BackendChannel& ChatArea::getChannel ()
 	return channel;
 }
 
-void ChatArea::fillChannelPosts ()
+void ChatArea::fillChannelPosts (const QString& lastReadPostID)
 {
 	for (auto& post: channel.posts) {
 		MessageWidget* message = new MessageWidget (post);
@@ -93,22 +112,13 @@ void ChatArea::fillChannelPosts ()
 		ui->listWidget->addItem (newItem);
 		ui->listWidget->setItemWidget (newItem, message);
 
-#if 0
-		if (post.author) {
-			MessageSeparatorWidget* separator = new MessageSeparatorWidget (post.author->getDisplayName());
-		//separator->setText("<s>------------------------------------------</s>Hello World<hr width=50%>");
-		QListWidgetItem* separatorItem = new QListWidgetItem();
-		ui->listWidget->addItem (separatorItem);
-		ui->listWidget->setItemWidget (separatorItem, separator);
+		if (post.id == lastReadPostID) {
+			addNewMessagesSeparator ();
+			++unreadMessagesCount;
 		}
-#endif
 	}
 
-	backend.getChannelUnreadPost (channel, [this] (const QString& postId){
-		qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
-		++unreadMessagesCount;
-		treeItem->setText(1, QString::number(unreadMessagesCount));
-	});
+	setUnreadMessagesCount (unreadMessagesCount);
 }
 
 void ChatArea::appendChannelPost (const BackendPost& post)
@@ -117,6 +127,12 @@ void ChatArea::appendChannelPost (const BackendPost& post)
 
 	if (post.isOwnPost()) {
 		message->setOwnMessage ();
+	}
+
+	bool isVisible = treeItem->isSelected() && isActiveWindow ();
+
+	if (!isVisible) {
+		addNewMessagesSeparator ();
 	}
 
 	QListWidgetItem* newItem = new QListWidgetItem();
@@ -128,12 +144,12 @@ void ChatArea::appendChannelPost (const BackendPost& post)
 	ui->listWidget->scrollToBottom();
 
 	//do not add unread messages count if the item is selected
-	if (treeItem->isSelected() && isActiveWindow ()) {
+	if (isVisible) {
 		return;
 	}
 
 	++unreadMessagesCount;
-	treeItem->setText(1, QString::number(unreadMessagesCount));
+	setUnreadMessagesCount (unreadMessagesCount);
 }
 
 void ChatArea::sendNewPost ()
@@ -147,16 +163,8 @@ void ChatArea::sendNewPost ()
 
 	ui->textEdit->clear();
 	backend.addPost (channel, message);
-}
 
-void ChatArea::onActivate ()
-{
-	unreadMessagesCount = 0;
-	treeItem->setText(1, "");
-	ui->listWidget->scrollToBottom();
-
-	//hack to resize chat area which was inactive
-	ui->listWidget->resize(200, 299);
+	removeNewMessagesSeparator ();
 }
 
 void ChatArea::handleUserTyping (const BackendUser& user)
@@ -164,10 +172,56 @@ void ChatArea::handleUserTyping (const BackendUser& user)
 	LOG_DEBUG (channel.display_name << ": " << user.getDisplayName() << " is typing");
 }
 
+void ChatArea::onActivate ()
+{
+	setUnreadMessagesCount (0);
+
+	if (newMessagesSeparator) {
+		ui->listWidget->scrollToItem (newMessagesSeparator, QAbstractItemView::PositionAtCenter);
+	} else {
+		ui->listWidget->scrollToBottom();
+	}
+
+	//hack to resize chat area which was inactive
+	ui->listWidget->resize(200, 299);
+}
+
 void ChatArea::onWindowActivate ()
 {
-	unreadMessagesCount = 0;
-	treeItem->setText(1, "");
+	setUnreadMessagesCount (0);
+}
+
+void ChatArea::addNewMessagesSeparator ()
+{
+	if (newMessagesSeparator) {
+		return;
+	}
+
+	MessageSeparatorWidget* separator = new MessageSeparatorWidget ("New messages");
+	newMessagesSeparator = new QListWidgetItem();
+	ui->listWidget->addItem (newMessagesSeparator);
+	ui->listWidget->setItemWidget (newMessagesSeparator, separator);
+}
+
+void ChatArea::removeNewMessagesSeparator ()
+{
+	if (!newMessagesSeparator) {
+		return;
+	}
+
+	delete newMessagesSeparator;
+	newMessagesSeparator = nullptr;
+}
+
+void ChatArea::setUnreadMessagesCount (uint32_t count)
+{
+	unreadMessagesCount = count;
+
+	if (count == 0) {
+		treeItem->setText(1, "");
+	} else {
+		treeItem->setText(1, QString::number(count));
+	}
 }
 
 } /* namespace Mattermost */

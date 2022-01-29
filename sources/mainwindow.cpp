@@ -71,9 +71,6 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 
 					for (auto &channel: channels) {
 						teamChannelList->addChannel (*channel, ui->centralwidget);
-						connect (channel, &BackendChannel::onNewPost, [this, channel] (BackendPost& post) {
-							this->messageNotify (*channel, post);
-						});
 					}
 				}); //on getOwnChannelMemberships()
 			} //teams loop
@@ -83,7 +80,7 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 	/*
 	 * Register for signals
 	 */
-	connect (ui->channelList, &QTreeWidget::itemClicked, this, &MainWindow::channelListWidget_itemClicked);
+	connect (ui->channelList, &QTreeWidget::currentItemChanged, this, &MainWindow::channelListWidget_itemClicked);
 
 	//getAllUsers is called from onShowEvent()
 	connect (&backend, &Backend::onAllUsers, [this]() {
@@ -101,9 +98,6 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 
 		for (auto &channel: backend.getDirectChannels()) {
 			teamChannelList->addChannel (*channel, ui->centralwidget);
-			connect (channel, &BackendChannel::onNewPost, [this, channel] (BackendPost& post) {
-				this->messageNotify (*channel, post);
-			});
 		}
 
 //		QSettings settings;
@@ -120,11 +114,14 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 		initializationComplete ();
 	});
 
+	connect (&backend, &Backend::onNewPost, [this] (BackendChannel& channel, const BackendPost& post) {
+		this->messageNotify (channel, post);
+	});
 
 	/*
-	 * OnNewTeam comes after a WebSocket event, when the user is added to the team
+	 * onAddedToTeam comes after a WebSocket event, when the user is added to the team
 	 */
-	connect (&backend, &Backend::onNewTeam, [this](BackendTeam& team) {
+	connect (&backend, &Backend::onAddedToTeam, [this](BackendTeam& team) {
 
 		/**
 		 * Adds each team in which the LoginUser participates
@@ -138,9 +135,6 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 
 			for (auto &channel: channels) {
 				teamChannelList->addChannel (*channel, ui->centralwidget);
-				connect (channel, &BackendChannel::onNewPost, [this, channel] (BackendPost& post) {
-					this->messageNotify (*channel, post);
-				});
 			}
 		});
 	});
@@ -212,7 +206,7 @@ void MainWindow::initializationComplete ()
 	}
 }
 
-void MainWindow::channelListWidget_itemClicked (QTreeWidgetItem* item, int)
+void MainWindow::channelListWidget_itemClicked (QTreeWidgetItem* item, QTreeWidgetItem*)
 {
 	ChatArea *chatArea = item->data(0, Qt::UserRole).value<ChatArea*>();
 

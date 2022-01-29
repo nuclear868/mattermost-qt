@@ -25,7 +25,25 @@ public:
 	BackendChannel (const QJsonObject& jsonObject);
 	virtual ~BackendChannel ();
 signals:
+
+	/**
+	 * Called when a channel is being viewed, either from this or from another Mattermost instance.
+	 * Same notification as Backend::onChannelViewed()
+	 */
+	void onViewed ();
+
+	/**
+	 * Called when a new post has arrived in the channel
+	 * Same notification as Backend::onNewPost()
+	 * @param post post
+	 */
 	void onNewPost (BackendPost& post);
+
+	/**
+	 * Called when someone is typing in the channel.
+	 * Typing notifications are sent ~every 5 seconds, while the user is typing
+	 * @param user user, who is typing
+	 */
 	void onUserTyping (const BackendUser& user);
 public:
     QString			id;

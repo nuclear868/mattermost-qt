@@ -54,7 +54,7 @@ protected:
 	void unreadMessagesNotify (const BackendChannel& channel);
 	void setNotificationsCountVisualization (uint32_t notificationsCount);
 private slots:
-	void channelListWidget_itemClicked(QTreeWidgetItem* item, int);
+	void channelListWidget_itemClicked(QTreeWidgetItem* item, QTreeWidgetItem*);
 private:
 	std::unique_ptr<Ui::MainWindow>		ui;
 	std::unique_ptr<QSystemTrayIcon> 	trayIcon;

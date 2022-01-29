@@ -35,53 +35,11 @@ Backend::Backend(QObject *parent)
 :QObject (parent)
 ,isLoggedIn (false)
 {
-	connect (&httpConnector, &HTTPConnector::onNetworkError, this, &Backend::onNetworkError);
-
-
-	connect (&httpConnector, &HTTPConnector::onHttpError, [this] (uint32_t errorNumber, const QString& errorText) {
-
-		emit onHttpError (errorNumber, errorText);
-
-		if (errorNumber == 401 && isLoggedIn) { //invalid session, login again
-			QTimer::singleShot (1000, [this] {
-				loginRetry ();
-			});
-		}
-	});
-
 	connect (&webSocketConnector, &WebSocketConnector::onChannelViewed, [this](const ChannelViewedEvent& event) {
 		BackendChannel* channel = storage.getChannelById (event.channel_id);
 		QString channelName = channel ? channel->name : event.channel_id;
-		LOG_DEBUG ("Channel viewed: " << channelName);
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onAddedToTeam, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id
-				);
-		QString teamName = team ? team->name : event.team_id;
-		LOG_DEBUG ("User " << event.user_id << " added to team: " << teamName);
-
-		//Adds the new team. It's channels and messages in channels will be obtained too
-		if (!team) {
-			getTeam (event.team_id);
-		}
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onUserAdded, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id);
-		QString teamName = team ? team->name : event.team_id;
-		LOG_DEBUG ("User " << event.user_id << " added: " << teamName);
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onLeaveTeam, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id);
-		QString teamName = team ? team->name : event.team_id;
-
-		LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
-		emit (onLeaveTeam (*team));
-
-		storage.eraseTeam (team->id);
-		//printTeams ();
+		emit channel->onViewed ();
+		emit onChannelViewed (*channel);
 	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onPost, [this](PostEvent& event) {
@@ -110,7 +68,7 @@ Backend::Backend(QObject *parent)
 		LOG_DEBUG ("Post in  '" << teamName << "' : '" << channelName << "' by " << event.post.user_id << ": " << event.post.message);
 		if (channel) {
 			emit channel->onNewPost (post);
-			//emit onNewPost (*channel, event.post);
+			emit onNewPost (*channel, post);
 		}
 
 		channel->posts.append (std::move (post));
@@ -126,6 +84,48 @@ Backend::Backend(QObject *parent)
 		}
 		//LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
 		emit (channel->onUserTyping(*user));
+	});
+
+	connect (&webSocketConnector, &WebSocketConnector::onUserAdded, [this](const UserTeamEvent& event) {
+		BackendTeam* team = storage.getTeamById (event.team_id);
+		QString teamName = team ? team->name : event.team_id;
+		LOG_DEBUG ("User " << event.user_id << " added: " << teamName);
+	});
+
+	connect (&webSocketConnector, &WebSocketConnector::onAddedToTeam, [this](const UserTeamEvent& event) {
+		BackendTeam* team = storage.getTeamById (event.team_id
+				);
+		QString teamName = team ? team->name : event.team_id;
+		LOG_DEBUG ("User " << event.user_id << " added to team: " << teamName);
+
+		//Adds the new team. It's channels and messages in channels will be obtained too
+		if (!team) {
+			getTeam (event.team_id);
+		}
+	});
+
+	connect (&webSocketConnector, &WebSocketConnector::onLeaveTeam, [this](const UserTeamEvent& event) {
+		BackendTeam* team = storage.getTeamById (event.team_id);
+		QString teamName = team ? team->name : event.team_id;
+
+		LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
+		emit (onLeaveTeam (*team));
+
+		storage.eraseTeam (team->id);
+		//printTeams ();
+	});
+
+	connect (&httpConnector, &HTTPConnector::onNetworkError, this, &Backend::onNetworkError);
+
+	connect (&httpConnector, &HTTPConnector::onHttpError, [this] (uint32_t errorNumber, const QString& errorText) {
+
+		emit onHttpError (errorNumber, errorText);
+
+		if (errorNumber == 401 && isLoggedIn) { //invalid session, login again
+			QTimer::singleShot (1000, [this] {
+				loginRetry ();
+			});
+		}
 	});
 }
 
@@ -410,7 +410,7 @@ void Backend::getTeam (QString teamID)
 		team.deserialize (object);
 		storage.teams[team.id] = team;
 
-		emit onNewTeam (storage.teams[team.id]);
+		emit onAddedToTeam (storage.teams[team.id]);
     });
 }
 
@@ -560,28 +560,10 @@ void Backend::getChannelUnreadPost (BackendChannel& channel, std::function<void 
 		if (!lastReadPost.isEmpty()) {
 			responseHandler (lastReadPost);
 			emit onUnreadPostsAtStartup (channel);
+		} else {
+			static QString emptyString ("");
+			responseHandler (emptyString);
 		}
- //
-//		for (const auto &orderItemRef: root.value("order").toArray()) {
-//			auto order_id = orderItemRef.toString();
-//			auto item = posts_item.find(order_id).value().toObject();
-//
-//			BackendPost post;
-//			post.deserialize (item);
-//
-//			for (auto& file: post.files) {
-//				getFile (file->id, [&file] (QByteArray& data) {
-//					file->contents = data;
-//					emit file->onContentsAvailable();
-//				});
-//			}
-//
-//			post.author = storage.getUserById (post.user_id);
-//			channel.posts.prepend (std::move (post));
-//			//qDebug() << post.create_at << post.author->username << " " << post.message;
-//		}
-//
-//		responseHandler ();
     });
 }
 
@@ -607,7 +589,7 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QS
 	NetworkRequest request ("posts");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
+	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 0
@@ -635,7 +617,7 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 	QByteArray data = file.readAll();
 	qDebug() << data.size();
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
+	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 1
