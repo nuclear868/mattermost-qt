@@ -8,6 +8,7 @@
 #pragma once
 
 #include <QMap>
+#include <QSharedPointer>
 #include "backend/types/BackendUser.h"
 #include "backend/types/BackendTeam.h"
 
@@ -18,13 +19,15 @@ public:
 	Storage ();
 	virtual ~Storage ();
 public:
+	void reset ();
+
 	BackendTeam* getTeamById (const QString& teamID);
 
 	BackendChannel* getChannelById (const QString& channelID);
 
 	BackendUser* getUserById (const QString& userID);
 
-	void addTeam (BackendTeam& team);
+	void addTeam (BackendTeam* team);
 
 	void addChannel (BackendTeam& team, BackendChannel* channel);
 
@@ -32,13 +35,12 @@ public:
 
 	void printTeams ();
 public:
-	QMap<QString, BackendTeam> 		teams;
-	QMap<QString, BackendChannel*> 	channels;
-	QMap<QString, BackendUser> 		users;
-	BackendUser						loginUser;
-	QList<BackendChannel*>			directChannels;
-	uint32_t						totalUsersCount;
-	uint32_t						nonFilledTeams;
+	QMap<QString, QSharedPointer<BackendTeam>>		teams;
+	QMap<QString, BackendChannel*> 					channels;
+	QMap<QString, BackendUser> 						users;
+	BackendUser										loginUser;
+	std::vector<std::unique_ptr<BackendChannel>>	directChannels;
+	uint32_t										totalUsersCount;
 };
 
 } /* namespace Mattermost */

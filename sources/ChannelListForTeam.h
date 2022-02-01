@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <list>
+#include <memory>
 #include <QTreeWidgetItem>
 #include <QObject>
 
@@ -33,8 +35,9 @@ public:
 public:
 	void addChannel (BackendChannel& channel, QWidget *parent);
 public:
-	Backend&					backend;
-	QString						teamId;
+	Backend&							backend;
+	QString								teamId;
+	std::list<std::unique_ptr<ChatArea>>	chatAreas;
 };
 
 } /* namespace Mattermost */

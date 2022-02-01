@@ -14,9 +14,8 @@ class Backend;
 class LoginDialog: public QDialog {
 	Q_OBJECT
 public:
-	LoginDialog (QWidget *parent, Backend& backend);
+	LoginDialog (QWidget *parent, Backend& backend, bool autoLogin);
 	~LoginDialog ();
-public:
 private slots:
 	void on_login_pushButton_clicked();
 

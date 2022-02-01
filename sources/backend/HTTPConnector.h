@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <memory>
 #include <QNetworkAccessManager>
 #include "backend/types/BackendError.h"
 
@@ -17,6 +18,8 @@ class HTTPConnector: public QObject {
 public:
 	HTTPConnector ();
 	virtual ~HTTPConnector ();
+
+	void reset ();
 
 	void get (const QNetworkRequest &request, std::function<void(QVariant,QByteArray)> responseHandler);
 	void get (const QNetworkRequest &request, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
@@ -31,7 +34,7 @@ private:
 	//virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray)>&& responseHandler);
 	virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 private:
-	QNetworkAccessManager qnetworkManager;
+	std::unique_ptr<QNetworkAccessManager> qnetworkManager;
 };
 
 } /* namespace Mattermost */

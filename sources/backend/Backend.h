@@ -24,11 +24,16 @@ class Backend: public QObject
 public:
     explicit Backend (QObject *parent = nullptr);
 
+    void reset ();
+
     //login to server (/users/login)
     void login (const BackendLoginData& loginData, std::function<void()> callback);
 
     //login retry - after a HTTP error
     void loginRetry ();
+
+    //logout (/users/logout)
+    void logout (std::function<void ()> callback);
 
     //get specific user (/users/userID);
     void getUser (QString userID, std::function<void(BackendUser&)> callback);
@@ -46,15 +51,15 @@ public:
     void getFile (QString fileID, std::function<void(QByteArray&)> callback);
 
     //get own teams (/users/me/teams)
-    void getOwnTeams (std::function<void(QMap<QString, BackendTeam>&)> callback);
+    void getOwnTeams (std::function<void(BackendTeam&)> callback);
 
     //get a team (/teams/teamID)
     void getTeam (QString teamID);
 
     //get own channel memberships (/users/me/teams/teamID/channels)
-    void getOwnChannelMemberships (BackendTeam& team, std::function<void(QList<BackendChannel*>&)> callback);
+    void getOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback);
 
-    QList<BackendChannel*>& getDirectChannels ();
+    std::vector<std::unique_ptr<BackendChannel>>& getDirectChannels ();
 
     //get own channel memberships from all teams (/users/me/channel_members)
     //void getOwnAllChannelMemberships (std::function<void()> callback);
@@ -127,6 +132,7 @@ private:
     WebSocketConnector				webSocketConnector;
     BackendLoginData				loginData;
     bool							isLoggedIn;
+    uint32_t						nonFilledTeams;
 };
 
 } /* namespace Mattermost */

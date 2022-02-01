@@ -28,7 +28,7 @@ ChannelListForTeam::~ChannelListForTeam () = default;
 
 void ChannelListForTeam::addChannel (BackendChannel& channel, QWidget *parent)
 {
-	ChatArea *chatArea = new ChatArea (backend, channel, this, parent);
+	chatAreas.emplace_back(std::make_unique<ChatArea> (backend, channel, this, parent));
 }
 
 } /* namespace Mattermost */

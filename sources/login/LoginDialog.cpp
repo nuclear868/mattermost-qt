@@ -9,7 +9,7 @@
 
 namespace Mattermost {
 
-LoginDialog::LoginDialog (QWidget *parent, Backend& backend)
+LoginDialog::LoginDialog (QWidget *parent, Backend& backend, bool autoLogin)
 :QDialog(parent)
 ,backend (backend)
 ,ui(new Ui::LoginDialog)
@@ -33,7 +33,7 @@ LoginDialog::LoginDialog (QWidget *parent, Backend& backend)
 	ui->alias_lineEdit->setText (loginData.alias);
 
 	//if all data is available in the settings, use it for the login
-	if (loginData.areAllFieldsFilled()) {
+	if (autoLogin && loginData.areAllFieldsFilled()) {
 		loginToServer (loginData);
 	}
 }

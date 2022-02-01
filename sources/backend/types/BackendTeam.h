@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vector>
+#include <memory>
 #include <QJsonObject>
 #include <QVariant>
 
@@ -17,10 +19,8 @@ namespace Mattermost {
 
 class BackendTeam {
 public:
-	BackendTeam ();
+	BackendTeam (const QJsonObject& jsonObject);
 	virtual ~BackendTeam ();
-public:
-	void deserialize (const QJsonObject& jsonObject);
 public:
     QString			id;
     uint64_t		create_at;
@@ -37,8 +37,8 @@ public:
     bool 			allow_open_invite;
     QVariant 		scheme_id;
 
-	QList<BackendTeamMember> 	members;
-	QList<BackendChannel*>		channels;
+	QList<BackendTeamMember> 							members;
+	std::vector<std::unique_ptr<BackendChannel>>		channels;
 };
 
 } /* namespace Mattermost */

@@ -16,7 +16,6 @@ namespace Mattermost {
 ChannelList::ChannelList (QWidget* parent)
 :QTreeWidget (parent)
 {
-
 //	setColumnCount (2);
 //	setIconSize (QSize(24,24));
 //	header()->resizeSection(0 /*column index*/, 50 /*width*/);

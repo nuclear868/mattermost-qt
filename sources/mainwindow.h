@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <QSystemTrayIcon>
 #include <QMainWindow>
 #include <QSet>
 
@@ -9,6 +8,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+class QSystemTrayIcon;
 class QTreeWidgetItem;
 
 namespace Mattermost {
@@ -22,9 +22,9 @@ class BackendTeam;
 class MainWindow: public QMainWindow {
 	Q_OBJECT
 public:
-	MainWindow (QWidget *parent, Backend& backend);
+	MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& backend);
 	~MainWindow();
-protected:
+public:
 	void initializationComplete ();
 
 	void changeEvent (QEvent* event) override;
@@ -53,16 +53,18 @@ protected:
 	 */
 	void unreadMessagesNotify (const BackendChannel& channel);
 	void setNotificationsCountVisualization (uint32_t notificationsCount);
+private:
+	void createMenu ();
 private slots:
 	void channelListWidget_itemClicked(QTreeWidgetItem* item, QTreeWidgetItem*);
 private:
 	std::unique_ptr<Ui::MainWindow>		ui;
-	std::unique_ptr<QSystemTrayIcon> 	trayIcon;
-	std::unique_ptr<QMenu>				trayIconMenu;
+	QSystemTrayIcon&					trayIcon;
 	QSet<const BackendChannel*>			channelsWithNewPosts;
 	Backend&							backend;
 	ChatArea*							currentPage;
 	bool								currentTeamRestoredFromSettings;
+	bool								doDeinit;
 };
 
 } /* namespace Mattermost */

@@ -12,11 +12,21 @@ namespace Mattermost {
 
 Storage::Storage ()
 :totalUsersCount (0)
- ,nonFilledTeams (0)
 {
 }
 
 Storage::~Storage () = default;
+
+void Storage::reset ()
+{
+	teams.clear();
+
+	directChannels.clear();
+
+	channels.clear();
+	users.clear();
+	totalUsersCount = 0;
+}
 
 BackendUser* Storage::getUserById (const QString& userID)
 {
@@ -37,7 +47,7 @@ BackendTeam* Storage::getTeamById (const QString& teamID)
 		return nullptr;
 	}
 
-	return &*it;
+	return it->get();
 }
 
 BackendChannel* Storage::getChannelById (const QString& channelID)
@@ -51,10 +61,9 @@ BackendChannel* Storage::getChannelById (const QString& channelID)
 	return *it;
 }
 
-void Storage::addTeam (BackendTeam& team)
+void Storage::addTeam (BackendTeam* team)
 {
-	teams[team.id] = team;
-	++nonFilledTeams;
+	teams[team->id] = QSharedPointer<BackendTeam> (team);
 }
 
 void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
@@ -92,15 +101,16 @@ void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
 		if (user) {
 			channel->display_name = user->getDisplayName();
 		} else {
+			LOG_DEBUG ("Channel used not found for " << channel->id);
 			channel->display_name = all_users_id.first();
 		}
 
-		directChannels.append (channel);
-		channels[channel->id] = directChannels.back();
+		directChannels.emplace_back (channel);
+		channels[channel->id] = directChannels.back().get();
 
 	} else {
-		team.channels.append (channel);
-		channels[channel->id] = team.channels.back();
+		team.channels.emplace_back (channel);
+		channels[channel->id] = team.channels.back().get();
 	}
 }
 
@@ -109,7 +119,8 @@ void Storage::eraseTeam (const QString& teamID)
 	auto teamIt = teams.find (teamID);
 
 	if (teamIt != teams.end()) {
-		for (auto& it: teamIt->channels) {
+		auto& team = *teamIt;
+		for (auto& it: team->channels) {
 
 			LOG_DEBUG ("Team Channel: " << it->id);
 			auto channelIt = channels.find (it->id);
@@ -119,7 +130,7 @@ void Storage::eraseTeam (const QString& teamID)
 				channels.erase (channelIt);
 			}
 		}
-		LOG_DEBUG ("Erase Team: " << teamIt.key() << " " << &teamIt.value() << " " << teamIt.value().name);
+		LOG_DEBUG ("Erase Team: " << teamIt.key() << " " << &teamIt.value() << " " << teamIt.value()->name);
 		teams.erase (teamIt);
 	}
 }
@@ -128,13 +139,12 @@ void Storage::printTeams ()
 {
 	qDebug() << teams.size() << " teams";
 	for (auto& team: teams) {
-		qDebug() << "Team " << team.id << " " << &team << ":";
-		for (auto& channel: team.channels) {
-			qDebug() << "\tChannel: " << channel->id << channel;
+		qDebug() << "Team " << team->id << " " << team->display_name << ":";
+		for (auto& channel: team->channels) {
+			qDebug() << "\tChannel: " << channel->id << channel.get();
 		}
 	}
 }
-
 
 } /* namespace Mattermost */
 

@@ -24,6 +24,7 @@ public:
 	virtual ~WebSocketConnector ();
 public:
 	void open (const QString& urlString, const QString& token);
+	void close ();
 	void doHandshake ();
 signals:
 	void onChannelViewed (const ChannelViewedEvent& event);

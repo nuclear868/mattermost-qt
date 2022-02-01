@@ -14,8 +14,17 @@
 
 namespace Mattermost {
 
-HTTPConnector::HTTPConnector () = default;
+HTTPConnector::HTTPConnector ()
+:qnetworkManager (new QNetworkAccessManager)
+{
+}
+
 HTTPConnector::~HTTPConnector () = default;
+
+void HTTPConnector::reset ()
+{
+	qnetworkManager.reset(new QNetworkAccessManager());
+}
 
 void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVariant, QByteArray)> responseHandler)
 {
@@ -26,7 +35,7 @@ void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVa
 
 void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
 {
-	QNetworkReply* reply = qnetworkManager.get (request);
+	QNetworkReply* reply = qnetworkManager->get (request);
 	setProcessReply (reply, std::move (responseHandler));
 }
 
@@ -40,13 +49,14 @@ void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data
 void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data,
 		std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
 {
-	QNetworkReply* reply = qnetworkManager.post (request, data);
+	QNetworkReply* reply = qnetworkManager->post (request, data);
 	setProcessReply (reply, std::move (responseHandler));
 }
 
 void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
 {
 	connect(reply, &QNetworkReply::finished, [this, reply, responseHandler]() {
+		reply->deleteLater();
 
 		QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
 		auto data = reply->readAll();

@@ -9,17 +9,11 @@
 
 namespace Mattermost {
 
-BackendTeam::BackendTeam ()
+BackendTeam::BackendTeam (const QJsonObject& jsonObject)
 :create_at (0)
 ,update_at (0)
 ,delete_at (0)
 ,allow_open_invite (false)
-{
-}
-
-BackendTeam::~BackendTeam () = default;
-
-void BackendTeam::deserialize (const QJsonObject& jsonObject)
 {
 	id = jsonObject.value("id").toString();
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();
@@ -36,6 +30,8 @@ void BackendTeam::deserialize (const QJsonObject& jsonObject)
 	allow_open_invite = jsonObject.value("allow_open_invite").toBool();
 	scheme_id = jsonObject.value("scheme_id").toVariant();
 }
+
+BackendTeam::~BackendTeam () = default;
 
 } /* namespace Mattermost */
 

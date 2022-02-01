@@ -62,7 +62,7 @@ WebSocketConnector::WebSocketConnector ()
 		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
 		pingTimer.stop();
 		pongTimer.stop();
-		QTimer::singleShot (100000, [this] {
+		QTimer::singleShot (2000, [this] {
 			LOG_DEBUG ("WebSocket Reconnecting");
 			webSocket.open (webSocket.requestUrl());
 		});
@@ -113,6 +113,11 @@ void WebSocketConnector::doHandshake ()
 
 	QByteArray data = json.toJson(QJsonDocument::Compact);
 	webSocket.sendBinaryMessage(data);
+}
+
+void WebSocketConnector::close ()
+{
+	webSocket.close(QWebSocketProtocol::CloseCodeNormal, "Client Close");
 }
 
 void WebSocketConnector::onNewPacket (const QString& string)

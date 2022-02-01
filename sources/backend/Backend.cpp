@@ -34,6 +34,7 @@ namespace Mattermost {
 Backend::Backend(QObject *parent)
 :QObject (parent)
 ,isLoggedIn (false)
+,nonFilledTeams (0)
 {
 	connect (&webSocketConnector, &WebSocketConnector::onChannelViewed, [this](const ChannelViewedEvent& event) {
 		BackendChannel* channel = storage.getChannelById (event.channel_id);
@@ -129,6 +130,31 @@ Backend::Backend(QObject *parent)
 	});
 }
 
+void Backend::reset ()
+{
+	/*
+	 * This is important. Disconnect all signals. Added lambda functions are not removed when
+	 * objects are destroyed
+	 */
+	disconnect ();
+
+	//reinit all network connectors
+	httpConnector.reset ();
+	webSocketConnector.close ();
+	storage.reset ();
+	nonFilledTeams = 0;
+}
+
+void debugRequest (const QNetworkRequest& request, QByteArray data = QByteArray())
+{
+  qDebug() << request.url().toString();
+  const QList<QByteArray>& rawHeaderList(request.rawHeaderList());
+  foreach (QByteArray rawHeader, rawHeaderList) {
+    qDebug() << request.rawHeader(rawHeader);
+  }
+  qDebug() << data;
+}
+
 void Backend::login (const BackendLoginData& loginData, std::function<void()> callback)
 {
 	this->loginData = loginData;
@@ -150,6 +176,8 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 	NetworkRequest request ("users/login");
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
+
+	debugRequest (request, data);
 
 	httpConnector.post(request, data, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -196,6 +224,8 @@ void Backend::loginRetry ()
 	NetworkRequest request ("users/login");
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
+	debugRequest (request, data);
+
 	httpConnector.post(request, data, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -218,6 +248,21 @@ void Backend::loginRetry ()
 
 		//webSocketConnector.open (NetworkRequest::host(), loginToken);
 		isLoggedIn = true;
+	});
+}
+
+void Backend::logout (std::function<void ()> callback)
+{
+	NetworkRequest request ("users/logout");
+	isLoggedIn = false;
+
+	httpConnector.post (request, QByteArray(), [callback] (QVariant, QByteArray data) {
+		LOG_DEBUG ("Logout done");
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		qDebug () << jsonString;
+		callback ();
 	});
 }
 
@@ -269,7 +314,6 @@ void Backend::getTotalUsersCount (std::function<void(uint32_t)> callback)
 
 void Backend::getAllUsers ()
 {
-
 	uint32_t usersPerPage = 200;
 	uint32_t totalPages = CONTAINER_COUNT (storage.totalUsersCount, usersPerPage);
 	static uint32_t obtainedPages;
@@ -319,6 +363,7 @@ void Backend::getAllUsers ()
 			if (obtainedPages == totalPages) {
 				emit onAllUsers ();
 				LOG_DEBUG ("Get Users: Done ");
+				obtainedPages = 0;
 			}
 		});
 
@@ -359,7 +404,7 @@ void Backend::getFile (QString fileID, std::function<void (QByteArray&)> callbac
 /**
  * Get a list of teams that a user is on.
  */
-void Backend::getOwnTeams (std::function<void(QMap<QString, BackendTeam>&)> callback)
+void Backend::getOwnTeams (std::function<void(BackendTeam&)> callback)
 {
     NetworkRequest request ("users/me/teams");
     //request.setRawHeader("X-Requested-With", "XMLHttpRequest");
@@ -380,12 +425,14 @@ void Backend::getOwnTeams (std::function<void(QMap<QString, BackendTeam>&)> call
 
 		auto root = doc.array();
 		for (const auto &itemRef: qAsConst(root)) {
-			BackendTeam team;
-			team.deserialize (itemRef.toObject());
+			BackendTeam* team = new BackendTeam (itemRef.toObject());
 			storage.addTeam (team);
+			++nonFilledTeams;
 		}
 
-		callback (storage.teams);
+		for (auto& team: storage.teams) {
+			callback (*team.get());
+		}
     });
 }
 
@@ -406,15 +453,14 @@ void Backend::getTeam (QString teamID)
 #endif
 
 		auto object = doc.object();
-		BackendTeam team;
-		team.deserialize (object);
-		storage.teams[team.id] = team;
+		BackendTeam *team = new BackendTeam (object);
+		storage.addTeam (team);
 
-		emit onAddedToTeam (storage.teams[team.id]);
+		emit onAddedToTeam (*team);
     });
 }
 
-void Backend::getOwnChannelMemberships (BackendTeam& team, std::function<void(QList<BackendChannel*>&)> callback)
+void Backend::getOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback)
 {
     NetworkRequest request ("users/me/teams/" + team.id + "/channels");
 
@@ -435,10 +481,13 @@ void Backend::getOwnChannelMemberships (BackendTeam& team, std::function<void(QL
 			storage.addChannel (team, channel);
 		}
 
-		callback (team.channels);
-		--storage.nonFilledTeams;
+		for (auto& channel: team.channels) {
+			callback (*channel.get());
+		}
 
-		if (storage.nonFilledTeams == 0) {
+		--nonFilledTeams;
+
+		if (nonFilledTeams == 0) {
 			emit onAllTeamChannelsPopulated ();
 		}
     });
@@ -633,7 +682,7 @@ const BackendUser& Backend::getLoginUser () const
 	return storage.loginUser;
 }
 
-QList<BackendChannel*>& Backend::getDirectChannels ()
+std::vector<std::unique_ptr<BackendChannel>>& Backend::getDirectChannels ()
 {
 	return storage.directChannels;
 }

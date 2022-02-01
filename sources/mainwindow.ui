@@ -122,6 +122,9 @@ QComboBox::drop-down {
            <height>42</height>
           </size>
          </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
         </widget>
        </item>
        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
@@ -135,6 +138,20 @@ QComboBox::drop-down {
          <property name="styleSheet">
           <string notr="true">font-family: &quot;Open Sans&quot;, sans-serif;
 font-size: 16px;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButton">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resource.qrc">
+           <normaloff>:/icons/burger</normaloff>:/icons/burger</iconset>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
          </property>
         </widget>
        </item>
@@ -223,6 +240,11 @@ QTreeWidget::branch:closed:has-children {
     </rect>
    </property>
   </widget>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -231,6 +253,10 @@ QTreeWidget::branch:closed:has-children {
    <header>sources/ChannelList.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>channelList</tabstop>
+  <tabstop>toolButton</tabstop>
+ </tabstops>
  <resources>
   <include location="../resource.qrc"/>
  </resources>

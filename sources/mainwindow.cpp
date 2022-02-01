@@ -1,7 +1,9 @@
 
 #include "mainwindow.h"
 
+#include <QWindow>
 #include <QCloseEvent>
+#include <QSystemTrayIcon>
 #include "./ui_mainwindow.h"
 #include "chat-area/ChatArea.h"
 #include "ChannelListForTeam.h"
@@ -10,25 +12,21 @@
 
 namespace Mattermost {
 
-MainWindow::MainWindow (QWidget *parent, Backend& _backend)
+MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _backend)
 :QMainWindow(parent)
-,ui(std::make_unique<Ui::MainWindow>())
-,trayIconMenu (std::make_unique<QMenu> (this))
+,ui (std::make_unique<Ui::MainWindow>())
+,trayIcon (trayIcon)
 ,backend (_backend)
 ,currentPage (nullptr)
 ,currentTeamRestoredFromSettings (false)
+,doDeinit (false)
 {
 	LOG_DEBUG ("MainWindow create start");
 
 	ui->setupUi(this);
+	ui->channelList->setFocus();
 
-	trayIconMenu->addAction("Open Mattermost", this, &MainWindow::show);
-	trayIconMenu->addAction("Quit", this, &MainWindow::onQuit);
-
-	trayIcon = std::make_unique<QSystemTrayIcon> (QIcon(":/icons/img/icon0.ico"),this);
-	trayIcon->setToolTip(tr("Mattermost Qt"));
-	trayIcon->setContextMenu (trayIconMenu.get());
-	trayIcon->show();
+	createMenu ();
 
 	BackendUser currentUser = backend.getLoginUser();
 
@@ -51,29 +49,25 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 		});
 	});
 
+
 	backend.getTotalUsersCount ([this] (uint32_t) {
 		backend.getAllUsers ();
 
-		backend.getOwnTeams ([this](QMap<QString, BackendTeam>& teams) {
+		/*
+		 * Adds each team in which the LoginUser participates.
+		 * The callback is called once for each team
+		 */
+		backend.getOwnTeams ([this](BackendTeam& team) {
+
+			//Add team here, so that they are added in the proper order
+			ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
 
 			/*
-			 * Adds each team in which the LoginUser participates
+			 * Gets all channels of the team, where the user is member
 			 */
-			for (auto& team: teams) {
-
-				//Add team here, so that they are added in the proper order
-				ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
-
-				/*
-				 * Gets all channels of the team, where the user is member
-				 */
-				backend.getOwnChannelMemberships (team, [this, teamChannelList] (QList<BackendChannel*>& channels){
-
-					for (auto &channel: channels) {
-						teamChannelList->addChannel (*channel, ui->centralwidget);
-					}
-				}); //on getOwnChannelMemberships()
-			} //teams loop
+			backend.getOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel) {
+				teamChannelList->addChannel (channel, ui->centralwidget);
+			}); //on getOwnChannelMemberships()
 		}); //on getOwnTeams()
 	}); //on getTotalUsersCount()
 
@@ -93,7 +87,7 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 	 * So, all team channels have to be received in order to know all (unique) direct channels
 	 */
 	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this]() {
-		LOG_DEBUG ("All Team Channels filled");
+		LOG_DEBUG ("All Team Channels filled " << (void*) this);
 		ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, "Direct Messages", "");
 
 		for (auto &channel: backend.getDirectChannels()) {
@@ -131,11 +125,8 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 		/*
 		 * Gets all channels of the team, where the user is member
 		 */
-		backend.getOwnChannelMemberships (team, [this, teamChannelList] (QList<BackendChannel*>& channels){
-
-			for (auto &channel: channels) {
-				teamChannelList->addChannel (*channel, ui->centralwidget);
-			}
+		backend.getOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel){
+			teamChannelList->addChannel (channel, ui->centralwidget);
 		});
 	});
 
@@ -159,6 +150,29 @@ MainWindow::MainWindow (QWidget *parent, Backend& _backend)
 }
 
 MainWindow::~MainWindow() = default;
+
+void MainWindow::createMenu ()
+{
+	QMenu* mainMenu = new QMenu (ui->toolButton);
+
+	QMenu* fileMenu = mainMenu->addMenu ("File");
+	fileMenu->addAction ("Logout", [this] {
+		backend.logout ([] {
+			LOG_DEBUG ("Logout done");
+		});
+
+		QTimer::singleShot (100, [this] {
+			backend.reset();
+			doDeinit = true;
+			QMainWindow::close ();
+		});
+	});
+
+	QMenu* helpMenu = mainMenu->addMenu ("Help");
+	helpMenu->addAction ("About");
+	ui->toolButton->setMenu(mainMenu);
+}
+
 
 void MainWindow::changeEvent (QEvent* event)
 {
@@ -186,7 +200,14 @@ void MainWindow::changeEvent (QEvent* event)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	if (trayIcon->isVisible()) {
+	qDebug() << "closeEvent";
+
+	if (doDeinit) {
+		qDebug() << "QMainWindow closeEvent";
+		return QMainWindow::closeEvent (event);
+	}
+
+	if (trayIcon.isVisible()) {
 		hide();
 		event->ignore();
 	}
@@ -243,7 +264,7 @@ void MainWindow::messageNotify (const BackendChannel& channel, const BackendPost
 	 * If the Mattermost window is active (has focus) and the current channel is active,
 	 * do not add notifications. We assume that the user is watching the chat window
 	 */
-	if (isActiveWindow() && &channel == &currentPage->getChannel()) {
+	if (isActiveWindow() && currentPage && &channel == &currentPage->getChannel()) {
 		return;
 	}
 
@@ -256,7 +277,7 @@ void MainWindow::messageNotify (const BackendChannel& channel, const BackendPost
 		title = post.getDisplayAuthorName () + " posted in '" + channel.display_name + "'";
 	}
 
-	trayIcon->showMessage (title, post.message, QSystemTrayIcon::Information);
+	trayIcon.showMessage (title, post.message, QSystemTrayIcon::Information);
 	qApp->alert (nullptr, 0);
 
 	//update the count of new channels in the taskbar and tray icon
@@ -283,7 +304,7 @@ void MainWindow::setNotificationsCountVisualization (uint32_t notificationsCount
 	//set the count in the tray icon
 	notificationsCount = std::min (notificationsCount, 6u);
 	QString iconName (":/icons/img/icon" + QString::number(notificationsCount) + ".ico");
-	trayIcon->setIcon(QIcon(iconName));
+	trayIcon.setIcon(QIcon(iconName));
 }
 
 void MainWindow::onQuit ()
