@@ -61,8 +61,9 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 
 	connect (&channel, &BackendChannel::onViewed, [this] {
 		LOG_DEBUG ("Channel viewed: " << this->channel.name);
+		setUnreadMessagesCount (0);
 		if (newMessagesSeparator) {
-			removeNewMessagesSeparatorTimer.start (5000);
+			removeNewMessagesSeparatorTimer.start (1000);
 		}
 	});
 
@@ -129,9 +130,9 @@ void ChatArea::appendChannelPost (const BackendPost& post)
 		message->setOwnMessage ();
 	}
 
-	bool isVisible = treeItem->isSelected() && isActiveWindow ();
+	bool chatAreaHasFocus = treeItem->isSelected() && isActiveWindow ();
 
-	if (!isVisible) {
+	if (!chatAreaHasFocus) {
 		addNewMessagesSeparator ();
 	}
 
@@ -143,8 +144,8 @@ void ChatArea::appendChannelPost (const BackendPost& post)
 	newItem->setSizeHint(QSize (message->width(), message->heightForWidth(ui->listWidget->size().width())));
 	ui->listWidget->scrollToBottom();
 
-	//do not add unread messages count if the item is selected
-	if (isVisible) {
+	//do not add unread messages count if the Chat Area is on focus
+	if (chatAreaHasFocus) {
 		return;
 	}
 
@@ -174,8 +175,6 @@ void ChatArea::handleUserTyping (const BackendUser& user)
 
 void ChatArea::onActivate ()
 {
-	setUnreadMessagesCount (0);
-
 	if (newMessagesSeparator) {
 		ui->listWidget->scrollToItem (newMessagesSeparator, QAbstractItemView::PositionAtCenter);
 	} else {
@@ -184,11 +183,14 @@ void ChatArea::onActivate ()
 
 	//hack to resize chat area which was inactive
 	ui->listWidget->resize(200, 299);
+
+	backend.markChannelAsViewed (channel);
 }
 
-void ChatArea::onWindowActivate ()
+void ChatArea::onMainWindowActivate ()
 {
 	setUnreadMessagesCount (0);
+	backend.markChannelAsViewed (channel);
 }
 
 void ChatArea::addNewMessagesSeparator ()

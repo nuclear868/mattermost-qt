@@ -183,7 +183,7 @@ void MainWindow::changeEvent (QEvent* event)
 			qDebug() << "Activated";
 
 			if (currentPage) {
-				currentPage->onWindowActivate();
+				currentPage->onMainWindowActivate ();
 
 				if (channelsWithNewPosts.remove (&currentPage->getChannel())) {
 					setNotificationsCountVisualization (channelsWithNewPosts.size());

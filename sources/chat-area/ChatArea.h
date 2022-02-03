@@ -36,10 +36,10 @@ public:
 	void onActivate ();
 
 	/**
-	 * Called when the entire Mattermost window is being activated (gains focus).
-	 * Called only if the chat area is the currently active one (so that it's contents is shown)
+	 * Called when the main Mattermost window is being activated (gains focus).
+	 * Called only if the chat area is the currently active one (so that it's contents is visible)
 	 */
-	void onWindowActivate ();
+	void onMainWindowActivate ();
 private:
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();

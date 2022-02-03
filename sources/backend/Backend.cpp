@@ -124,6 +124,7 @@ Backend::Backend(QObject *parent)
 
 		if (errorNumber == 401 && isLoggedIn) { //invalid session, login again
 			QTimer::singleShot (1000, [this] {
+				httpConnector.reset ();
 				loginRetry ();
 			});
 		}
@@ -177,7 +178,7 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
-	debugRequest (request, data);
+	//debugRequest (request, data);
 
 	httpConnector.post(request, data, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -224,7 +225,7 @@ void Backend::loginRetry ()
 	NetworkRequest request ("users/login");
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	debugRequest (request, data);
+	//debugRequest (request, data);
 
 	httpConnector.post(request, data, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -614,6 +615,33 @@ void Backend::getChannelUnreadPost (BackendChannel& channel, std::function<void 
 			responseHandler (emptyString);
 		}
     });
+}
+
+void Backend::markChannelAsViewed (BackendChannel& channel)
+{
+	QJsonObject  json;
+
+	json.insert ("channel_id", channel.id);
+
+	//maybe add prev_channel_id, the Mattermost API supports it
+	//json.insert ("prev_channel_id", channel.id);
+
+	QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
+
+	NetworkRequest request ("channels/members/me/view");
+	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		//no callbacks are required. the server will send a WebSocket packet 'channel_viewed'
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+
+	});
 }
 
 void Backend::addPost (BackendChannel& channel, const QString& message, const QString& rootID)
