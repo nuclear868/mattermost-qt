@@ -125,6 +125,7 @@ Backend::Backend(QObject *parent)
 		if (errorNumber == 401 && isLoggedIn) { //invalid session, login again
 			QTimer::singleShot (1000, [this] {
 				httpConnector.reset ();
+				webSocketConnector.close();
 				loginRetry ();
 			});
 		}
@@ -247,7 +248,7 @@ void Backend::loginRetry ()
 			qCritical() << "Login Token is empty. WebSocket communication may not work";
 		}
 
-		//webSocketConnector.open (NetworkRequest::host(), loginToken);
+		webSocketConnector.open (NetworkRequest::host(), loginToken);
 		isLoggedIn = true;
 	});
 }
@@ -395,7 +396,6 @@ void Backend::getUserImage (QString userID, std::function<void(QByteArray&)> cal
 void Backend::getFile (QString fileID, std::function<void (QByteArray&)> callback)
 {
 	NetworkRequest request ("files/" + fileID);
-	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
 	httpConnector.get(request, [this, fileID, callback](QVariant, QByteArray data) {
 		callback (data);
@@ -574,8 +574,9 @@ void Backend::getChannelPosts (BackendChannel& channel, int page, int perPage, s
 			post.deserialize (item);
 
 			for (auto& file: post.files) {
-				getFile (file->id, [&file] (QByteArray& data) {
+				getFile (file->id, [&channel, authorName = storage.getUserById (post.user_id), &file] (QByteArray& data) {
 					file->contents = data;
+					qDebug() << channel.name << ": " << authorName << ": Got file: " << file->name << " " << file->size;
 					emit file->onContentsAvailable();
 				});
 			}

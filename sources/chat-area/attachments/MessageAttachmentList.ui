@@ -39,7 +39,7 @@
     <number>10</number>
    </property>
    <item row="0" column="0">
-    <widget class="Mattermost::AttachmentListWidget" name="listWidget">
+    <widget class="Mattermost::MessageAttachmentListWidget" name="listWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -70,9 +70,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Mattermost::AttachmentListWidget</class>
+   <class>Mattermost::MessageAttachmentListWidget</class>
    <extends>QListWidget</extends>
-   <header>chat-area/attachments/AttachmentListWidget.h</header>
+   <header>chat-area/attachments/MessageAttachmentListWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

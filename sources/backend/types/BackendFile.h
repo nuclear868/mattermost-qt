@@ -23,6 +23,8 @@ signals:
 public:
 	QString				id;
 	QString				name;
+	QString				mimeType;
+	size_t				size;
 	QString				extension;
 	QByteArray			mini_preview;
 	QByteArray			contents;

@@ -1,18 +1,18 @@
 /**
- * @file AttachmentListWidget.cpp
+ * @file MessageAttachmentListWidget.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Jan 21, 2022
  */
 
 #include <QDebug>
-#include "AttachmentListWidget.h"
+#include "MessageAttachmentListWidget.h"
 
 #define ATTACHMENT_LIST_MAX_SIZE 1000
 
 namespace Mattermost {
 
-QSize AttachmentListWidget::sizeHint () const
+QSize MessageAttachmentListWidget::sizeHint () const
 {
 	QSize size (0,0);
 

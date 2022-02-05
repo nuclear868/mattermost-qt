@@ -56,10 +56,10 @@ void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data
 void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
 {
 	connect(reply, &QNetworkReply::finished, [this, reply, responseHandler]() {
-		reply->deleteLater();
 
 		QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
 		auto data = reply->readAll();
+		reply->deleteLater();
 
 		if (statusCode == 200 || statusCode == 201) {
 			return responseHandler (statusCode, qMove (data), *reply);

@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QDebug>
 #include <QListWidgetItem>
+#include "AttachedBinaryFile.h"
 #include "backend/types/BackendFile.h"
 #include "backend/types/BackendUser.h"
 #include "preview-window/FilePreview.h"
@@ -40,6 +41,15 @@ MessageAttachmentList::~MessageAttachmentList()
 void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser& author)
 {
 	if (file.mini_preview.isEmpty()) {
+		QWidget* fileWidget = new AttachedBinaryFile (file, this);
+	    QListWidgetItem* newItem = new QListWidgetItem();
+
+		ui->listWidget->addItem (newItem);
+		ui->listWidget->setItemWidget (newItem, fileWidget);
+
+		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height()));
+
+		ui->listWidget->updateGeometry();
 		return;
 	}
 
