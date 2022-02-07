@@ -16,7 +16,7 @@ QString NetworkRequest::httpToken;
 
 NetworkRequest::NetworkRequest () = default;
 
-NetworkRequest::NetworkRequest (const QString& url)
+NetworkRequest::NetworkRequest (const QString& url, bool useCache)
 {
 	setUrl (httpHost + url);
 
@@ -25,6 +25,8 @@ NetworkRequest::NetworkRequest (const QString& url)
 	if (!httpToken.isEmpty()) {
 		setRawHeader("Authorization", httpToken.toUtf8());
 	}
+
+	setAttribute (QNetworkRequest::CacheSaveControlAttribute, useCache);
 }
 
 NetworkRequest::~NetworkRequest () = default;

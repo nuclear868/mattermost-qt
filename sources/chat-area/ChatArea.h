@@ -13,6 +13,7 @@ class QListWidgetItem;
 
 namespace Mattermost {
 
+class BackendFile;
 class Backend;
 class BackendChannel;
 class BackendPost;
@@ -26,7 +27,7 @@ public:
 public:
 	BackendChannel& getChannel ();
 	void fillChannelPosts (const QString& lastReadPostID);
-	void appendChannelPost (const BackendPost& post);
+	void appendChannelPost (BackendPost& post);
 	void handleUserTyping (const BackendUser& user);
 	void sendNewPost ();
 
@@ -40,18 +41,21 @@ public:
 	 * Called only if the chat area is the currently active one (so that it's contents is visible)
 	 */
 	void onMainWindowActivate ();
+
+	void addFileToload (BackendFile* file);
 private:
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void setUnreadMessagesCount (uint32_t count);
 private:
-	Ui::ChatArea 		*ui;
-	Backend& 			backend;
-	BackendChannel& 	channel;
-	QTimer				removeNewMessagesSeparatorTimer;
-	QTreeWidgetItem		*treeItem;
-	QListWidgetItem		*newMessagesSeparator;
-	uint32_t			unreadMessagesCount;
+	Ui::ChatArea 					*ui;
+	Backend& 						backend;
+	BackendChannel& 				channel;
+	std::vector<BackendFile*>		filesToLoad;
+	QTimer							removeNewMessagesSeparatorTimer;
+	QTreeWidgetItem					*treeItem;
+	QListWidgetItem					*newMessagesSeparator;
+	uint32_t						unreadMessagesCount;
 };
 
 } /* namespace Mattermost */

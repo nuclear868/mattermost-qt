@@ -8,8 +8,11 @@
 #pragma once
 
 #include <memory>
-#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include "backend/types/BackendError.h"
+
+class QNetworkAccessManager;
+class QNetworkDiskCache;
 
 namespace Mattermost {
 
@@ -34,7 +37,8 @@ private:
 	//virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray)>&& responseHandler);
 	virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 private:
-	std::unique_ptr<QNetworkAccessManager> qnetworkManager;
+	std::unique_ptr<QNetworkAccessManager> 	qnetworkManager;
+	std::unique_ptr<QNetworkDiskCache>		diskCache;
 };
 
 } /* namespace Mattermost */

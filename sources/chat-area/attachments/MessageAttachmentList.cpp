@@ -53,17 +53,24 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
 		return;
 	}
 
+    QLabel* label = new QLabel (this);
+	QListWidgetItem* newItem = new QListWidgetItem();
 	QImage img = QImage::fromData (file.mini_preview);
-
-	QLabel* label = new QLabel (this);
-    label->setPixmap (QPixmap::fromImage(img));
-    QListWidgetItem* newItem = new QListWidgetItem();
 
 	ui->listWidget->addItem (newItem);
 	ui->listWidget->setItemWidget (newItem, label);
+    label->setPixmap (QPixmap::fromImage(img));
+
+	/*
+	 * Parent of MessageAttachmentList is MessageWidget.
+	 * Parent of MessageWidget is PostListWidget.
+	 * However, no idea why the last parentWidget() is needed
+	 */
+    parentWidget()->parentWidget()->parentWidget()->adjustSize();
 
     if (file.contents.isEmpty()) {
-    	connect (&file, &BackendFile::onContentsAvailable, [&file, &author, label, newItem, this](){
+    	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, &author, this](){
+
     		QImage img = QImage::fromData (file.contents);
 			if (img.width() > 500) {
 				img = img.scaledToWidth (500, Qt::SmoothTransformation);
@@ -72,8 +79,13 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
     		label->adjustSize();
     		newItem->setSizeHint(QSize (label->width(), label->height()));
 
-    		ui->listWidget->updateGeometry();
-    		//itemToFileMap[newItem] = {file.contents, file.name, author.getDisplayName()};
+    		/*
+    		 * Parent of MessageAttachmentList is MessageWidget.
+    		 * Parent of MessageWidget is PostListWidget.
+    		 * However, no idea why the last parentWidget() is needed
+    		 */
+    		parentWidget()->parentWidget()->parentWidget()->adjustSize();
+
     		itemToFileMap.emplace(newItem, FilePreviewData{file.contents, file.name, author.getDisplayName()});
     	});
     }

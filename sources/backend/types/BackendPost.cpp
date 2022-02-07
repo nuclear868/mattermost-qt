@@ -63,7 +63,7 @@ void BackendPost::deserialize (const QJsonObject& jsonObject)
 	QJsonObject metadata = jsonObject.value("metadata").toObject();
 
 	for (const auto &fileElement: metadata.value("files").toArray()) {
-		files.push_back(new BackendFile (fileElement.toObject()));
+		files.emplace_back (fileElement.toObject());
 	}
 }
 

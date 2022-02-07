@@ -58,9 +58,9 @@ Backend::Backend(QObject *parent)
 		QString channelName = channel ? channel->name : event.post.channel_id;
 
 		for (auto& file: post.files) {
-			getFile (file->id, [&file] (QByteArray& data) {
-				file->contents = data;
-				emit file->onContentsAvailable();
+			getFile (file.id, [&file] (QByteArray& data) {
+				file.contents = data;
+				emit file.onContentsAvailable();
 			});
 		}
 
@@ -72,7 +72,7 @@ Backend::Backend(QObject *parent)
 			emit onNewPost (*channel, post);
 		}
 
-		channel->posts.append (std::move (post));
+		channel->posts.emplace_back (std::move (post));
 	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onTyping, [this](const TypingEvent& event) {
@@ -375,7 +375,7 @@ void Backend::getAllUsers ()
 
 void Backend::getUserImage (QString userID, std::function<void(QByteArray&)> callback)
 {
-	NetworkRequest request ("users/" + userID + "/image");
+	NetworkRequest request ("users/" + userID + "/image", true);
 
 	httpConnector.get(request, [this, userID, callback](QVariant, QByteArray data) {
 
@@ -395,7 +395,8 @@ void Backend::getUserImage (QString userID, std::function<void(QByteArray&)> cal
 
 void Backend::getFile (QString fileID, std::function<void (QByteArray&)> callback)
 {
-	NetworkRequest request ("files/" + fileID);
+	NetworkRequest request ("files/" + fileID, true);
+	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
 	httpConnector.get(request, [this, fileID, callback](QVariant, QByteArray data) {
 		callback (data);
@@ -573,6 +574,7 @@ void Backend::getChannelPosts (BackendChannel& channel, int page, int perPage, s
 			BackendPost post;
 			post.deserialize (item);
 
+#if 0
 			for (auto& file: post.files) {
 				getFile (file->id, [&channel, authorName = storage.getUserById (post.user_id), &file] (QByteArray& data) {
 					file->contents = data;
@@ -580,9 +582,10 @@ void Backend::getChannelPosts (BackendChannel& channel, int page, int perPage, s
 					emit file->onContentsAvailable();
 				});
 			}
+#endif
 
 			post.author = storage.getUserById (post.user_id);
-			channel.posts.prepend (std::move (post));
+			channel.posts.insert (channel.posts.begin(), std::move (post));
 			//qDebug() << post.create_at << post.author->username << " " << post.message;
 		}
 

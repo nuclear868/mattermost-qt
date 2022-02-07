@@ -12,13 +12,14 @@ namespace Mattermost {
 
 class BackendPost;
 class MessageAttachmentList;
+class ChatArea;
 
 class MessageWidget: public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit MessageWidget (const BackendPost &post, QWidget *parent = nullptr);
+    explicit MessageWidget (BackendPost &post, QWidget *parent, ChatArea* chatArea);
     ~MessageWidget();
 public:
     void setOwnMessage ();
@@ -28,6 +29,7 @@ public:
 private:
     Ui::MessageWidget*						ui;
     std::unique_ptr<MessageAttachmentList>	attachments;
+    ChatArea* 								chatArea;
 };
 
 } /* namespace Mattermost */

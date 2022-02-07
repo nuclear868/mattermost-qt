@@ -7,6 +7,9 @@
 
 #include "HTTPConnector.h"
 
+#include <QAbstractNetworkCache>
+#include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -16,7 +19,10 @@ namespace Mattermost {
 
 HTTPConnector::HTTPConnector ()
 :qnetworkManager (new QNetworkAccessManager)
+,diskCache (new QNetworkDiskCache)
 {
+	diskCache->setCacheDirectory ("cache");
+	qnetworkManager->setCache (diskCache.get());
 }
 
 HTTPConnector::~HTTPConnector () = default;
@@ -60,6 +66,14 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 		QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
 		auto data = reply->readAll();
 		reply->deleteLater();
+
+		QAbstractNetworkCache* cache = qnetworkManager->cache();
+
+		if (cache) {
+			qDebug () << "Cache size: " << cache->cacheSize();
+		} else {
+			qDebug () << "No Cache: ";
+		}
 
 		if (statusCode == 200 || statusCode == 201) {
 			return responseHandler (statusCode, qMove (data), *reply);

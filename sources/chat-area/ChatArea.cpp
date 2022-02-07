@@ -102,7 +102,7 @@ BackendChannel& ChatArea::getChannel ()
 void ChatArea::fillChannelPosts (const QString& lastReadPostID)
 {
 	for (auto& post: channel.posts) {
-		MessageWidget* message = new MessageWidget (post);
+		MessageWidget* message = new MessageWidget (post, ui->listWidget, this);
 
 		if (post.isOwnPost()) {
 			message->setOwnMessage ();
@@ -122,9 +122,9 @@ void ChatArea::fillChannelPosts (const QString& lastReadPostID)
 	setUnreadMessagesCount (unreadMessagesCount);
 }
 
-void ChatArea::appendChannelPost (const BackendPost& post)
+void ChatArea::appendChannelPost (BackendPost& post)
 {
-	MessageWidget* message = new MessageWidget (post);
+	MessageWidget* message = new MessageWidget (post, ui->listWidget, this);
 
 	if (post.isOwnPost()) {
 		message->setOwnMessage ();
@@ -181,10 +181,21 @@ void ChatArea::onActivate ()
 		ui->listWidget->scrollToBottom();
 	}
 
-	//hack to resize chat area which was inactive
-	ui->listWidget->resize(200, 299);
+	ui->listWidget->adjustSize();
 
 	backend.markChannelAsViewed (channel);
+
+	for (auto& file: filesToLoad) {
+
+		if (!file->contents.isEmpty()) {
+			continue;
+		}
+
+		backend.getFile (file->id, [file] (QByteArray& data) {
+			file->contents = data;
+			emit file->onContentsAvailable();
+		});
+	}
 }
 
 void ChatArea::onMainWindowActivate ()
@@ -213,6 +224,11 @@ void ChatArea::removeNewMessagesSeparator ()
 
 	delete newMessagesSeparator;
 	newMessagesSeparator = nullptr;
+}
+
+void ChatArea::addFileToload (BackendFile* file)
+{
+	filesToLoad.push_back (file);
 }
 
 void ChatArea::setUnreadMessagesCount (uint32_t count)

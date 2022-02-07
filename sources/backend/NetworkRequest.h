@@ -15,7 +15,7 @@ namespace Mattermost {
 class NetworkRequest: public QNetworkRequest {
 public:
 	NetworkRequest ();
-	NetworkRequest (const QString& url);
+	NetworkRequest (const QString& url, bool useCache = false);
 	virtual ~NetworkRequest ();
 public:
 	static void setHost (const QString& host);

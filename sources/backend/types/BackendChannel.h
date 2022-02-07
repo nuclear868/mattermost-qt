@@ -9,6 +9,7 @@
 
 #include <QJsonObject>
 #include <QVariant>
+#include <list>
 #include "BackendPost.h"
 
 namespace Mattermost {
@@ -64,7 +65,7 @@ public:
     QVariant		props;
     uint32_t		referenceCount;
 
-    QList<BackendPost>	posts;
+    std::list<BackendPost>	posts;
 };
 
 } /* namespace Mattermost */

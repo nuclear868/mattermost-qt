@@ -4,13 +4,14 @@
 #include <QDateTime>
 #include <QResizeEvent>
 #include "MessageWidget.h"
+#include "ChatArea.h"
 #include "attachments/MessageAttachmentList.h"
 #include "ui_MessageWidget.h"
 #include "backend/types/BackendPost.h"
 
 namespace Mattermost {
 
-MessageWidget::MessageWidget (const BackendPost &post, QWidget *parent)
+MessageWidget::MessageWidget (BackendPost &post, QWidget *parent, ChatArea* chatArea)
 :QWidget(parent)
 ,ui(new Ui::MessageWidget)
 {
@@ -28,14 +29,18 @@ MessageWidget::MessageWidget (const BackendPost &post, QWidget *parent)
 		//load the author's avatar, with same size as the ui label
 		QImage img = QImage::fromData (post.author->avatar).scaled (ui->authorAvatar->geometry().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 		ui->authorAvatar->setPixmap (QPixmap::fromImage(img));
-		ui->gridLayout->setAlignment (Qt::AlignTop);
 	}
 
 	//Add previews for files, if any
 	if (!post.files.empty()) {
 		attachments = std::make_unique<MessageAttachmentList> (this);
-		for (auto& file: post.files) {
-			attachments->addFile (*file, *post.author);
+		for (BackendFile& file: post.files) {
+
+			if (!file.mini_preview.isEmpty()) {
+				chatArea->addFileToload (&file);
+			}
+
+			attachments->addFile (file, *post.author);
 		}
 		ui->verticalLayout->addWidget (attachments.get(), 0, Qt::AlignLeft);
 	}
