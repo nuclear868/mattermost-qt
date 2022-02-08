@@ -14,11 +14,7 @@ class Client: public QApplication {
 public:
 	Client (int& argc, char *argv[]);
 
-	/*
-	 * Opens login dialog and mainwindow, after a successful login
-	 */
-	void performLogin ();
-	void openMainWindow ();
+	void openLoginWindow ();
 	void reopen ();
 private:
 	std::unique_ptr<MainWindow>			mainWindow;
@@ -41,23 +37,20 @@ inline Client::Client (int& argc, char *argv[])
 	connect (this, &QGuiApplication::lastWindowClosed, this, &Client::reopen);
 }
 
-inline void Client::performLogin ()
+void Client::openLoginWindow ()
 {
-	LoginDialog login (nullptr, backend, autologin);
-	if (login.exec() != QDialog::Accepted) {
-		::exit (0);
-		return;
-	}
-}
+	LoginDialog* login = new LoginDialog (nullptr, backend, autologin);
+	login->open();
 
-inline void Client::openMainWindow ()
-{
-	mainWindow = std::make_unique<MainWindow> (nullptr, *trayIcon, backend);
-	mainWindow->show();
+	connect (login, &LoginDialog::accepted, [this] {
+		//create Main Window and open it, after successful login
+		mainWindow = std::make_unique<MainWindow> (nullptr, *trayIcon, backend);
+		mainWindow->show();
 
-	trayIconMenu->addAction ("Open Mattermost", mainWindow.get(), &MainWindow::show);
-	trayIconMenu->addAction ("Quit", mainWindow.get(), &MainWindow::onQuit);
-	autologin = false;
+		trayIconMenu->addAction ("Open Mattermost", mainWindow.get(), &MainWindow::show);
+		trayIconMenu->addAction ("Quit", mainWindow.get(), &MainWindow::onQuit);
+		autologin = false;
+	});
 }
 
 inline void Client::reopen ()
@@ -71,8 +64,7 @@ inline void Client::reopen ()
 	mainWindow.reset(nullptr);
 	trayIconMenu->clear();
 
-	performLogin ();
-	openMainWindow ();
+	openLoginWindow ();
 }
 
 } /* namespace Mattermost */
@@ -83,8 +75,7 @@ int main( int argc, char *argv[])
     QCoreApplication::setApplicationName("Mattermost");
 
     Mattermost::Client client (argc, argv);
-    client.performLogin ();
-    client.openMainWindow ();
+    client.openLoginWindow ();
     return client.exec();
 }
 

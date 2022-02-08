@@ -14,6 +14,7 @@ LoginDialog::LoginDialog (QWidget *parent, Backend& backend, bool autoLogin)
 ,backend (backend)
 ,ui(new Ui::LoginDialog)
 {
+	setAttribute (Qt::WA_DeleteOnClose);
 	QSettings settings;
 	BackendLoginData loginData;
 	loginData.loadFromSettings (settings);

@@ -190,7 +190,6 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 #endif
 		storage.loginUser = BackendUser (doc.object());
 
-		callback ();
 
 		QString loginToken = reply.rawHeader ("Token");
 		NetworkRequest::setToken (loginToken);
@@ -201,6 +200,7 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 
 		webSocketConnector.open (NetworkRequest::host(), loginToken);
 		isLoggedIn = true;
+		callback ();
 	});
 }
 
