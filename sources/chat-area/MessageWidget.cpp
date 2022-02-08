@@ -24,7 +24,7 @@ MessageWidget::MessageWidget (BackendPost &post, QWidget *parent, ChatArea* chat
 
 	if (!post.author || post.author->avatar.isEmpty()) {
 		ui->authorAvatar->setText("");
-		qDebug() << "Avatar for " << ui->authorName->text() << " is missing";
+		//qDebug() << "Avatar for " << ui->authorName->text() << " is missing";
 	} else {
 		//load the author's avatar, with same size as the ui label
 		QImage img = QImage::fromData (post.author->avatar).scaled (ui->authorAvatar->geometry().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);

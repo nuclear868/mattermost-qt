@@ -44,6 +44,7 @@ public:
 
 	void addFileToload (BackendFile* file);
 private:
+	void setUserAvatar (const BackendUser& user);
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void setUnreadMessagesCount (uint32_t count);

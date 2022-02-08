@@ -14,11 +14,19 @@ class QJsonObject;
 
 namespace Mattermost {
 
-class BackendUser {
+class BackendUser: public QObject {
+	Q_OBJECT
 public:
 	BackendUser ();
 	BackendUser (const QJsonObject& jsonObject);
 	virtual ~BackendUser ();
+signals:
+
+	/**
+	 * Called when the user's avatar is obtained (after login)
+	 * or when the user changes it's avatar
+	 */
+	void onAvatarChanged ();
 public:
 
 	QString getDisplayName () const;

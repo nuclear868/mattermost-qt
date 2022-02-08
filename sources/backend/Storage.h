@@ -8,6 +8,7 @@
 #pragma once
 
 #include <QMap>
+#include <map>
 #include <QSharedPointer>
 #include "backend/types/BackendUser.h"
 #include "backend/types/BackendTeam.h"
@@ -31,14 +32,16 @@ public:
 
 	void addChannel (BackendTeam& team, BackendChannel* channel);
 
+	BackendUser* addUser (const QJsonObject& json, bool isLoggedInUser = false);
+
 	void eraseTeam (const QString& teamID);
 
 	void printTeams ();
 public:
 	QMap<QString, QSharedPointer<BackendTeam>>		teams;
 	QMap<QString, BackendChannel*> 					channels;
-	QMap<QString, BackendUser> 						users;
-	BackendUser										loginUser;
+	std::map<QString, BackendUser>					users;
+	BackendUser*									loginUser;
 	std::vector<std::unique_ptr<BackendChannel>>	directChannels;
 	uint32_t										totalUsersCount;
 };

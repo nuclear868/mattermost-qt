@@ -28,7 +28,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 	createMenu ();
 
-	BackendUser currentUser = backend.getLoginUser();
+	const BackendUser& currentUser = backend.getLoginUser();
 
 	if (currentUser.id.isEmpty()) {
 		ui->usericon_label->clear();
@@ -38,17 +38,16 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 	ui->username_label->setText (currentUser.username);
 
-	/*
-	 * Gets the LoginUser's information and gets it's image for the user icon
-	 */
-	backend.getUser ("me", [this] (BackendUser& user) {
-		backend.getUserImage (user.id, [this](QByteArray& data) {
-			LOG_DEBUG ("Got User Image");
-			QImage img = QImage::fromData (data).scaled(42, 42, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-			ui->usericon_label->setPixmap (QPixmap::fromImage(img));
-		});
+	connect (&currentUser, &BackendUser::onAvatarChanged, [this, &currentUser] {
+		LOG_DEBUG ("Got User Image");
+		QImage img = QImage::fromData (currentUser.avatar).scaled(42, 42, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+		ui->usericon_label->setPixmap (QPixmap::fromImage(img));
 	});
 
+	/*
+	 * Gets the LoginUser's image for the user icon
+	 */
+	backend.getUserAvatar (currentUser.id);
 
 	backend.getTotalUsersCount ([this] (uint32_t) {
 		backend.getAllUsers ();
@@ -85,6 +84,9 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	 * For some reason the server duplicates the direct channels in each team.
 	 * Here they are in a single list (The official Mattermost client shows them in each team, which IMHO looks like a total mess).
 	 * So, all team channels have to be received in order to know all (unique) direct channels
+	 *
+	 * The list of users needs to be obtained too, because direct channels' names consist of user IDs,
+	 * which need to be displayer ad user names
 	 */
 	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this]() {
 		LOG_DEBUG ("All Team Channels filled " << (void*) this);

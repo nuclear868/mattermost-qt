@@ -37,11 +37,13 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	const Mattermost::BackendUser* user = backend.getStorage().getUserById (channel.name);
 
 	if (user) {
-		QImage img = QImage::fromData (user->avatar).scaled (64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-		ui->userAvatar->setPixmap (QPixmap::fromImage(img));
 
-		if (channel.type == BackendChannel::directChannel) {
-			treeItem->setIcon(0, QIcon(QPixmap::fromImage(QImage::fromData(user->avatar))));
+		connect (user, &BackendUser::onAvatarChanged, [this, user] {
+			setUserAvatar (*user);
+		});
+
+		if (!user->avatar.isEmpty()) {
+			setUserAvatar (*user);
 		}
 	} else {
 		ui->userAvatar->clear();
@@ -92,6 +94,16 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 ChatArea::~ChatArea()
 {
     delete ui;
+}
+
+void ChatArea::setUserAvatar (const BackendUser& user)
+{
+	QImage img = QImage::fromData (user.avatar).scaled (64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+	ui->userAvatar->setPixmap (QPixmap::fromImage(img));
+
+	if (channel.type == BackendChannel::directChannel) {
+		treeItem->setIcon(0, QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
+	}
 }
 
 BackendChannel& ChatArea::getChannel ()

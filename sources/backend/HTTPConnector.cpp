@@ -70,9 +70,9 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 		QAbstractNetworkCache* cache = qnetworkManager->cache();
 
 		if (cache) {
-			qDebug () << "Cache size: " << cache->cacheSize();
+			//qDebug () << "Cache size: " << cache->cacheSize();
 		} else {
-			qDebug () << "No Cache: ";
+			//qDebug () << "No Cache: ";
 		}
 
 		if (statusCode == 200 || statusCode == 201) {

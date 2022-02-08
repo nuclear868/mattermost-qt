@@ -188,8 +188,8 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
 #endif
-		storage.loginUser = BackendUser (doc.object());
-
+		BackendUser* loginUser = storage.addUser (doc.object(), true);
+		loginUser->isLoginUser = true;
 
 		QString loginToken = reply.rawHeader ("Token");
 		NetworkRequest::setToken (loginToken);
@@ -280,19 +280,9 @@ void Backend::getUser (QString userID, std::function<void (BackendUser&)> callba
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
-		//std::cout << jsonString.toStdString() << std::endl;
 
-		BackendUser user (doc.object());
-		QString newUserId (user.id);
-
-		if (newUserId == getLoginUser ().id) {
-			user.isLoginUser = true;
-		}
-
-		LOG_DEBUG ("got user " << user.id);
-		storage.users[user.id] = std::move (user);
-
-		callback (*storage.getUserById(newUserId));
+		BackendUser *user = storage.addUser (doc.object());
+		callback (*user);
 	});
 }
 
@@ -334,20 +324,8 @@ void Backend::getAllUsers ()
 			//std::cout << jsonString.toStdString() << std::endl;
 
 			for (const auto &itemRef: doc.array()) {
-				BackendUser user (itemRef.toObject());
-				getUserImage (user.id, [](QByteArray&){});
-
-				if (user.id == getLoginUser().id) {
-					user.isLoginUser = true;
-
-		#if 0
-					QJsonDocument doc1 (itemRef.toObject());
-					QString jsonString = doc1.toJson(QJsonDocument::Indented);
-					std::cout << "me: " << jsonString.toStdString() << std::endl;
-		#endif
-				}
-
-				storage.users[user.id] = std::move (user);
+				BackendUser *user = storage.addUser (itemRef.toObject());
+				getUserAvatar (user->id);
 			}
 
 			LOG_DEBUG ("Page " << page << " (" << obtainedPages << " of " << totalPages << "): users count " << storage.users.size());
@@ -370,14 +348,13 @@ void Backend::getAllUsers ()
 		});
 
 	}
-
 }
 
-void Backend::getUserImage (QString userID, std::function<void(QByteArray&)> callback)
+void Backend::getUserAvatar (QString userID)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
 
-	httpConnector.get(request, [this, userID, callback](QVariant, QByteArray data) {
+	httpConnector.get(request, [this, userID] (QVariant, QByteArray data) {
 
 		//LOG_DEBUG ("getUserImage reply");
 
@@ -389,7 +366,8 @@ void Backend::getUserImage (QString userID, std::function<void(QByteArray&)> cal
 		}
 
 		user->avatar = data;
-		callback (user->avatar);
+
+		emit user->onAvatarChanged();
 	});
 }
 
@@ -711,7 +689,7 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 
 const BackendUser& Backend::getLoginUser () const
 {
-	return storage.loginUser;
+	return *storage.loginUser;
 }
 
 std::vector<std::unique_ptr<BackendChannel>>& Backend::getDirectChannels ()

@@ -36,7 +36,7 @@ BackendUser* Storage::getUserById (const QString& userID)
 		return nullptr;
 	}
 
-	return &*it;
+	return &it->second;
 }
 
 BackendTeam* Storage::getTeamById (const QString& teamID)
@@ -86,7 +86,7 @@ void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
 		QStringList all_users_id = channel->name.split("__");
 
 		//remove the logged-in user from this list
-		all_users_id.removeAll (loginUser.id);
+		all_users_id.removeAll (loginUser->id);
 
 		//the remote user ID is the remaining id
 		QString userID = all_users_id.first();
@@ -112,6 +112,28 @@ void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
 		team.channels.emplace_back (channel);
 		channels[channel->id] = team.channels.back().get();
 	}
+}
+
+BackendUser* Storage::addUser (const QJsonObject& json, bool isLoggedInUser)
+{
+	QString userId (json.value("id").toString());
+
+	auto it = users.find (userId);
+
+	BackendUser* user;
+
+	//user already exists. This is the case of the LoginUser - it is filled during login
+	if (it != users.end()) {
+		user = &it->second;
+	} else {
+		user = &users.emplace (userId, json).first->second;
+	}
+
+	if (isLoggedInUser) {
+		loginUser = user;
+	}
+
+	return user;
 }
 
 void Storage::eraseTeam (const QString& teamID)

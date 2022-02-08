@@ -44,8 +44,8 @@ public:
     //get all users (/users?per_page=200&page=pageIdx);
     void getAllUsers ();
 
-    //get user's image (/users/userID/image)
-    void getUserImage (QString userID, std::function<void(QByteArray&)> callback);
+    //get user's avatar image (/users/userID/image). Emits BackendUser::onAvatarChanged
+    void getUserAvatar (QString userID);
 
     //get file (files/fileID)
     void getFile (QString fileID, std::function<void(QByteArray&)> callback);
