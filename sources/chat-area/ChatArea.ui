@@ -124,7 +124,7 @@
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
         <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
       <property name="sizeAdjustPolicy">
@@ -138,7 +138,7 @@
       </property>
      </widget>
      <widget class="QWidget" name="horizontalLayoutWidget_2">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0">
        <property name="spacing">
         <number>4</number>
        </property>
@@ -154,7 +154,7 @@
        <item>
         <widget class="Mattermost::MessageTextEditWidget" name="textEdit">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -162,7 +162,7 @@
          <property name="minimumSize">
           <size>
            <width>100</width>
-           <height>20</height>
+           <height>40</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -185,6 +185,9 @@
          </property>
          <property name="midLineWidth">
           <number>0</number>
+         </property>
+         <property name="acceptRichText">
+          <bool>false</bool>
          </property>
          <property name="placeholderText">
           <string>Write a message</string>

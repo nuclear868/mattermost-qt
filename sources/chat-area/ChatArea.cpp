@@ -19,12 +19,14 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 ,treeItem (new QTreeWidgetItem (tree))
 ,newMessagesSeparator (nullptr)
 ,unreadMessagesCount (0)
+,texteditDefaultHeight (80)
 {
 	ui->setupUi(this);
 	ui->listWidget->verticalScrollBar()->setSingleStep (10);
 	ui->title->setText (channel.display_name);
 	treeItem->setText (0, channel.display_name);
 	treeItem->setData(0, Qt::UserRole, QVariant::fromValue(this));
+	setTextEditWidgetHeight (texteditDefaultHeight);
 
 	removeNewMessagesSeparatorTimer.setSingleShot (true);
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &ChatArea::removeNewMessagesSeparator);
@@ -88,7 +90,28 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		}
 	});
 #endif
+
+	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
+		texteditDefaultHeight = ui->splitter->sizes()[1];
+	});
+
 	connect (ui->textEdit, &MessageTextEditWidget::enterPressed, this, &ChatArea::sendNewPost);
+
+	connect (ui->textEdit, &MessageTextEditWidget::textChanged, [this] {
+		QSize size = ui->textEdit->document()->size().toSize();
+
+		int height = size.height() + 10;
+
+		if (height < texteditDefaultHeight) {
+			height = texteditDefaultHeight;
+		}
+
+		if (height > ui->textEdit->maximumHeight()) {
+			height = ui->textEdit->maximumHeight();
+		}
+
+		setTextEditWidgetHeight (height);
+	});
 }
 
 ChatArea::~ChatArea()
@@ -252,6 +275,12 @@ void ChatArea::setUnreadMessagesCount (uint32_t count)
 	} else {
 		treeItem->setText(1, QString::number(count));
 	}
+}
+
+void ChatArea::setTextEditWidgetHeight (int height)
+{
+	//set the size of the text input area only. The chat area will take the whole remaining part, because it has higher stretch factor
+	ui->splitter->setSizes({1, height});
 }
 
 } /* namespace Mattermost */

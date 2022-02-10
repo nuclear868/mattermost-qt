@@ -48,6 +48,7 @@ private:
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void setUnreadMessagesCount (uint32_t count);
+	void setTextEditWidgetHeight (int height);
 private:
 	Ui::ChatArea 					*ui;
 	Backend& 						backend;
@@ -57,6 +58,7 @@ private:
 	QTreeWidgetItem					*treeItem;
 	QListWidgetItem					*newMessagesSeparator;
 	uint32_t						unreadMessagesCount;
+	int 							texteditDefaultHeight;
 };
 
 } /* namespace Mattermost */
