@@ -12,7 +12,9 @@
 
 namespace Mattermost {
 
-MessageAttachmentList::MessageAttachmentList(QWidget *parent)
+std::map <const FilePreviewData*, FilePreview*> MessageAttachmentList::currentlyOpenFiles;
+
+MessageAttachmentList::MessageAttachmentList (QWidget *parent)
 :QWidget(parent)
 ,ui(new Ui::MessageAttachmentList)
 {
@@ -20,16 +22,31 @@ MessageAttachmentList::MessageAttachmentList(QWidget *parent)
 
     connect (ui->listWidget, &QListWidget::itemClicked, [this] (QListWidgetItem *item) {
 
-    	auto it = itemToFileMap.find (item);
+		const FilePreviewData* file = static_cast <FilePreviewData*> (item->data (Qt::UserRole).value<void*>());
 
-    	if (it == itemToFileMap.end()) {
-    		return;
-    	}
+		auto openFile = currentlyOpenFiles.find (file);
 
-    	const FilePreviewData& file = it->second;
+		FilePreview* filePreview;
 
-   		FilePreview filePreview (file, nullptr);
-   		filePreview.exec();
+		/*
+		 * If the file's Preview window is currently open, show it.
+		 * Otherwise, open a new Preview eindow
+		 */
+		if (openFile == currentlyOpenFiles.end()) {
+			auto it = currentlyOpenFiles.emplace (file, new FilePreview (*file, nullptr));
+			filePreview = it.first->second;
+			filePreview->setAttribute (Qt::WA_DeleteOnClose);
+			filePreview->show ();
+
+			connect (filePreview, &QDialog::rejected, [file] {
+					qDebug() << "Rejected";
+					currentlyOpenFiles.erase (file);
+			});
+		} else {
+			filePreview = openFile->second;
+			filePreview->raise ();
+		}
+
     });
 }
 
@@ -71,22 +88,23 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
     if (file.contents.isEmpty()) {
     	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, &author, this](){
 
-    		QImage img = QImage::fromData (file.contents);
+			QImage img = QImage::fromData (file.contents);
 			if (img.width() > 500) {
 				img = img.scaledToWidth (500, Qt::SmoothTransformation);
 			}
-    		label->setPixmap (QPixmap::fromImage(img));
-    		label->adjustSize();
-    		newItem->setSizeHint(QSize (label->width(), label->height()));
+			label->setPixmap (QPixmap::fromImage(img));
+			label->adjustSize();
+			newItem->setSizeHint(QSize (label->width(), label->height()));
 
-    		/*
-    		 * Parent of MessageAttachmentList is MessageWidget.
-    		 * Parent of MessageWidget is PostListWidget.
-    		 * However, no idea why the last parentWidget() is needed
-    		 */
-    		parentWidget()->parentWidget()->parentWidget()->adjustSize();
+			filesPreviewData.emplace_back (FilePreviewData {file.contents, file.name, author.getDisplayName()});
+			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
-    		itemToFileMap.emplace(newItem, FilePreviewData{file.contents, file.name, author.getDisplayName()});
+			/*
+			 * Parent of MessageAttachmentList is MessageWidget.
+			 * Parent of MessageWidget is PostListWidget.
+			 * However, no idea why the last parentWidget() is needed
+			 */
+			parentWidget()->parentWidget()->parentWidget()->adjustSize();
     	});
     }
 }

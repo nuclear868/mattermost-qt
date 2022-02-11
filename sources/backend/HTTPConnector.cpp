@@ -18,11 +18,11 @@
 namespace Mattermost {
 
 HTTPConnector::HTTPConnector ()
-:qnetworkManager (new QNetworkAccessManager)
+:qnetworkManager (std::make_unique <QNetworkAccessManager> ())
 ,diskCache (new QNetworkDiskCache)
 {
 	diskCache->setCacheDirectory ("cache");
-	qnetworkManager->setCache (diskCache.get());
+	qnetworkManager->setCache (diskCache);
 }
 
 HTTPConnector::~HTTPConnector () = default;
@@ -30,6 +30,9 @@ HTTPConnector::~HTTPConnector () = default;
 void HTTPConnector::reset ()
 {
 	qnetworkManager.reset(new QNetworkAccessManager());
+	diskCache = new QNetworkDiskCache ();
+	diskCache->setCacheDirectory ("cache");
+	qnetworkManager->setCache (diskCache);
 }
 
 void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVariant, QByteArray)> responseHandler)

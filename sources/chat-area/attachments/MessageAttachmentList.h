@@ -15,6 +15,7 @@ namespace Mattermost {
 struct FilePreviewData;
 class BackendFile;
 class BackendUser;
+class FilePreview;
 
 class MessageAttachmentList: public QWidget
 {
@@ -25,7 +26,8 @@ public:
 public:
     void addFile (const BackendFile& file, const BackendUser& author);
 private:
-    std::map<QListWidgetItem*, FilePreviewData>		itemToFileMap;
+    std::list<FilePreviewData>								filesPreviewData;
+    static std::map <const FilePreviewData*, FilePreview*>	currentlyOpenFiles;
     Ui::MessageAttachmentList*						ui;
 };
 
