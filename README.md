@@ -14,7 +14,6 @@ Mattermost native desktop client, using the QT framework
 * visual notifications for new messages
 
 # What does not work / What is planned to be implemented
-* syncing the viewed channels with the server (for now, the server does not know that you have viewed a channel and it will be marked as unread at next startup)
 * sending files and downloading received files
 * notifications when someone is typing and sending a notification when you are typing
 * message editing
