@@ -405,13 +405,12 @@ void Backend::getOwnTeams (std::function<void(BackendTeam&)> callback)
 
 		auto root = doc.array();
 		for (const auto &itemRef: qAsConst(root)) {
-			BackendTeam* team = new BackendTeam (itemRef.toObject());
-			storage.addTeam (team);
+			storage.addTeam (itemRef.toObject());
 			++nonFilledTeams;
 		}
 
 		for (auto& team: storage.teams) {
-			callback (*team.get());
+			callback (team.second);
 		}
     });
 }
@@ -433,8 +432,7 @@ void Backend::getTeam (QString teamID)
 #endif
 
 		auto object = doc.object();
-		BackendTeam *team = new BackendTeam (object);
-		storage.addTeam (team);
+		BackendTeam *team = storage.addTeam (doc.object());
 
 		emit onAddedToTeam (*team);
     });
@@ -551,16 +549,6 @@ void Backend::getChannelPosts (BackendChannel& channel, int page, int perPage, s
 
 			BackendPost post;
 			post.deserialize (item);
-
-#if 0
-			for (auto& file: post.files) {
-				getFile (file->id, [&channel, authorName = storage.getUserById (post.user_id), &file] (QByteArray& data) {
-					file->contents = data;
-					qDebug() << channel.name << ": " << authorName << ": Got file: " << file->name << " " << file->size;
-					emit file->onContentsAvailable();
-				});
-			}
-#endif
 
 			post.author = storage.getUserById (post.user_id);
 			channel.posts.insert (channel.posts.begin(), std::move (post));

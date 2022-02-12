@@ -28,7 +28,7 @@ public:
 
 	BackendUser* getUserById (const QString& userID);
 
-	void addTeam (BackendTeam* team);
+	BackendTeam* addTeam (const QJsonObject& json);
 
 	void addChannel (BackendTeam& team, BackendChannel* channel);
 
@@ -38,7 +38,7 @@ public:
 
 	void printTeams ();
 public:
-	QMap<QString, QSharedPointer<BackendTeam>>		teams;
+	std::map<QString, BackendTeam>					teams;
 	QMap<QString, BackendChannel*> 					channels;
 	std::map<QString, BackendUser>					users;
 	BackendUser*									loginUser;

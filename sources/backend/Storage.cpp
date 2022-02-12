@@ -47,7 +47,7 @@ BackendTeam* Storage::getTeamById (const QString& teamID)
 		return nullptr;
 	}
 
-	return it->get();
+	return &it->second;
 }
 
 BackendChannel* Storage::getChannelById (const QString& channelID)
@@ -61,9 +61,22 @@ BackendChannel* Storage::getChannelById (const QString& channelID)
 	return *it;
 }
 
-void Storage::addTeam (BackendTeam* team)
+BackendTeam* Storage::addTeam (const QJsonObject& json)
 {
-	teams[team->id] = QSharedPointer<BackendTeam> (team);
+	QString teamId (json.value("id").toString());
+
+	auto it = teams.find (teamId);
+
+	BackendTeam* team;
+
+	//team already exists.
+	if (it != teams.end()) {
+		team = &it->second;
+	} else {
+		team = &teams.emplace (teamId, json).first->second;
+	}
+
+	return team;
 }
 
 void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
@@ -141,8 +154,8 @@ void Storage::eraseTeam (const QString& teamID)
 	auto teamIt = teams.find (teamID);
 
 	if (teamIt != teams.end()) {
-		auto& team = *teamIt;
-		for (auto& it: team->channels) {
+		auto& team = teamIt->second;
+		for (auto& it: team.channels) {
 
 			LOG_DEBUG ("Team Channel: " << it->id);
 			auto channelIt = channels.find (it->id);
@@ -152,7 +165,7 @@ void Storage::eraseTeam (const QString& teamID)
 				channels.erase (channelIt);
 			}
 		}
-		LOG_DEBUG ("Erase Team: " << teamIt.key() << " " << &teamIt.value() << " " << teamIt.value()->name);
+		LOG_DEBUG ("Erase Team: " << teamIt->first << " " << team.name);
 		teams.erase (teamIt);
 	}
 }
@@ -160,9 +173,10 @@ void Storage::eraseTeam (const QString& teamID)
 void Storage::printTeams ()
 {
 	qDebug() << teams.size() << " teams";
-	for (auto& team: teams) {
-		qDebug() << "Team " << team->id << " " << team->display_name << ":";
-		for (auto& channel: team->channels) {
+	for (auto& teamIt: teams) {
+		auto& team = teamIt.second;
+		qDebug() << "Team " << team.id << " " << team.display_name << ":";
+		for (auto& channel: team.channels) {
 			qDebug() << "\tChannel: " << channel->id << channel.get();
 		}
 	}
