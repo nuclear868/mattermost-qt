@@ -18,7 +18,7 @@ public:
 	BackendFile (const QJsonObject& jsonObject);
 	virtual ~BackendFile ();
 signals:
-	void onContentsAvailable ();
+	void onContentsAvailable (const QByteArray& data);
 public:
 	QString				id;
 	QString				name;

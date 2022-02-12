@@ -48,7 +48,7 @@ public:
     void getUserAvatar (QString userID);
 
     //get file (files/fileID)
-    void getFile (QString fileID, std::function<void(QByteArray&)> callback);
+    void getFile (QString fileID, std::function<void(const QByteArray&)> callback);
 
     //get own teams (/users/me/teams)
     void getOwnTeams (std::function<void(BackendTeam&)> callback);

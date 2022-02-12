@@ -10,7 +10,7 @@ class FilePreview;
 namespace Mattermost  {
 
 struct FilePreviewData {
-	const QByteArray& 	fileContents;
+	const QByteArray 	fileContents;
 	QString				fileName;
 	QString				fileAuthor;
 };

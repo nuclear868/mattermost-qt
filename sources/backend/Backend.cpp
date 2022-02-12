@@ -58,9 +58,9 @@ Backend::Backend(QObject *parent)
 		QString channelName = channel ? channel->name : event.post.channel_id;
 
 		for (auto& file: post.files) {
-			getFile (file.id, [&file] (QByteArray& data) {
+			getFile (file.id, [&file] (const QByteArray& data) {
 				file.contents = data;
-				emit file.onContentsAvailable();
+				emit file.onContentsAvailable (data);
 			});
 		}
 
@@ -371,7 +371,7 @@ void Backend::getUserAvatar (QString userID)
 	});
 }
 
-void Backend::getFile (QString fileID, std::function<void (QByteArray&)> callback)
+void Backend::getFile (QString fileID, std::function<void (const QByteArray&)> callback)
 {
 	NetworkRequest request ("files/" + fileID, true);
 	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");

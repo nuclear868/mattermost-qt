@@ -10,6 +10,7 @@ class MessageWidget;
 
 namespace Mattermost {
 
+class Backend;
 class BackendPost;
 class MessageAttachmentList;
 class ChatArea;
@@ -19,7 +20,7 @@ class MessageWidget: public QWidget
     Q_OBJECT
 
 public:
-    explicit MessageWidget (BackendPost &post, QWidget *parent, ChatArea* chatArea);
+    explicit MessageWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
     ~MessageWidget();
 public:
     void setOwnMessage ();

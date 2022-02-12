@@ -14,15 +14,23 @@ namespace Mattermost {
 
 std::map <const FilePreviewData*, FilePreview*> MessageAttachmentList::currentlyOpenFiles;
 
-MessageAttachmentList::MessageAttachmentList (QWidget *parent)
+MessageAttachmentList::MessageAttachmentList (Backend& backend, QWidget *parent)
 :QWidget(parent)
-,ui(new Ui::MessageAttachmentList)
+,backend (backend)
+,ui (new Ui::MessageAttachmentList)
 {
     ui->setupUi(this);
 
     connect (ui->listWidget, &QListWidget::itemClicked, [this] (QListWidgetItem *item) {
 
 		const FilePreviewData* file = static_cast <FilePreviewData*> (item->data (Qt::UserRole).value<void*>());
+
+		/*
+		 * the file does not open a preview window
+		 */
+		if (!file) {
+			return;
+		}
 
 		auto openFile = currentlyOpenFiles.find (file);
 
@@ -58,7 +66,7 @@ MessageAttachmentList::~MessageAttachmentList()
 void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser& author)
 {
 	if (file.mini_preview.isEmpty()) {
-		QWidget* fileWidget = new AttachedBinaryFile (file, this);
+		QWidget* fileWidget = new AttachedBinaryFile (backend, file, this);
 	    QListWidgetItem* newItem = new QListWidgetItem();
 
 		ui->listWidget->addItem (newItem);
@@ -86,9 +94,9 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
     parentWidget()->parentWidget()->parentWidget()->adjustSize();
 
     if (file.contents.isEmpty()) {
-    	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, &author, this](){
+    	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, &author, this] (const QByteArray& fileContents){
 
-			QImage img = QImage::fromData (file.contents);
+			QImage img = QImage::fromData (fileContents);
 			if (img.width() > 500) {
 				img = img.scaledToWidth (500, Qt::SmoothTransformation);
 			}
@@ -96,7 +104,7 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
 			label->adjustSize();
 			newItem->setSizeHint(QSize (label->width(), label->height()));
 
-			filesPreviewData.emplace_back (FilePreviewData {file.contents, file.name, author.getDisplayName()});
+			filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, author.getDisplayName()});
 			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
 			/*

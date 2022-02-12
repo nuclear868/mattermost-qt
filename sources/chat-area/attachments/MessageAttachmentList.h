@@ -13,6 +13,7 @@ class QListWidgetItem;
 namespace Mattermost {
 
 struct FilePreviewData;
+class Backend;
 class BackendFile;
 class BackendUser;
 class FilePreview;
@@ -21,14 +22,15 @@ class MessageAttachmentList: public QWidget
 {
     Q_OBJECT
 public:
-    explicit MessageAttachmentList(QWidget *parent = nullptr);
+    explicit MessageAttachmentList (Backend& backend, QWidget *parent = nullptr);
     ~MessageAttachmentList();
 public:
     void addFile (const BackendFile& file, const BackendUser& author);
 private:
     std::list<FilePreviewData>								filesPreviewData;
     static std::map <const FilePreviewData*, FilePreview*>	currentlyOpenFiles;
-    Ui::MessageAttachmentList*						ui;
+    Backend& 												backend;
+    Ui::MessageAttachmentList*								ui;
 };
 
 #endif // MESSAGEATTACHMENTLIST_H

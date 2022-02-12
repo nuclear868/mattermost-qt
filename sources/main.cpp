@@ -7,6 +7,7 @@
 #include "login/LoginDialog.h"
 #include "mainwindow.h"
 #include "backend/Backend.h"
+#include "config/Config.h"
 
 namespace Mattermost {
 
@@ -30,7 +31,7 @@ inline Client::Client (int& argc, char *argv[])
 ,trayIconMenu (std::make_unique<QMenu> (nullptr))
 ,autologin (true)
 {
-
+    Config::init ();
 	trayIcon->setToolTip(tr("Mattermost Qt"));
 	trayIcon->setContextMenu (trayIconMenu.get());
 	trayIcon->show();

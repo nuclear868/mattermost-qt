@@ -137,7 +137,7 @@ BackendChannel& ChatArea::getChannel ()
 void ChatArea::fillChannelPosts (const QString& lastReadPostID)
 {
 	for (auto& post: channel.posts) {
-		MessageWidget* message = new MessageWidget (post, ui->listWidget, this);
+		MessageWidget* message = new MessageWidget (backend, post, ui->listWidget, this);
 
 		if (post.isOwnPost()) {
 			message->setOwnMessage ();
@@ -159,7 +159,7 @@ void ChatArea::fillChannelPosts (const QString& lastReadPostID)
 
 void ChatArea::appendChannelPost (BackendPost& post)
 {
-	MessageWidget* message = new MessageWidget (post, ui->listWidget, this);
+	MessageWidget* message = new MessageWidget (backend, post, ui->listWidget, this);
 
 	if (post.isOwnPost()) {
 		message->setOwnMessage ();
@@ -226,9 +226,9 @@ void ChatArea::onActivate ()
 			continue;
 		}
 
-		backend.getFile (file->id, [file] (QByteArray& data) {
+		backend.getFile (file->id, [file] (const QByteArray& data) {
 			file->contents = data;
-			emit file->onContentsAvailable();
+			emit file->onContentsAvailable (data);
 		});
 	}
 }

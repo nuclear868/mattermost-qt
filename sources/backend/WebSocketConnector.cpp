@@ -141,16 +141,17 @@ void WebSocketConnector::onNewPacket (const QString& string)
 	auto it = eventHandlers.find(event.toString());
 
 	QString jsonString = doc.toJson(QJsonDocument::Indented);
-	std::cout << jsonString.toStdString() << std::endl;
+	std::cout << jsonString.toStdString();
 	if (it == eventHandlers.end()) {
 		qDebug() << "Unhandled WebSocket event '" << event.toString() << "'\n";
+		qDebug() << "========" << '\n';
 		return;
 	}
 
-
-
 	it.value() (*this, 	jsonObject.value ("data").toObject(),
 						jsonObject.value ("broadcast").toObject());
+
+	qDebug() << "========" << '\n';
 
 //	if (obj.value("seq_reply")) {
 //

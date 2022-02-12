@@ -11,7 +11,7 @@
 
 namespace Mattermost {
 
-MessageWidget::MessageWidget (BackendPost &post, QWidget *parent, ChatArea* chatArea)
+MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
 :QWidget(parent)
 ,ui(new Ui::MessageWidget)
 {
@@ -33,7 +33,7 @@ MessageWidget::MessageWidget (BackendPost &post, QWidget *parent, ChatArea* chat
 
 	//Add previews for files, if any
 	if (!post.files.empty()) {
-		attachments = std::make_unique<MessageAttachmentList> (this);
+		attachments = std::make_unique<MessageAttachmentList> (backend, this);
 		for (BackendFile& file: post.files) {
 
 			if (!file.mini_preview.isEmpty()) {
@@ -67,14 +67,24 @@ QString MessageWidget::formatMessageText (const QString& str)
 
 	do {
 
-		linkStart = ret.indexOf ("https://", linkEnd);
+		QLatin1String lookups[2] = { QLatin1String ("http://"), QLatin1String ("https://") };
+		QLatin1String* useLookup = nullptr;
 
-		if (linkStart == -1) {
+		for (auto& lookup: lookups) {
+			linkStart = ret.indexOf (lookup, linkEnd);
+
+			if (linkStart != -1) {
+				useLookup = &lookup;
+				break;
+			}
+		}
+
+		if (!useLookup) {
 			break;
 		}
 
 		//poor man's find_first_of - there is no such thing in QT, and std::string is not aware of multibyte characters
-		for (linkEnd = linkStart + QString ("http://").size(); linkEnd < ret.size(); ++linkEnd) {
+		for (linkEnd = linkStart + useLookup->size(); linkEnd < ret.size(); ++linkEnd) {
 			if (ret.at (linkEnd) == ' ' || ret.at (linkEnd) == '<') {
 				break;
 			}

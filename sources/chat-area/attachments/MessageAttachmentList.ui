@@ -18,7 +18,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>10</width>
+    <width>100</width>
     <height>10</height>
    </size>
   </property>
@@ -27,7 +27,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
-    <enum>QLayout::SetMaximumSize</enum>
+    <enum>QLayout::SetFixedSize</enum>
    </property>
    <property name="topMargin">
     <number>0</number>
@@ -42,6 +42,12 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>0</height>
+      </size>
      </property>
      <property name="styleSheet">
       <string notr="true">padding: 1px</string>
