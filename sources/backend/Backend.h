@@ -36,42 +36,42 @@ public:
     void logout (std::function<void ()> callback);
 
     //get specific user (/users/userID);
-    void getUser (QString userID, std::function<void(BackendUser&)> callback);
+    void retrieveUser (QString userID, std::function<void(BackendUser&)> callback);
 
     //get count of all users in the system (users/stats)
-    void getTotalUsersCount (std::function<void(uint32_t)> callback);
+    void retrieveTotalUsersCount (std::function<void(uint32_t)> callback);
 
     //get all users (/users?per_page=200&page=pageIdx);
-    void getAllUsers ();
+    void retrieveAllUsers ();
 
     //get user's avatar image (/users/userID/image). Emits BackendUser::onAvatarChanged
-    void getUserAvatar (QString userID);
+    void retrieveUserAvatar (QString userID);
 
     //get file (files/fileID)
-    void getFile (QString fileID, std::function<void(const QByteArray&)> callback);
+    void retrieveFile (QString fileID, std::function<void(const QByteArray&)> callback);
 
     //get own teams (/users/me/teams)
-    void getOwnTeams (std::function<void(BackendTeam&)> callback);
+    void retrieveOwnTeams (std::function<void(BackendTeam&)> callback);
 
     //get a team (/teams/teamID)
-    void getTeam (QString teamID);
+    void retrieveTeam (QString teamID);
 
     //get own channel memberships (/users/me/teams/teamID/channels)
-    void getOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback);
+    void retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback);
 
     std::vector<std::unique_ptr<BackendChannel>>& getDirectChannels ();
 
     //get own channel memberships from all teams (/users/me/channel_members)
-    //void getOwnAllChannelMemberships (std::function<void()> callback);
+    //void retrieveOwnAllChannelMemberships (std::function<void()> callback);
 
     //get team members (/teams/teamID/members)
-    void getTeamMembers (BackendTeam& team);
+    void retrieveTeamMembers (BackendTeam& team);
 
     //get posts in a channel (/channels/ID/posts)
-    void getChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler);
+    void retrieveChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler);
 
     //get first unread post in a channel (/users/{user_id}/channels/{channel_id}/posts/unread)
-    void getChannelUnreadPost (BackendChannel& channel, std::function<void(const QString&)> responseHandler);
+    void retrieveChannelUnreadPost (BackendChannel& channel, std::function<void(const QString&)> responseHandler);
 
     //mark the channel as viewed (/channels/members/me/view), so that the server knows that the channel is viewed
     void markChannelAsViewed (BackendChannel& channel);

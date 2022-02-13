@@ -49,7 +49,7 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 #endif
 
 		ui->openButton->setDisabled (true);
-		backend.getFile (file.id, [this, &file] (const QByteArray& data){
+		backend.retrieveFile (file.id, [this, &file] (const QByteArray& data){
 			QFile destFile (file.name);
 			destFile.open (QIODevice::WriteOnly);
 			destFile.write (data);
@@ -70,7 +70,7 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 			return;
 		}
 
-		backend.getFile (file.id, [this, &file] (const QByteArray& data){
+		backend.retrieveFile (file.id, [this, &file] (const QByteArray& data){
 
 			QString tmpName (file.name);
 			int dot = tmpName.indexOf (".");

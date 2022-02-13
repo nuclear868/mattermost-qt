@@ -55,10 +55,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	/*
 	 * First, get the first unread post (if any). So that a separator can be inserted before it
 	 */
-	backend.getChannelUnreadPost (channel, [this, &backend, &channel] (const QString& postId){
+	backend.retrieveChannelUnreadPost (channel, [this, &backend, &channel] (const QString& postId){
 		qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
 
-		backend.getChannelPosts (channel, 0, 200, [this, postId]() {
+		backend.retrieveChannelPosts (channel, 0, 200, [this, postId]() {
 			fillChannelPosts (postId);
 		});
 	});
@@ -226,7 +226,7 @@ void ChatArea::onActivate ()
 			continue;
 		}
 
-		backend.getFile (file->id, [file] (const QByteArray& data) {
+		backend.retrieveFile (file->id, [file] (const QByteArray& data) {
 			file->contents = data;
 			emit file->onContentsAvailable (data);
 		});

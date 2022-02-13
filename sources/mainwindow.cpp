@@ -47,16 +47,16 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	/*
 	 * Gets the LoginUser's image for the user icon
 	 */
-	backend.getUserAvatar (currentUser.id);
+	backend.retrieveUserAvatar (currentUser.id);
 
-	backend.getTotalUsersCount ([this] (uint32_t) {
-		backend.getAllUsers ();
+	backend.retrieveTotalUsersCount ([this] (uint32_t) {
+		backend.retrieveAllUsers ();
 
 		/*
 		 * Adds each team in which the LoginUser participates.
 		 * The callback is called once for each team
 		 */
-		backend.getOwnTeams ([this](BackendTeam& team) {
+		backend.retrieveOwnTeams ([this](BackendTeam& team) {
 
 			//Add team here, so that they are added in the proper order
 			ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
@@ -64,7 +64,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 			/*
 			 * Gets all channels of the team, where the user is member
 			 */
-			backend.getOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel) {
+			backend.retrieveOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel) {
 				teamChannelList->addChannel (channel, ui->centralwidget);
 			}); //on getOwnChannelMemberships()
 		}); //on getOwnTeams()
@@ -127,7 +127,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 		/*
 		 * Gets all channels of the team, where the user is member
 		 */
-		backend.getOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel){
+		backend.retrieveOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel){
 			teamChannelList->addChannel (channel, ui->centralwidget);
 		});
 	});

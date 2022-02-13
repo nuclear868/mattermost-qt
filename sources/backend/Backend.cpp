@@ -58,7 +58,7 @@ Backend::Backend(QObject *parent)
 		QString channelName = channel ? channel->name : event.post.channel_id;
 
 		for (auto& file: post.files) {
-			getFile (file.id, [&file] (const QByteArray& data) {
+			retrieveFile (file.id, [&file] (const QByteArray& data) {
 				file.contents = data;
 				emit file.onContentsAvailable (data);
 			});
@@ -101,7 +101,7 @@ Backend::Backend(QObject *parent)
 
 		//Adds the new team. It's channels and messages in channels will be obtained too
 		if (!team) {
-			getTeam (event.team_id);
+			retrieveTeam (event.team_id);
 		}
 	});
 
@@ -268,7 +268,7 @@ void Backend::logout (std::function<void ()> callback)
 	});
 }
 
-void Backend::getUser (QString userID, std::function<void (BackendUser&)> callback)
+void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> callback)
 {
 	NetworkRequest request ("users/" + userID);
 
@@ -286,7 +286,7 @@ void Backend::getUser (QString userID, std::function<void (BackendUser&)> callba
 	});
 }
 
-void Backend::getTotalUsersCount (std::function<void(uint32_t)> callback)
+void Backend::retrieveTotalUsersCount (std::function<void(uint32_t)> callback)
 {
 	NetworkRequest request ("users/stats");
 
@@ -304,7 +304,7 @@ void Backend::getTotalUsersCount (std::function<void(uint32_t)> callback)
 	});
 }
 
-void Backend::getAllUsers ()
+void Backend::retrieveAllUsers ()
 {
 	uint32_t usersPerPage = 200;
 	uint32_t totalPages = CONTAINER_COUNT (storage.totalUsersCount, usersPerPage);
@@ -325,7 +325,7 @@ void Backend::getAllUsers ()
 
 			for (const auto &itemRef: doc.array()) {
 				BackendUser *user = storage.addUser (itemRef.toObject());
-				getUserAvatar (user->id);
+				retrieveUserAvatar (user->id);
 			}
 
 			LOG_DEBUG ("Page " << page << " (" << obtainedPages << " of " << totalPages << "): users count " << storage.users.size());
@@ -350,7 +350,7 @@ void Backend::getAllUsers ()
 	}
 }
 
-void Backend::getUserAvatar (QString userID)
+void Backend::retrieveUserAvatar (QString userID)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
 
@@ -371,7 +371,7 @@ void Backend::getUserAvatar (QString userID)
 	});
 }
 
-void Backend::getFile (QString fileID, std::function<void (const QByteArray&)> callback)
+void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray&)> callback)
 {
 	NetworkRequest request ("files/" + fileID, true);
 	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
@@ -384,7 +384,7 @@ void Backend::getFile (QString fileID, std::function<void (const QByteArray&)> c
 /**
  * Get a list of teams that a user is on.
  */
-void Backend::getOwnTeams (std::function<void(BackendTeam&)> callback)
+void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
 {
     NetworkRequest request ("users/me/teams");
     //request.setRawHeader("X-Requested-With", "XMLHttpRequest");
@@ -415,7 +415,7 @@ void Backend::getOwnTeams (std::function<void(BackendTeam&)> callback)
     });
 }
 
-void Backend::getTeam (QString teamID)
+void Backend::retrieveTeam (QString teamID)
 {
 	NetworkRequest request ("teams/" + teamID);
 
@@ -438,7 +438,7 @@ void Backend::getTeam (QString teamID)
     });
 }
 
-void Backend::getOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback)
+void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback)
 {
     NetworkRequest request ("users/me/teams/" + team.id + "/channels");
 
@@ -472,7 +472,7 @@ void Backend::getOwnChannelMemberships (BackendTeam& team, std::function<void(Ba
 }
 
 #if 0 //supported in Mattermost server 6.2
-void Backend::getOwnAllChannelMemberships (std::function<void ()> callback)
+void Backend::retrieveOwnAllChannelMemberships (std::function<void ()> callback)
 {
     QNetworkRequest request;
 
@@ -492,7 +492,7 @@ void Backend::getOwnAllChannelMemberships (std::function<void ()> callback)
 }
 #endif
 
-void Backend::getTeamMembers (BackendTeam& team)
+void Backend::retrieveTeamMembers (BackendTeam& team)
 {
 	NetworkRequest request ("teams/" + team.id + "/members");
 
@@ -523,7 +523,7 @@ void Backend::getTeamMembers (BackendTeam& team)
 	});
 }
 
-void Backend::getChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler)
+void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(page) + "&per_page=" + QString::number(perPage));
 
@@ -559,7 +559,7 @@ void Backend::getChannelPosts (BackendChannel& channel, int page, int perPage, s
     });
 }
 
-void Backend::getChannelUnreadPost (BackendChannel& channel, std::function<void (const QString&)> responseHandler)
+void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<void (const QString&)> responseHandler)
 {
 	NetworkRequest request ("users/me/channels/" + channel.id + "/posts/unread?limit_before=0&limit_after=1");
 
