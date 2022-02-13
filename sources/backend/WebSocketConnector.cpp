@@ -41,6 +41,7 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 };
 
 WebSocketConnector::WebSocketConnector ()
+:hasReconnect (false)
 {
 	connect (&webSocket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), [this] (QAbstractSocket::SocketError error){
 		qDebug() << "WebSocket error " << error << " " << webSocket.errorString();
@@ -50,6 +51,12 @@ WebSocketConnector::WebSocketConnector ()
 	connect(&webSocket, &QWebSocket::connected, [this] {
 		LOG_DEBUG ("WebSocket connected");
 		doHandshake ();
+
+		if (hasReconnect) {
+			emit onReconnect ();
+		}
+
+		hasReconnect = false;
 		pingTimer.start (5000);
 	});
 
@@ -64,6 +71,7 @@ WebSocketConnector::WebSocketConnector ()
 		pongTimer.stop();
 		QTimer::singleShot (2000, [this] {
 			LOG_DEBUG ("WebSocket Reconnecting");
+			hasReconnect = true;
 			webSocket.open (webSocket.requestUrl());
 		});
 	});

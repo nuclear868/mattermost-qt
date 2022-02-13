@@ -33,6 +33,7 @@ signals:
 	void onLeaveTeam (const UserTeamEvent& event);
 	void onPost (PostEvent& event);
 	void onTyping (const TypingEvent& event);
+	void onReconnect ();
 private:
 	void onNewPacket (const QString& string);
 private:
@@ -40,6 +41,7 @@ private:
 	QString		token;
 	QTimer		pingTimer;
 	QTimer		pongTimer;
+	bool		hasReconnect;
 };
 
 } /* namespace Mattermost */

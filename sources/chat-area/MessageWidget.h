@@ -30,7 +30,6 @@ public:
 private:
     Ui::MessageWidget*						ui;
     std::unique_ptr<MessageAttachmentList>	attachments;
-    ChatArea* 								chatArea;
 };
 
 } /* namespace Mattermost */

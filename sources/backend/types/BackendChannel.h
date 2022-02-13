@@ -46,6 +46,11 @@ signals:
 	 * @param user user, who is typing
 	 */
 	void onUserTyping (const BackendUser& user);
+
+	/**
+	 * Called when there were missed posts - for example, because of a disconnect
+	 */
+	void onMissedPosts ();
 public:
     QString			id;
     uint64_t		create_at;
