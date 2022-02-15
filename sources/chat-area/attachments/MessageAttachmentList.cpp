@@ -7,7 +7,6 @@
 #include <QListWidgetItem>
 #include "AttachedBinaryFile.h"
 #include "backend/types/BackendFile.h"
-#include "backend/types/BackendUser.h"
 #include "preview-window/FilePreview.h"
 
 namespace Mattermost {
@@ -63,7 +62,7 @@ MessageAttachmentList::~MessageAttachmentList()
     delete ui;
 }
 
-void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser& author)
+void MessageAttachmentList::addFile (const BackendFile& file, const QString& authorName)
 {
 	if (file.mini_preview.isEmpty()) {
 		QWidget* fileWidget = new AttachedBinaryFile (backend, file, this);
@@ -94,7 +93,7 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
     parentWidget()->parentWidget()->parentWidget()->adjustSize();
 
     if (file.contents.isEmpty()) {
-    	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, &author, this] (const QByteArray& fileContents){
+    	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, authorName, this] (const QByteArray& fileContents){
 
 			QImage img = QImage::fromData (fileContents);
 			if (img.width() > 500) {
@@ -104,7 +103,7 @@ void MessageAttachmentList::addFile (const BackendFile& file, const BackendUser&
 			label->adjustSize();
 			newItem->setSizeHint(QSize (label->width(), label->height()));
 
-			filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, author.getDisplayName()});
+			filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, authorName});
 			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
 			/*

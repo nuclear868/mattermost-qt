@@ -22,7 +22,7 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 		emit conn.onChannelViewed (ChannelViewedEvent (data));
 	}},
 	{"posted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		PostEvent event (data);
+		PostEvent event (data, broadcast);
 		emit conn.onPost (event);
 	}},
 	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {

@@ -44,35 +44,26 @@ Backend::Backend(QObject *parent)
 	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onPost, [this](PostEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id);
-		QString teamName = team ? team->name : event.team_id;
+		BackendTeam* team = storage.getTeamById (event.teamId);
+		QString teamName = team ? team->name : event.teamId;
 
-		auto& post = event.post;
 
-		BackendChannel* channel = storage.getChannelById (event.post.channel_id);
+		BackendChannel* channel = storage.getChannelById (event.channelId);
 
 		if (!channel) {
 			return;
 		}
 
-		QString channelName = channel ? channel->name : event.post.channel_id;
+		QString channelName = channel ? channel->name : event.channelId;
 
-		for (auto& file: post.files) {
-			retrieveFile (file.id, [&file] (const QByteArray& data) {
-				file.contents = data;
-				emit file.onContentsAvailable (data);
-			});
-		}
+		BackendPost* post = channel->addPost (event.postObject);
 
-		post.author = storage.getUserById (post.user_id);
-
-		LOG_DEBUG ("Post in  '" << teamName << "' : '" << channelName << "' by " << event.post.user_id << ": " << event.post.message);
+		LOG_DEBUG ("Post in  '" << teamName << "' : '" << channelName << "' by " << post->getDisplayAuthorName() << ": " << post->message);
 		if (channel) {
-			emit channel->onNewPost (post);
-			emit onNewPost (*channel, post);
+			emit channel->onNewPost (*post);
+			emit onNewPost (*channel, *post);
 		}
 
-		channel->posts.emplace_back (std::move (post));
 	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onTyping, [this](const TypingEvent& event) {
@@ -90,7 +81,7 @@ Backend::Backend(QObject *parent)
 	connect (&webSocketConnector, &WebSocketConnector::onUserAdded, [this](const UserTeamEvent& event) {
 		BackendTeam* team = storage.getTeamById (event.team_id);
 		QString teamName = team ? team->name : event.team_id;
-		LOG_DEBUG ("User " << event.user_id << " added: " << teamName);
+		LOG_DEBUG ("User " << event.user_id << " added to: " << teamName);
 	});
 
 	connect (&webSocketConnector, &WebSocketConnector::onAddedToTeam, [this](const UserTeamEvent& event) {
@@ -464,7 +455,7 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 
     	LOG_DEBUG ("Team " << team.display_name << ":");
 		for (const auto &itemRef: doc.array()) {
-			BackendChannel* channel = new BackendChannel (itemRef.toObject());
+			BackendChannel* channel = new BackendChannel (storage, itemRef.toObject());
 			LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
 			storage.addChannel (team, channel);
 		}
@@ -549,20 +540,7 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 #endif
 
 		QJsonObject root = doc.object();
-		QJsonObject posts_item = root.value("posts").toObject();
-
-		for (const auto &orderItemRef: root.value("order").toArray()) {
-			auto order_id = orderItemRef.toString();
-			auto item = posts_item.find(order_id).value().toObject();
-
-			BackendPost post;
-			post.deserialize (item);
-
-			post.author = storage.getUserById (post.user_id);
-			channel.posts.insert (channel.posts.begin(), std::move (post));
-			//qDebug() << post.create_at << post.author->username << " " << post.message;
-		}
-
+		channel.addPosts (root.value("order").toArray(), root.value("posts").toObject());
 		responseHandler ();
     });
 }

@@ -13,12 +13,13 @@ namespace Mattermost {
 
 class PostEvent {
 public:
-	PostEvent (const QJsonObject& object);
+	PostEvent (const QJsonObject& data, const QJsonObject& broadcast);
 	virtual ~PostEvent ();
 public:
-	QString		team_id;
+	QString		teamId;
+	QString		channelId;
+	QJsonObject	postObject;
 	bool		set_online;
-	BackendPost post;
 };
 
 } /* namespace Mattermost */

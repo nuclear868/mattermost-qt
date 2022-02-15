@@ -263,7 +263,21 @@ void ChatArea::removeNewMessagesSeparator ()
 
 void ChatArea::addFileToload (BackendFile* file)
 {
-	filesToLoad.push_back (file);
+	if (!treeItem->isSelected()) {
+		filesToLoad.push_back (file);
+		return;
+	}
+
+	//if the chat area is active, load files immediately"
+
+	if (!file->contents.isEmpty()) {
+		return;
+	}
+
+	backend.retrieveFile (file->id, [file] (const QByteArray& data) {
+		file->contents = data;
+		emit file->onContentsAvailable (data);
+	});
 }
 
 void ChatArea::setUnreadMessagesCount (uint32_t count)

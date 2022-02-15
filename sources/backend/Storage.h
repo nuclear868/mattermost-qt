@@ -27,6 +27,7 @@ public:
 	BackendChannel* getChannelById (const QString& channelID);
 
 	BackendUser* getUserById (const QString& userID);
+	const BackendUser* getUserById (const QString& userID) const;
 
 	BackendTeam* addTeam (const QJsonObject& json);
 

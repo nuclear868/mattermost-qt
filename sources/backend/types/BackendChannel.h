@@ -7,12 +7,35 @@
 
 #pragma once
 
-#include <QJsonObject>
 #include <QVariant>
 #include <list>
 #include "BackendPost.h"
 
+class QJsonObject;
+
 namespace Mattermost {
+
+class Storage;
+
+/**
+ * A sequence of missing posts
+ */
+struct ChannelMissingPostsSequence {
+	QString 									previousPostId;
+	std::list<BackendPost*>						postsToAdd;
+};
+
+/**
+ * Collections of missing posts for a channel.
+ * Missing posts can happen if a webSocket disconnect occurs and new posts arrive before reconnect
+ */
+struct ChannelMissingPosts {
+
+	void addSequence (ChannelMissingPostsSequence&& seq);
+
+	std::vector<ChannelMissingPostsSequence>		postsToAdd;
+};
+
 
 class BackendChannel: public QObject {
 	Q_OBJECT
@@ -23,8 +46,14 @@ public:
 		privateChannel,
 		directChannel,
 	};
-	BackendChannel (const QJsonObject& jsonObject);
+	BackendChannel (const Storage& storage, const QJsonObject& jsonObject);
 	virtual ~BackendChannel ();
+public:
+	BackendPost* addPost (const QJsonObject& postObject);
+
+	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence);
+
+	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 signals:
 
 	/**
@@ -52,6 +81,7 @@ signals:
 	 */
 	void onMissedPosts ();
 public:
+	const Storage&	storage;
     QString			id;
     uint64_t		create_at;
     uint64_t		update_at;

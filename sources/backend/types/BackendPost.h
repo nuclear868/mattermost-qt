@@ -17,13 +17,12 @@ namespace Mattermost {
 
 class BackendPost {
 public:
-	BackendPost ();
+	BackendPost (const QJsonObject& jsonObject);
 	BackendPost (BackendPost&& other) = default;
 	~BackendPost ();
 public:
 	bool isOwnPost () const;
 	QString getDisplayAuthorName () const;
-	void deserialize (const QJsonObject& jsonObject);
 public:
 	QString						id;
 	uint64_t					create_at;
@@ -43,7 +42,7 @@ public:
 	QString						pending_post_id;
 	std::list<BackendFile>		files;
 
-	BackendUser*			author;
+	const BackendUser*			author;
 };
 
 } /* namespace Mattermost */

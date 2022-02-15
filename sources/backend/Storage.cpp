@@ -28,6 +28,17 @@ void Storage::reset ()
 	totalUsersCount = 0;
 }
 
+const BackendUser* Storage::getUserById (const QString& userID) const
+{
+	auto it = users.find (userID);
+
+	if (it == users.end()) {
+		return nullptr;
+	}
+
+	return &it->second;
+}
+
 BackendUser* Storage::getUserById (const QString& userID)
 {
 	auto it = users.find (userID);

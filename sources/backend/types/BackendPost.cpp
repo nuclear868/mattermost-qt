@@ -11,37 +11,8 @@
 
 namespace Mattermost {
 
-BackendPost::BackendPost ()
-:create_at (0)
-,update_at (0)
-,edit_at (0)
-,delete_at (0)
-,is_pinned (0)
-,author (nullptr)
-{
-}
-
-BackendPost::~BackendPost () = default;
-
-bool BackendPost::isOwnPost () const
-{
-	if (!author) {
-		return false;
-	}
-
-	return author->isLoginUser;
-}
-
-QString BackendPost::getDisplayAuthorName () const
-{
-	if (author) {
-		return author->getDisplayName ();
-	}
-
-	return user_id;
-}
-
-void BackendPost::deserialize (const QJsonObject& jsonObject)
+BackendPost::BackendPost (const QJsonObject& jsonObject)
+:author (nullptr)
 {
 	id = jsonObject.value("id").toString();
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();
@@ -65,6 +36,26 @@ void BackendPost::deserialize (const QJsonObject& jsonObject)
 	for (const auto &fileElement: metadata.value("files").toArray()) {
 		files.emplace_back (fileElement.toObject());
 	}
+}
+
+BackendPost::~BackendPost () = default;
+
+bool BackendPost::isOwnPost () const
+{
+	if (!author) {
+		return false;
+	}
+
+	return author->isLoginUser;
+}
+
+QString BackendPost::getDisplayAuthorName () const
+{
+	if (author) {
+		return author->getDisplayName ();
+	}
+
+	return user_id;
 }
 
 } /* namespace Mattermost */

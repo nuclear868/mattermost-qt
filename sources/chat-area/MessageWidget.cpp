@@ -40,7 +40,7 @@ MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *pare
 				chatArea->addFileToload (&file);
 			}
 
-			attachments->addFile (file, *post.author);
+			attachments->addFile (file, post.getDisplayAuthorName());
 		}
 		ui->verticalLayout->addWidget (attachments.get(), 0, Qt::AlignLeft);
 	}
