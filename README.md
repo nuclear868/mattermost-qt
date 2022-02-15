@@ -5,16 +5,19 @@ Mattermost native desktop client, using the QT framework
 * I was waiting too long for an open-source chat system, where you can develop a custom client application
 * I want to get familiar with QT Desktop application development
 * The official Mattermost desktop client is actually a javascript / typescript web application, running inside a dedicated web browser. This makes it veeery slow, it creates at least 10 processes and consumes a lot of RAM
+* Also, such 'modern' web-based applications have some drawbacks:
+    * No file transfer over LAN (yes, it makes transferring large files easier and sometimes people need to transfer large files)
+    * They do not allow to quickly open an attached image in a new window - so that you can see the chat window and one or multiple (full-size) images at the same time. All 'fancy' messengers that I am using (Skype, FB messenger, official Mattermost) alway open attached images in the same window, over the chat area, so that you cannot see the chat and the image at the same time. The only way is to download the image and open it. And later, remove it if you don't want your home directory to be filled with unneeded image files.
 
 # What does work
 * viewing all available channels
 * sending and receiving messages
-* viewing attached image files
+* Receiving attached files. Image files can be viewed in a simple viewer and other files can be downloaded or opened with default application
 * update, when a new team is added and you are added to it
 * visual notifications for new messages
 
 # What does not work / What is planned to be implemented
-* sending files and downloading received files
+* sending files
 * notifications when someone is typing and sending a notification when you are typing
 * message editing
 * emoticons, reactions, etc... (visual pleasures :) )
