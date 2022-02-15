@@ -4,6 +4,7 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QFile>
+#include <QDir>
 #include "AttachedBinaryFile.h"
 #include "ui_AttachedBinaryFile.h"
 #include "backend/types/BackendFile.h"
@@ -50,12 +51,15 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 
 		ui->openButton->setDisabled (true);
 		backend.retrieveFile (file.id, [this, &file] (const QByteArray& data){
-			QFile destFile (file.name);
+
+			QString fileDestination (QDir::currentPath() + "/" + file.name);
+
+			QFile destFile (fileDestination);
 			destFile.open (QIODevice::WriteOnly);
 			destFile.write (data);
 			destFile.close ();
 			ui->downloadedLabel->setText ("Download complete");
-			downloadedPath = file.name;
+			downloadedPath = fileDestination;
 			ui->openButton->setDisabled (false);
 		});
 	});
@@ -66,7 +70,7 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 	connect (ui->openButton, &QPushButton::clicked, [this, &backend, &file] {
 
 		if (!downloadedPath.isEmpty()) {
-			QDesktopServices::openUrl (downloadedPath);
+			QDesktopServices::openUrl ("file://" + downloadedPath);
 			return;
 		}
 
@@ -88,7 +92,7 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 
 			tempFile.write (data);
 			tempFile.close ();
-			QDesktopServices::openUrl (tempFile.fileName());
+			QDesktopServices::openUrl ("file://" + tempFile.fileName());
 		});
 	});
 }

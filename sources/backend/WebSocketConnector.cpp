@@ -151,7 +151,7 @@ void WebSocketConnector::onNewPacket (const QString& string)
 	QString jsonString = doc.toJson(QJsonDocument::Indented);
 	std::cout << jsonString.toStdString();
 	if (it == eventHandlers.end()) {
-		qDebug() << "Unhandled WebSocket event '" << event.toString() << "'\n";
+		LOG_DEBUG ("Unhandled WebSocket event '" << event.toString() << "'\n");
 		qDebug() << "========" << '\n';
 		return;
 	}
