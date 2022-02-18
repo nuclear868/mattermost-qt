@@ -16,7 +16,7 @@ public:
 	ChannelViewedEvent (const QJsonObject& object);
 	virtual ~ChannelViewedEvent ();
 public:
-	QString channel_id;
+	QString channelId;
 };
 
 } /* namespace Mattermost */

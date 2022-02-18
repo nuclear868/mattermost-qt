@@ -10,6 +10,8 @@
 #include <iostream>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "backend/WebSocketEventHandler.h"
 #include "log.h"
 
 namespace Mattermost {
@@ -19,29 +21,31 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 		std::cout << "Hello" << std::endl;
 	}},
 	{"channel_viewed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		emit conn.onChannelViewed (ChannelViewedEvent (data));
+		conn.eventHandler.handleEvent (ChannelViewedEvent (data));
 	}},
 	{"posted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		PostEvent event (data, broadcast);
-		emit conn.onPost (event);
+		conn.eventHandler.handleEvent (PostEvent (data, broadcast));
 	}},
 	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		TypingEvent event (data, broadcast);
-		emit conn.onTyping (event);
+		conn.eventHandler.handleEvent (TypingEvent (data, broadcast));
 	}},
-	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		emit conn.onUserAdded (UserTeamEvent (data));
+	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
+		conn.eventHandler.handleEvent (UserAddedEvent (data));
 	}},
-	{"added_to_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		emit conn.onAddedToTeam (UserTeamEvent (data));
+	{"added_to_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
+		conn.eventHandler.handleEvent (UserAddedToTeamEvent (data));
 	}},
-	{"leave_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		emit conn.onLeaveTeam (UserTeamEvent (data));
+	{"leave_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
+		conn.eventHandler.handleEvent (UserLeaveTeamEvent (data));
+	}},
+	{"channel_created", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
+		conn.eventHandler.handleEvent (ChannelCreatedEvent (data));
 	}},
 };
 
-WebSocketConnector::WebSocketConnector ()
-:hasReconnect (false)
+WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
+:eventHandler (eventHandler)
+,hasReconnect (false)
 {
 	connect (&webSocket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), [this] (QAbstractSocket::SocketError error){
 		qDebug() << "WebSocket error " << error << " " << webSocket.errorString();

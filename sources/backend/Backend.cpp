@@ -33,80 +33,11 @@ namespace Mattermost {
 
 Backend::Backend(QObject *parent)
 :QObject (parent)
+,webSocketEventHandler (*this)
+,webSocketConnector (webSocketEventHandler)
 ,isLoggedIn (false)
 ,nonFilledTeams (0)
 {
-	connect (&webSocketConnector, &WebSocketConnector::onChannelViewed, [this](const ChannelViewedEvent& event) {
-		BackendChannel* channel = storage.getChannelById (event.channel_id);
-		QString channelName = channel ? channel->name : event.channel_id;
-		emit channel->onViewed ();
-		emit onChannelViewed (*channel);
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onPost, [this](PostEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.teamId);
-		QString teamName = team ? team->name : event.teamId;
-
-
-		BackendChannel* channel = storage.getChannelById (event.channelId);
-
-		if (!channel) {
-			return;
-		}
-
-		QString channelName = channel ? channel->name : event.channelId;
-
-		BackendPost* post = channel->addPost (event.postObject);
-
-		LOG_DEBUG ("Post in  '" << teamName << "' : '" << channelName << "' by " << post->getDisplayAuthorName() << ": " << post->message);
-		if (channel) {
-			emit channel->onNewPost (*post);
-			emit onNewPost (*channel, *post);
-		}
-
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onTyping, [this](const TypingEvent& event) {
-		BackendChannel* channel = storage.getChannelById(event.channel_id);
-
-		BackendUser* user = storage.getUserById (event.user_id);
-
-		if (!user || !channel) {
-			//return;
-		}
-		//LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
-		emit (channel->onUserTyping(*user));
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onUserAdded, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id);
-		QString teamName = team ? team->name : event.team_id;
-		LOG_DEBUG ("User " << event.user_id << " added to: " << teamName);
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onAddedToTeam, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id
-				);
-		QString teamName = team ? team->name : event.team_id;
-		LOG_DEBUG ("User " << event.user_id << " added to team: " << teamName);
-
-		//Adds the new team. It's channels and messages in channels will be obtained too
-		if (!team) {
-			retrieveTeam (event.team_id);
-		}
-	});
-
-	connect (&webSocketConnector, &WebSocketConnector::onLeaveTeam, [this](const UserTeamEvent& event) {
-		BackendTeam* team = storage.getTeamById (event.team_id);
-		QString teamName = team ? team->name : event.team_id;
-
-		LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
-		emit (onLeaveTeam (*team));
-
-		storage.eraseTeam (team->id);
-		//printTeams ();
-	});
-
 	connect (&webSocketConnector, &WebSocketConnector::onReconnect, [this] {
 		LOG_DEBUG ("Reconnect - check for missed posts");
 #if 0
@@ -522,6 +453,31 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 		}
 #endif
 	});
+}
+
+void Backend::retrieveChannel (QString channelID)
+{
+	NetworkRequest request ("channels/" + channelID);
+
+	LOG_DEBUG ("retrieveChannel " << channelID);
+
+	httpConnector.get(request, [this](QVariant, QByteArray data) {
+		LOG_DEBUG ("retrieveChannel reply");
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+#if 1
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
+#endif
+
+#if 0
+		auto object = doc.object();
+		BackendTeam *team = storage.addTeam (doc.object());
+
+		emit onAddedToTeam (*team);
+#endif
+    });
 }
 
 void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler)

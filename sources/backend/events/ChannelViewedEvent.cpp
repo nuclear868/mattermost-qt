@@ -10,7 +10,7 @@
 namespace Mattermost {
 
 ChannelViewedEvent::ChannelViewedEvent (const QJsonObject& object)
-:channel_id (object.value("channel_id").toString())
+:channelId (object.value("channel_id").toString())
 {
 }
 

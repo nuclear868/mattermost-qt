@@ -11,6 +11,7 @@
 
 namespace Mattermost {
 
+
 class UserTeamEvent {
 public:
 	UserTeamEvent (const QJsonObject& object);
@@ -18,6 +19,18 @@ public:
 public:
 	QString team_id;
 	QString user_id;
+};
+
+class UserAddedEvent: public UserTeamEvent {
+	using UserTeamEvent::UserTeamEvent;
+};
+
+class UserAddedToTeamEvent: public UserTeamEvent {
+	using UserTeamEvent::UserTeamEvent;
+};
+
+class UserLeaveTeamEvent: public UserTeamEvent {
+	using UserTeamEvent::UserTeamEvent;
 };
 
 } /* namespace Mattermost */

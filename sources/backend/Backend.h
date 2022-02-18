@@ -14,6 +14,7 @@
 #include "backend/types/BackendLoginData.h"
 #include "backend/HTTPConnector.h"
 #include "backend/WebSocketConnector.h"
+#include "backend/WebSocketEventHandler.h"
 #include "backend/Storage.h"
 
 namespace Mattermost {
@@ -66,6 +67,9 @@ public:
 
     //get team members (/teams/teamID/members)
     void retrieveTeamMembers (BackendTeam& team);
+
+    //get a channel (/channels/channelID)
+    void retrieveChannel (QString channelID);
 
     //get posts in a channel (/channels/ID/posts)
     void retrieveChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler);
@@ -132,6 +136,7 @@ private:
     Storage							storage;
 
     HTTPConnector 					httpConnector;
+    WebSocketEventHandler			webSocketEventHandler;
     WebSocketConnector				webSocketConnector;
     BackendLoginData				loginData;
     bool							isLoggedIn;
