@@ -17,10 +17,16 @@
 
 namespace Mattermost {
 
-class BackendTeam {
+class BackendTeam: public QObject {
+	Q_OBJECT
 public:
+	BackendTeam (QString id);
 	BackendTeam (const QJsonObject& jsonObject);
 	virtual ~BackendTeam ();
+signals:
+	void onLeave ();
+	void onNewChannel (BackendChannel& channel);
+	void onChannelDeleted (BackendChannel& channel);
 public:
     QString			id;
     uint64_t		create_at;

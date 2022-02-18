@@ -29,15 +29,28 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (TypingEvent (data, broadcast));
 	}},
+
+	//user added to channel
 	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
 		conn.eventHandler.handleEvent (UserAddedEvent (data));
 	}},
+
+	//user added to team
 	{"added_to_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
 		conn.eventHandler.handleEvent (UserAddedToTeamEvent (data));
 	}},
+
+	//a user has left a team
 	{"leave_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
 		conn.eventHandler.handleEvent (UserLeaveTeamEvent (data));
 	}},
+
+	//a user (the logged-in user, or someone else) was removed from a channel
+	{"user_removed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (UserRemovedFromChannelEvent (data, broadcast));
+	}},
+
+	//a new channel was created
 	{"channel_created", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
 		conn.eventHandler.handleEvent (ChannelCreatedEvent (data));
 	}},

@@ -49,6 +49,8 @@ public:
 	BackendChannel (const Storage& storage, const QJsonObject& jsonObject);
 	virtual ~BackendChannel ();
 public:
+	static uint32_t getChannelType (const QJsonObject& jsonObject);
+
 	BackendPost* addPost (const QJsonObject& postObject);
 
 	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence);

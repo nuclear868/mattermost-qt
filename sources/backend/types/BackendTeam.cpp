@@ -9,6 +9,15 @@
 
 namespace Mattermost {
 
+BackendTeam::BackendTeam (QString id)
+:id (id)
+,create_at (0)
+,update_at (0)
+,delete_at (0)
+,allow_open_invite (false)
+{
+}
+
 BackendTeam::BackendTeam (const QJsonObject& jsonObject)
 :create_at (0)
 ,update_at (0)
@@ -30,6 +39,7 @@ BackendTeam::BackendTeam (const QJsonObject& jsonObject)
 	allow_open_invite = jsonObject.value("allow_open_invite").toBool();
 	scheme_id = jsonObject.value("scheme_id").toVariant();
 }
+
 
 BackendTeam::~BackendTeam () = default;
 

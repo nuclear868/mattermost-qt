@@ -386,9 +386,8 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 
     	LOG_DEBUG ("Team " << team.display_name << ":");
 		for (const auto &itemRef: doc.array()) {
-			BackendChannel* channel = new BackendChannel (storage, itemRef.toObject());
+			BackendChannel* channel =  storage.addChannel (team, itemRef.toObject());
 			LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
-			storage.addChannel (team, channel);
 		}
 
 		for (auto& channel: team.channels) {
@@ -398,7 +397,7 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 		--nonFilledTeams;
 
 		if (nonFilledTeams == 0) {
-			emit onAllTeamChannelsPopulated ();
+			emit onAllTeamChannelsPopulated (storage.directChannels);
 		}
     });
 }
@@ -455,13 +454,13 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 	});
 }
 
-void Backend::retrieveChannel (QString channelID)
+void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 {
 	NetworkRequest request ("channels/" + channelID);
 
 	LOG_DEBUG ("retrieveChannel " << channelID);
 
-	httpConnector.get(request, [this](QVariant, QByteArray data) {
+	httpConnector.get(request, [this, &team](QVariant, QByteArray data) {
 		LOG_DEBUG ("retrieveChannel reply");
 
 		QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -471,6 +470,10 @@ void Backend::retrieveChannel (QString channelID)
 		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 
+		BackendChannel* channel =  storage.addChannel (team, doc.object());
+		LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
+
+		emit team.onNewChannel (*channel);
 #if 0
 		auto object = doc.object();
 		BackendTeam *team = storage.addTeam (doc.object());
@@ -620,11 +623,6 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 const BackendUser& Backend::getLoginUser () const
 {
 	return *storage.loginUser;
-}
-
-std::vector<std::unique_ptr<BackendChannel>>& Backend::getDirectChannels ()
-{
-	return storage.directChannels;
 }
 
 Storage& Backend::getStorage ()

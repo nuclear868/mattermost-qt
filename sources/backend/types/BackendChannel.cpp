@@ -13,6 +13,24 @@
 
 namespace Mattermost {
 
+uint32_t BackendChannel::getChannelType (const QJsonObject& jsonObject)
+{
+	switch (jsonObject.value("type").toString()[0].unicode()) {
+	case 'O':
+		return publicChannel;
+		break;
+	case 'P':
+		return privateChannel;
+		break;
+	case 'D':
+		return directChannel;
+		break;
+	default:
+		return unknown;
+		break;
+	}
+}
+
 void ChannelMissingPosts::addSequence (ChannelMissingPostsSequence&& seq)
 {
 	//do not add empty sequence
@@ -36,19 +54,7 @@ BackendChannel::BackendChannel (const Storage& storage, const QJsonObject& jsonO
 	header = jsonObject.value("header").toString();
 	purpose = jsonObject.value("purpose").toString();
 
-	switch (jsonObject.value("type").toString()[0].unicode()) {
-	case 'O':
-		type = publicChannel;
-		break;
-	case 'P':
-		type = privateChannel;
-		break;
-	case 'D':
-		type = directChannel;
-		break;
-	default:
-		break;
-	}
+	type = getChannelType (jsonObject);
 
 	last_post_at = jsonObject.value("last_post_at").toInt();
 	total_msg_count = jsonObject.value("total_msg_count").toInt();

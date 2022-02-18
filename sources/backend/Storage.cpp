@@ -12,7 +12,9 @@ namespace Mattermost {
 
 Storage::Storage ()
 :totalUsersCount (0)
+,directChannels (DIRECT_TEAM_ID)
 {
+	directChannels.display_name = "Direct Messages";
 }
 
 Storage::~Storage () = default;
@@ -21,7 +23,7 @@ void Storage::reset ()
 {
 	teams.clear();
 
-	directChannels.clear();
+	directChannels.channels.clear();
 
 	channels.clear();
 	users.clear();
@@ -90,24 +92,33 @@ BackendTeam* Storage::addTeam (const QJsonObject& json)
 	return team;
 }
 
-void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
+BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
 {
-	if (channel->type == BackendChannel::directChannel) {
-		BackendChannel* existingChannel = getChannelById (channel->id);
+	//team to add channel to. If it is a private channel, it will be changed
+	BackendTeam* useTeam = &team;
+
+	//get channel ID and channel type in order to check if a channel has to be created
+	uint32_t channelType = BackendChannel::getChannelType (json);
+	QString channelId = json.value("id").toString();
+
+	BackendChannel* newChannel;
+
+	if (channelType == BackendChannel::directChannel) {
+		BackendChannel* existingChannel = getChannelById (channelId);
 
 		if (existingChannel) {
 			++existingChannel->referenceCount;
-			delete (channel);
-			return;
+			return existingChannel;
 		}
 
+		newChannel = new BackendChannel (*this, json);
 
 		/*
 		 * get pointer to the other participant in the direct channel
 		 */
 
 		//the channel name contains the userIDs of it's participants
-		QStringList all_users_id = channel->name.split("__");
+		QStringList all_users_id = newChannel->name.split("__");
 
 		//remove the logged-in user from this list
 		all_users_id.removeAll (loginUser->id);
@@ -116,26 +127,27 @@ void Storage::addChannel (BackendTeam& team, BackendChannel* channel)
 		QString userID = all_users_id.first();
 
 		//set the user ID as a channel name in order to be able to access it
-		channel->name = userID;
+		newChannel->name = userID;
 
 		//get pointer to the user
 		BackendUser* user = getUserById (all_users_id.first());
 
 		//set user's name as the channel display name
 		if (user) {
-			channel->display_name = user->getDisplayName();
+			newChannel->display_name = user->getDisplayName();
 		} else {
-			LOG_DEBUG ("Channel used not found for " << channel->id);
-			channel->display_name = all_users_id.first();
+			LOG_DEBUG ("Channel used not found for " << newChannel->id);
+			newChannel->display_name = all_users_id.first();
 		}
 
-		directChannels.emplace_back (channel);
-		channels[channel->id] = directChannels.back().get();
-
+		useTeam = &directChannels;
 	} else {
-		team.channels.emplace_back (channel);
-		channels[channel->id] = team.channels.back().get();
+		newChannel = new BackendChannel (*this, json);
 	}
+
+	useTeam->channels.emplace_back (newChannel);
+	channels[newChannel->id] = useTeam->channels.back().get();
+	return newChannel;
 }
 
 BackendUser* Storage::addUser (const QJsonObject& json, bool isLoggedInUser)

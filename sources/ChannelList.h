@@ -30,10 +30,9 @@ public:
 	ChannelList (QWidget* parent = nullptr);
 	virtual ~ChannelList ();
 public:
-	ChannelListForTeam* addTeam (Backend& backend, const QString& name, const QString& teamId);
+	ChannelListForTeam* addTeam (Backend& backend, BackendTeam& team);
 	void removeTeam (BackendTeam& team);
 private:
-	QVector<ChannelListForTeam*> 	teams;
 };
 
 } /* namespace Mattermost */

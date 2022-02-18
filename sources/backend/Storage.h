@@ -15,6 +15,8 @@
 
 namespace Mattermost {
 
+const QString DIRECT_TEAM_ID = "0";
+
 class Storage {
 public:
 	Storage ();
@@ -31,7 +33,7 @@ public:
 
 	BackendTeam* addTeam (const QJsonObject& json);
 
-	void addChannel (BackendTeam& team, BackendChannel* channel);
+	BackendChannel* addChannel (BackendTeam& team, const QJsonObject& json);
 
 	BackendUser* addUser (const QJsonObject& json, bool isLoggedInUser = false);
 
@@ -40,10 +42,10 @@ public:
 	void printTeams ();
 public:
 	std::map<QString, BackendTeam>					teams;
+	BackendTeam										directChannels;
 	QMap<QString, BackendChannel*> 					channels;
 	std::map<QString, BackendUser>					users;
 	BackendUser*									loginUser;
-	std::vector<std::unique_ptr<BackendChannel>>	directChannels;
 	uint32_t										totalUsersCount;
 };
 

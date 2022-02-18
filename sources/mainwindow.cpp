@@ -57,16 +57,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 		 * The callback is called once for each team
 		 */
 		backend.retrieveOwnTeams ([this](BackendTeam& team) {
-
-			//Add team here, so that they are added in the proper order
-			ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
-
-			/*
-			 * Gets all channels of the team, where the user is member
-			 */
-			backend.retrieveOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel) {
-				teamChannelList->addChannel (channel, ui->centralwidget);
-			}); //on getOwnChannelMemberships()
+			ui->channelList->addTeam (backend, team);
 		}); //on getOwnTeams()
 	}); //on getTotalUsersCount()
 
@@ -88,13 +79,8 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	 * The list of users needs to be obtained too, because direct channels' names consist of user IDs,
 	 * which need to be displayer ad user names
 	 */
-	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this]() {
-		LOG_DEBUG ("All Team Channels filled " << (void*) this);
-		ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, "Direct Messages", "");
-
-		for (auto &channel: backend.getDirectChannels()) {
-			teamChannelList->addChannel (*channel, ui->centralwidget);
-		}
+	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this] (BackendTeam& directChannelsTeam) {
+		ui->channelList->addTeam (backend, directChannelsTeam);
 
 //		QSettings settings;
 //		QString currentTeam (settings.value ("current_team", 0).toString());
@@ -115,26 +101,10 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	});
 
 	/*
-	 * onAddedToTeam comes after a WebSocket event, when the user is added to the team
+	 * onAddedToTeam comes after a WebSocket event, when the user is added to (new) team
 	 */
 	connect (&backend, &Backend::onAddedToTeam, [this](BackendTeam& team) {
-
-		/**
-		 * Adds each team in which the LoginUser participates
-		 */
-		ChannelListForTeam* teamChannelList = ui->channelList->addTeam (backend, team.display_name, team.id);
-
-		/*
-		 * Gets all channels of the team, where the user is member
-		 */
-		backend.retrieveOwnChannelMemberships (team, [this, teamChannelList] (BackendChannel& channel){
-			teamChannelList->addChannel (channel, ui->centralwidget);
-		});
-	});
-
-	connect (&backend, &Backend::onLeaveTeam, [this](BackendTeam& team) {
-
-		ui->channelList->removeTeam (team);
+		ui->channelList->addTeam (backend, team);
 	});
 
 	/*

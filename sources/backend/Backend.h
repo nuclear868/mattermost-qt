@@ -60,8 +60,6 @@ public:
     //get own channel memberships (/users/me/teams/teamID/channels)
     void retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback);
 
-    std::vector<std::unique_ptr<BackendChannel>>& getDirectChannels ();
-
     //get own channel memberships from all teams (/users/me/channel_members)
     //void retrieveOwnAllChannelMemberships (std::function<void()> callback);
 
@@ -69,7 +67,7 @@ public:
     void retrieveTeamMembers (BackendTeam& team);
 
     //get a channel (/channels/channelID)
-    void retrieveChannel (QString channelID);
+    void retrieveChannel (BackendTeam& team, QString channelID);
 
     //get posts in a channel (/channels/ID/posts)
     void retrieveChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler);
@@ -115,7 +113,7 @@ signals:
     /**
      * Called when all public and direct channels for all teams are received and filled in storage
      */
-    void onAllTeamChannelsPopulated ();
+    void onAllTeamChannelsPopulated (BackendTeam& directChannels);
 
     /**
      * Called when the logged-in user was added to a team.
@@ -123,12 +121,6 @@ signals:
      * @param team
      */
 	void onAddedToTeam (BackendTeam&);
-
-	/**
-	 * Called when the logged-in user has left a team
-	 * @param team
-	 */
-	void onLeaveTeam (BackendTeam&);
 
     void onNetworkError (uint32_t errorNumber, const QString& errorText);
     void onHttpError (uint32_t errorNumber, const QString& errorText);

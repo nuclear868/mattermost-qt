@@ -74,8 +74,7 @@ void WebSocketEventHandler::handleEvent (const UserAddedEvent& event)
 
 void WebSocketEventHandler::handleEvent (const UserAddedToTeamEvent& event)
 {
-	BackendTeam* team = storage.getTeamById (event.team_id
-			);
+	BackendTeam* team = storage.getTeamById (event.team_id);
 	QString teamName = team ? team->name : event.team_id;
 	LOG_DEBUG ("User " << event.user_id << " added to team: " << teamName);
 
@@ -91,10 +90,23 @@ void WebSocketEventHandler::handleEvent (const UserLeaveTeamEvent& event)
 	QString teamName = team ? team->name : event.team_id;
 
 	LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
-	emit (backend.onLeaveTeam (*team));
+	emit (team->onLeave());
 
 	storage.eraseTeam (team->id);
 	//printTeams ();
+}
+
+void WebSocketEventHandler::handleEvent (const UserRemovedFromChannelEvent& event)
+{
+	BackendChannel* channel = storage.getChannelById (event.channelId);
+	BackendUser* user = storage.getUserById (event.userId);
+
+	LOG_DEBUG ("User " << event.userId << " left channel: " << event.channelId);
+
+	if (!channel) {
+		return;
+	}
+#warning "TODO: Get channel's team and remove the channel"
 }
 
 void WebSocketEventHandler::handleEvent (const ChannelCreatedEvent& event)
@@ -104,7 +116,11 @@ void WebSocketEventHandler::handleEvent (const ChannelCreatedEvent& event)
 
 	LOG_DEBUG ("Channel created: " << event.channelId << " in team: " << teamName);
 
-	backend.retrieveChannel (event.channelId);
+	if (!team) {
+		return;
+	}
+
+	backend.retrieveChannel (*team, event.channelId);
 }
 
 
