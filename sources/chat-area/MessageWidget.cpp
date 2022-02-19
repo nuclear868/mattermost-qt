@@ -13,6 +13,7 @@ namespace Mattermost {
 
 MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
 :QWidget(parent)
+,post (post)
 ,ui(new Ui::MessageWidget)
 {
 	ui->setupUi(this);
@@ -118,7 +119,7 @@ QString MessageWidget::getMessageTimeString (uint64_t timestamp)
 
 	if (currentDate.year() != postDate.year()) {
 		format = "dd MMM yyyy, hh:mm:ss";
-	} else if (currentDate.day() != postDate.day()) {
+	} else if (currentDate.day() != postDate.day() || currentDate.month() != postDate.month()) {
 		format = "dd MMM, hh:mm:ss";
 	} else {
 		format = "hh:mm:ss";

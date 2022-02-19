@@ -18,6 +18,7 @@ class Backend;
 class BackendChannel;
 class BackendPost;
 class BackendUser;
+class ChannelMissingPosts;
 
 class ChatArea: public QWidget {
 	Q_OBJECT
@@ -27,6 +28,7 @@ public:
 public:
 	BackendChannel& getChannel ();
 	void fillChannelPosts (const QString& lastReadPostID);
+	void fillChannelPosts1 (const ChannelMissingPosts& collection);
 	void appendChannelPost (BackendPost& post);
 	void handleUserTyping (const BackendUser& user);
 	void sendNewPost ();
@@ -44,6 +46,7 @@ public:
 
 	void addFileToload (BackendFile* file);
 private:
+	int findPostByIndex (const QString& postId, int startIndex);
 	void setUserAvatar (const BackendUser& user);
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
@@ -54,6 +57,7 @@ private:
 	Backend& 						backend;
 	BackendChannel& 				channel;
 	std::vector<BackendFile*>		filesToLoad;
+	QString 						lastReadPostId;
 	QTimer							removeNewMessagesSeparatorTimer;
 	QTreeWidgetItem					*treeItem;
 	QListWidgetItem					*newMessagesSeparator;

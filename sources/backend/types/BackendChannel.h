@@ -53,7 +53,7 @@ public:
 
 	BackendPost* addPost (const QJsonObject& postObject);
 
-	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence);
+	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence, bool initialLoad);
 
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 signals:
@@ -70,6 +70,14 @@ signals:
 	 * @param post post
 	 */
 	void onNewPost (BackendPost& post);
+
+	/**
+	 * Called when new posts are received.
+	 * Either after init or after WebSocket disconnect.
+	 *
+	 * @param posts Collection of the missing posts only
+	 */
+	void onNewPosts (const ChannelMissingPosts& collection);
 
 	/**
 	 * Called when someone is typing in the channel.

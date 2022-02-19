@@ -27,6 +27,7 @@ public:
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
 
+    BackendPost&							post;
 private:
     Ui::MessageWidget*						ui;
     std::unique_ptr<MessageAttachmentList>	attachments;

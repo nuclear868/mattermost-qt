@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include "BackendChannel.h"
 #include "backend/Storage.h"
+#include "log.h"
 
 namespace Mattermost {
 
@@ -38,7 +39,7 @@ void ChannelMissingPosts::addSequence (ChannelMissingPostsSequence&& seq)
 		return;
 	}
 
-	postsToAdd.emplace_back (std::move (seq));
+	postsToAdd.emplace (postsToAdd.begin(), std::move (seq));
 }
 
 BackendChannel::BackendChannel (const Storage& storage, const QJsonObject& jsonObject)
@@ -76,7 +77,7 @@ BackendPost* BackendChannel::addPost (const QJsonObject& postObject)
 	return newPost;
 }
 
-void Mattermost::BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence)
+void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence, bool initialLoad)
 {
 	/*
 	 * Add a post.
@@ -84,8 +85,12 @@ void Mattermost::BackendChannel::addPost (const QJsonObject& postObject, std::li
 	 */
 	BackendPost* newPost = &*posts.emplace(position, postObject);
 	newPost->author = storage.getUserById (newPost->user_id);
-	qDebug() << newPost->create_at << " " << newPost->id << " " << newPost->getDisplayAuthorName() << " " << newPost->message;
+
 	currentSequence.postsToAdd.emplace_front (newPost);
+
+	if (!initialLoad) {
+		qDebug() << newPost->create_at << " " << newPost->id << " " << newPost->getDisplayAuthorName() << " " << newPost->message;
+	}
 }
 
 void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject)
@@ -96,13 +101,22 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 	std::list<BackendPost>::reverse_iterator currentLocalPost = posts.rbegin();
 
+#warning "Handle case of deleted post, that is not deleted locally"
+
+	bool initialLoad = (posts.empty());
+	bool lastPostWasSkipped = false;
+
+	int i = 0;
+
 	for (const auto& newPostEl: orderArray) {
+
+		++i;
 
 		QString newPostId = newPostEl.toString();
 
 		//end of local posts list. Save the current missing post sequence and add all missing posts
 		if (currentLocalPost == posts.rend()) {
-			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentMissingPostsSeq);
+			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentMissingPostsSeq, initialLoad);
 			++currentLocalPost;
 			continue;
 		}
@@ -110,10 +124,27 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 		//post already exists. No need to be added. Save the current missing post sequence and continue
 		if (currentLocalPost->id == newPostId) {
 			++currentLocalPost;
-			allMissingPosts.addSequence (std::move (currentMissingPostsSeq));
+
+			if (lastPostWasSkipped) {
+				currentMissingPostsSeq.previousPostId = newPostId;
+				allMissingPosts.addSequence (std::move (currentMissingPostsSeq));
+				lastPostWasSkipped = false;
+			}
 			continue;
 		}
+
+		//post not found. Add it to the list of new posts
+		addPost (postsObject.find (newPostId).value().toObject(), currentLocalPost.base(), currentMissingPostsSeq, initialLoad);
+		++currentLocalPost;
+		lastPostWasSkipped = true;
 	}
+
+	//if there are new post left, add them to allMissingPosts
+	if (!currentMissingPostsSeq.postsToAdd.empty()) {
+		allMissingPosts.addSequence (std::move (currentMissingPostsSeq));
+	}
+
+	emit onNewPosts (allMissingPosts);
 }
 
 } /* namespace Mattermost */

@@ -40,13 +40,10 @@ Backend::Backend(QObject *parent)
 {
 	connect (&webSocketConnector, &WebSocketConnector::onReconnect, [this] {
 		LOG_DEBUG ("Reconnect - check for missed posts");
-#if 0
 		for (auto& it: storage.channels) {
-			retrieveChannelPosts (it, 0, 200, responseHandler)
+			retrieveChannelPosts (*it, 0, 200);
 		}
-#endif
 	});
-
 
 	connect (&httpConnector, &HTTPConnector::onNetworkError, this, &Backend::onNetworkError);
 
@@ -483,11 +480,11 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
     });
 }
 
-void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPage, std::function<void()> responseHandler)
+void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPage)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(page) + "&per_page=" + QString::number(perPage));
 
-    httpConnector.get(request, [this, &channel, responseHandler](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
 
     	LOG_DEBUG ("getChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
 
@@ -500,7 +497,6 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 
 		QJsonObject root = doc.object();
 		channel.addPosts (root.value("order").toArray(), root.value("posts").toObject());
-		responseHandler ();
     });
 }
 

@@ -56,11 +56,19 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	 * First, get the first unread post (if any). So that a separator can be inserted before it
 	 */
 	backend.retrieveChannelUnreadPost (channel, [this, &backend, &channel] (const QString& postId){
-		qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
+		lastReadPostId = postId;
 
+		if (!postId.isEmpty()) {
+			qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
+		}
+
+		backend.retrieveChannelPosts (channel, 0, 200);
+
+#if 0
 		backend.retrieveChannelPosts (channel, 0, 200, [this, postId]() {
 			fillChannelPosts (postId);
 		});
+#endif
 	});
 
 	connect (&channel, &BackendChannel::onViewed, [this] {
@@ -72,6 +80,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	});
 
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
+
+	connect (&channel, &BackendChannel::onNewPosts, this, [this] (const ChannelMissingPosts& collection) {
+		fillChannelPosts1 (collection);
+	});
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
 
@@ -155,6 +167,70 @@ void ChatArea::fillChannelPosts (const QString& lastReadPostID)
 	}
 
 	setUnreadMessagesCount (unreadMessagesCount);
+}
+
+void ChatArea::fillChannelPosts1 (const ChannelMissingPosts& collection)
+{
+	int insertPos = 0;
+	int startPos = 0;
+
+	for (auto& list: collection.postsToAdd) {
+
+		if (!list.previousPostId.isEmpty()) {
+			qDebug() << "Add posts after" << list.previousPostId;
+		}
+
+		insertPos = findPostByIndex (list.previousPostId, startPos);
+		++insertPos;
+
+		for (auto& post: list.postsToAdd) {
+
+			if (!list.previousPostId.isEmpty()) {
+				qDebug() << "\tAdd post " << post->id;
+			}
+
+			MessageWidget* message = new MessageWidget (backend, *post, ui->listWidget, this);
+
+			if (post->isOwnPost()) {
+				message->setOwnMessage ();
+			}
+
+			QListWidgetItem* newItem = new QListWidgetItem();
+
+			ui->listWidget->insertItem (insertPos, newItem);
+			ui->listWidget->setItemWidget (newItem, message);
+			++insertPos;
+
+			if (post->id == lastReadPostId) {
+				addNewMessagesSeparator ();
+				++insertPos;
+				++unreadMessagesCount;
+			}
+		}
+	}
+
+	ui->listWidget->adjustSize();
+}
+
+int ChatArea::findPostByIndex (const QString& postId, int startIndex)
+{
+	if (postId.isEmpty()) {
+		return -1;
+	}
+
+	while (startIndex < ui->listWidget->count()) {
+
+		MessageWidget* message = static_cast <MessageWidget*> (ui->listWidget->itemWidget (ui->listWidget->item (startIndex)));
+
+		if (message->post.id == postId) {
+			return startIndex;
+		}
+
+		++startIndex;
+	}
+
+	qDebug() << "Post with id " << postId << " not found";
+	return -1;
 }
 
 void ChatArea::appendChannelPost (BackendPost& post)
