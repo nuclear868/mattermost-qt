@@ -5,7 +5,7 @@
 #include <QResizeEvent>
 #include "PostWidget.h"
 #include "ChatArea.h"
-#include "attachments/MessageAttachmentList.h"
+#include "attachments/PostAttachmentList.h"
 #include "ui_PostWidget.h"
 #include "backend/types/BackendPost.h"
 
@@ -39,7 +39,7 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 
 	//Add previews for files, if any
 	if (!post.files.empty()) {
-		attachments = std::make_unique<MessageAttachmentList> (backend, this);
+		attachments = std::make_unique<PostAttachmentList> (backend, this);
 		for (BackendFile& file: post.files) {
 
 			if (!file.mini_preview.isEmpty()) {

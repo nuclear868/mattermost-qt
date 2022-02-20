@@ -53,7 +53,7 @@ else()
     sources/mainwindow.ui
     sources/chat-area/ChatArea.ui
     sources/preview-window/FilePreview.ui
-    sources/chat-area/attachments/MessageAttachmentList.ui
+    sources/chat-area/attachments/PostAttachmentList.ui
     sources/chat-area/PostWidget.ui
     sources/chat-area/PostSeparatorWidget.ui
     resource.qrc

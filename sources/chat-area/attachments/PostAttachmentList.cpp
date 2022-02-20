@@ -1,6 +1,6 @@
 
-#include "MessageAttachmentList.h"
-#include "ui_MessageAttachmentList.h"
+#include "PostAttachmentList.h"
+#include "ui_PostAttachmentList.h"
 
 #include <QLabel>
 #include <QDebug>
@@ -11,12 +11,12 @@
 
 namespace Mattermost {
 
-std::map <const FilePreviewData*, FilePreview*> MessageAttachmentList::currentlyOpenFiles;
+std::map <const FilePreviewData*, FilePreview*> PostAttachmentList::currentlyOpenFiles;
 
-MessageAttachmentList::MessageAttachmentList (Backend& backend, QWidget *parent)
+PostAttachmentList::PostAttachmentList (Backend& backend, QWidget *parent)
 :QWidget(parent)
 ,backend (backend)
-,ui (new Ui::MessageAttachmentList)
+,ui (new Ui::PostAttachmentList)
 {
     ui->setupUi(this);
 
@@ -57,12 +57,12 @@ MessageAttachmentList::MessageAttachmentList (Backend& backend, QWidget *parent)
     });
 }
 
-MessageAttachmentList::~MessageAttachmentList()
+PostAttachmentList::~PostAttachmentList()
 {
     delete ui;
 }
 
-void MessageAttachmentList::addFile (const BackendFile& file, const QString& authorName)
+void PostAttachmentList::addFile (const BackendFile& file, const QString& authorName)
 {
 	if (file.mini_preview.isEmpty()) {
 		QWidget* fileWidget = new AttachedBinaryFile (backend, file, this);
@@ -86,7 +86,7 @@ void MessageAttachmentList::addFile (const BackendFile& file, const QString& aut
     label->setPixmap (QPixmap::fromImage(img));
 
 	/*
-	 * Parent of MessageAttachmentList is PostWidget.
+	 * Parent of PostAttachmentList is PostWidget.
 	 * Parent of PostWidget is PostListWidget.
 	 * However, no idea why the last parentWidget() is needed
 	 */
@@ -107,7 +107,7 @@ void MessageAttachmentList::addFile (const BackendFile& file, const QString& aut
 			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
 			/*
-			 * Parent of MessageAttachmentList is PostWidget.
+			 * Parent of PostAttachmentList is PostWidget.
 			 * Parent of PostWidget is PostListWidget.
 			 * However, no idea why the last parentWidget() is needed
 			 */

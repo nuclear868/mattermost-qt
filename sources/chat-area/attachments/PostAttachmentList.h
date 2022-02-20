@@ -5,7 +5,7 @@
 #include <map>
 
 namespace Ui {
-class MessageAttachmentList;
+class PostAttachmentList;
 }
 
 class QListWidgetItem;
@@ -17,19 +17,19 @@ class Backend;
 class BackendFile;
 class FilePreview;
 
-class MessageAttachmentList: public QWidget
+class PostAttachmentList: public QWidget
 {
     Q_OBJECT
 public:
-    explicit MessageAttachmentList (Backend& backend, QWidget *parent = nullptr);
-    ~MessageAttachmentList();
+    explicit PostAttachmentList (Backend& backend, QWidget *parent = nullptr);
+    ~PostAttachmentList();
 public:
     void addFile (const BackendFile& file, const QString& authorName);
 private:
     std::list<FilePreviewData>								filesPreviewData;
     static std::map <const FilePreviewData*, FilePreview*>	currentlyOpenFiles;
     Backend& 												backend;
-    Ui::MessageAttachmentList*								ui;
+    Ui::PostAttachmentList*								ui;
 };
 
 #endif // MESSAGEATTACHMENTLIST_H

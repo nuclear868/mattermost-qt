@@ -12,7 +12,7 @@ namespace Mattermost {
 
 class Backend;
 class BackendPost;
-class MessageAttachmentList;
+class PostAttachmentList;
 class ChatArea;
 
 class PostWidget: public QWidget
@@ -29,7 +29,7 @@ public:
     BackendPost&							post;
 private:
     Ui::PostWidget*						ui;
-    std::unique_ptr<MessageAttachmentList>	attachments;
+    std::unique_ptr<PostAttachmentList>	attachments;
 };
 
 } /* namespace Mattermost */

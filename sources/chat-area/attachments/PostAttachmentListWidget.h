@@ -1,5 +1,5 @@
 /**
- * @file MessageAttachmentListWidget.h
+ * @file PostAttachmentListWidget.h
  * @brief
  * @author Lyubomir Filipov
  * @date Jan 21, 2022
@@ -11,7 +11,7 @@
 
 namespace Mattermost {
 
-class MessageAttachmentListWidget: public QListWidget {
+class PostAttachmentListWidget: public QListWidget {
 public:
 	using QListWidget::QListWidget;
 private:

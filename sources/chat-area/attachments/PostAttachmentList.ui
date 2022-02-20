@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MessageAttachmentList</class>
- <widget class="QWidget" name="MessageAttachmentList">
+ <class>PostAttachmentList</class>
+ <widget class="QWidget" name="PostAttachmentList">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -36,7 +36,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="Mattermost::MessageAttachmentListWidget" name="listWidget">
+    <widget class="Mattermost::PostAttachmentListWidget" name="listWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -73,9 +73,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Mattermost::MessageAttachmentListWidget</class>
+   <class>Mattermost::PostAttachmentListWidget</class>
    <extends>QListWidget</extends>
-   <header>chat-area/attachments/MessageAttachmentListWidget.h</header>
+   <header>chat-area/attachments/PostAttachmentListWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
