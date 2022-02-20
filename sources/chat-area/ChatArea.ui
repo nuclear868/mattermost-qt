@@ -120,7 +120,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="PostsListWidget" name="listWidget">
+     <widget class="Mattermost::PostsListWidget" name="listWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -288,7 +288,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PostsListWidget</class>
+   <class>Mattermost::PostsListWidget</class>
    <extends>QListWidget</extends>
    <header>chat-area/PostsListWidget.h</header>
   </customwidget>

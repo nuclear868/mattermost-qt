@@ -23,7 +23,6 @@ public:
     explicit MessageWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
     ~MessageWidget();
 public:
-    void setOwnMessage ();
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
 

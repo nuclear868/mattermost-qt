@@ -20,6 +20,10 @@ MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *pare
 
 	ui->authorName->setText (post.getDisplayAuthorName ());
 
+	if (post.isOwnPost()) {
+		ui->authorName->setStyleSheet("QLabel { color : blue; }");
+	}
+
 	ui->message->setText (formatMessageText (post.message));
 	ui->time->setText (getMessageTimeString (post.create_at));
 
@@ -31,6 +35,7 @@ MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *pare
 		QImage img = QImage::fromData (post.author->avatar).scaled (ui->authorAvatar->geometry().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 		ui->authorAvatar->setPixmap (QPixmap::fromImage(img));
 	}
+
 
 	//Add previews for files, if any
 	if (!post.files.empty()) {
@@ -50,11 +55,6 @@ MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *pare
 MessageWidget::~MessageWidget()
 {
     delete ui;
-}
-
-void MessageWidget::setOwnMessage ()
-{
-	ui->authorName->setStyleSheet("QLabel { color : blue; }");
 }
 
 QString MessageWidget::formatMessageText (const QString& str)

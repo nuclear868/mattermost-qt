@@ -2,7 +2,6 @@
 #pragma once
 
 #include <QWidget>
-#include <QTimer>
 #include <QTreeWidgetItem>
 
 namespace Ui {
@@ -27,8 +26,7 @@ public:
 	~ChatArea();
 public:
 	BackendChannel& getChannel ();
-	void fillChannelPosts (const QString& lastReadPostID);
-	void fillChannelPosts1 (const ChannelMissingPosts& collection);
+	void fillChannelPosts (const ChannelMissingPosts& collection);
 	void appendChannelPost (BackendPost& post);
 	void handleUserTyping (const BackendUser& user);
 	void sendNewPost ();
@@ -46,10 +44,7 @@ public:
 
 	void addFileToload (BackendFile* file);
 private:
-	int findPostByIndex (const QString& postId, int startIndex);
 	void setUserAvatar (const BackendUser& user);
-	void addNewMessagesSeparator ();
-	void removeNewMessagesSeparator ();
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
 private:
@@ -58,9 +53,9 @@ private:
 	BackendChannel& 				channel;
 	std::vector<BackendFile*>		filesToLoad;
 	QString 						lastReadPostId;
-	QTimer							removeNewMessagesSeparatorTimer;
+
 	QTreeWidgetItem					*treeItem;
-	QListWidgetItem					*newMessagesSeparator;
+
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;
 };

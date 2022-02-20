@@ -8,8 +8,94 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QResizeEvent>
+#include "MessageSeparatorWidget.h"
+#include "backend/types/BackendPost.h"
+#include "MessageWidget.h"
 #include "PostsListWidget.h"
 #include "MessageWidget.h"
+
+namespace Mattermost {
+
+PostsListWidget::PostsListWidget (QWidget* parent)
+:QListWidget (parent)
+,newMessagesSeparator (nullptr)
+{
+	removeNewMessagesSeparatorTimer.setSingleShot (true);
+	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
+}
+
+void PostsListWidget::insertPost (int position, MessageWidget* postWidget)
+{
+	QListWidgetItem* newItem = new QListWidgetItem();
+	insertItem (position, newItem);
+	setItemWidget (newItem, postWidget);
+}
+
+void PostsListWidget::insertPost (MessageWidget* postWidget)
+{
+	QListWidgetItem* newItem = new QListWidgetItem();
+	addItem (newItem);
+	setItemWidget (newItem, postWidget);
+}
+
+int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)
+{
+	if (postId.isEmpty()) {
+		return -1;
+	}
+
+	while (startIndex < count()) {
+
+		MessageWidget* message = static_cast <MessageWidget*> (itemWidget (item (startIndex)));
+
+		if (message->post.id == postId) {
+			return startIndex;
+		}
+
+		++startIndex;
+	}
+
+	qDebug() << "Post with id " << postId << " not found";
+	return -1;
+}
+
+void PostsListWidget::scrollToUnreadPostsOrBottom ()
+{
+	if (newMessagesSeparator) {
+		scrollToItem (newMessagesSeparator, QAbstractItemView::PositionAtCenter);
+	} else {
+		scrollToBottom ();
+	}
+}
+
+void PostsListWidget::addNewMessagesSeparator ()
+{
+	if (newMessagesSeparator) {
+		return;
+	}
+
+	MessageSeparatorWidget* separator = new MessageSeparatorWidget ("New messages");
+	newMessagesSeparator = new QListWidgetItem();
+	addItem (newMessagesSeparator);
+	setItemWidget (newMessagesSeparator, separator);
+}
+
+void PostsListWidget::removeNewMessagesSeparator ()
+{
+	if (!newMessagesSeparator) {
+		return;
+	}
+
+	delete newMessagesSeparator;
+	newMessagesSeparator = nullptr;
+}
+
+void PostsListWidget::removeNewMessagesSeparatorAfterTimeout (int timeoutMs)
+{
+	if (newMessagesSeparator) {
+		removeNewMessagesSeparatorTimer.start (timeoutMs);
+	}
+}
 
 void PostsListWidget::resizeEvent (QResizeEvent* event)
 {
@@ -35,3 +121,4 @@ void PostsListWidget::resizeEvent (QResizeEvent* event)
 	}
 }
 
+} /* namespace Mattermost */
