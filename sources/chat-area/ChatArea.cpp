@@ -1,8 +1,6 @@
 
 #include "ChatArea.h"
 
-#include <QFileDialog>
-#include <QScrollBar>
 #include "ui_ChatArea.h"
 #include "PostWidget.h"
 #include "backend/Backend.h"
@@ -16,11 +14,15 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 ,backend (backend)
 ,channel (channel)
 ,treeItem (new QTreeWidgetItem (tree))
+,outgoingPostCreator (*this, ui->textEdit)
 ,unreadMessagesCount (0)
 ,texteditDefaultHeight (80)
 {
+	//accept drag&drop attachments
+	setAcceptDrops(true);
+
 	ui->setupUi(this);
-	ui->listWidget->verticalScrollBar()->setSingleStep (10);
+
 	ui->title->setText (channel.display_name);
 	treeItem->setText (0, channel.display_name);
 	treeItem->setData(0, Qt::UserRole, QVariant::fromValue(this));
@@ -82,17 +84,11 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	/*
 	 * Send new post after pressing enter or clicking the 'Send' button
 	 */
-	connect (ui->sendButton, &QPushButton::clicked, this, &ChatArea::sendNewPost);
-#if 0
-	connect (ui->attachButton, &QPushButton::clicked, [this] {
-		for (auto& filename: QFileDialog::getOpenFileNames (this, "Select File(s) to attach")) {
-			qDebug() << filename;
-			this->backend.uploadFile (this->channel, filename, [] (QString fileID) {
-
-			});
-		}
+	connect (ui->sendButton, &QPushButton::clicked, [this] {
+		outgoingPostCreator.sendPost (this->backend, this->channel);
 	});
-#endif
+
+	connect (ui->attachButton, &QPushButton::clicked, &outgoingPostCreator, &OutgoingPostCreator::onAttachButtonClick);
 
 	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
@@ -197,15 +193,7 @@ void ChatArea::appendChannelPost (BackendPost& post)
 
 void ChatArea::sendNewPost ()
 {
-	QString message = ui->textEdit->toPlainText ();
 
-	//do not send empty messages
-	if (message.isEmpty()) {
-		return;
-	}
-
-	ui->textEdit->clear();
-	backend.addPost (channel, message);
 }
 
 void ChatArea::handleUserTyping (const BackendUser& user)
@@ -267,6 +255,26 @@ void ChatArea::setUnreadMessagesCount (uint32_t count)
 	} else {
 		treeItem->setText(1, QString::number(count));
 	}
+}
+
+void ChatArea::dragEnterEvent (QDragEnterEvent* event)
+{
+	outgoingPostCreator.onDragEnterEvent (event);
+}
+
+void ChatArea::dragMoveEvent (QDragMoveEvent* event)
+{
+	outgoingPostCreator.onDragMoveEvent (event);
+}
+
+void ChatArea::dropEvent (QDropEvent* event)
+{
+	outgoingPostCreator.onDropEvent (event);
+}
+
+QVBoxLayout& ChatArea::getAttachmentListParentWidget ()
+{
+	return *ui->verticalLayout;
 }
 
 void ChatArea::setTextEditWidgetHeight (int height)

@@ -17,7 +17,7 @@ public:
 	MessageTextEditWidget (QWidget *parent = nullptr);
 	virtual ~MessageTextEditWidget ();
 public:
-	void keyPressEvent (QKeyEvent *event) override;
+	void keyPressEvent (QKeyEvent* event) override;
 signals:
 	void enterPressed ();
 };

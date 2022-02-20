@@ -555,18 +555,22 @@ void Backend::markChannelAsViewed (BackendChannel& channel)
 	});
 }
 
-void Backend::addPost (BackendChannel& channel, const QString& message, const QString& rootID)
+void Backend::addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments, const QString& rootID)
 {
-#if 0
 	QJsonArray files;
-	files.push_back ("jbyk3u3zp3ggumk8m3je48ad6w");
-#endif
+
+	for (auto& id: attachments) {
+		files.push_back (id);
+	}
 
 	QJsonObject  json;
 
 	json.insert ("channel_id", channel.id);
 	json.insert ("message", message);
-	//json.insert ("file_ids", files);
+
+	if (!files.isEmpty()) {
+		json.insert ("file_ids", files);
+	}
 
 	if (!rootID.isEmpty()) {
 		json.insert ("root_id", rootID);
@@ -605,7 +609,7 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 	QByteArray data = file.readAll();
 	qDebug() << data.size();
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
+	httpConnector.post(request, data, [this, responseHandler](QVariant, QByteArray data) {
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 1
@@ -613,6 +617,14 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
+		QJsonObject root = doc.object();
+		QJsonArray arr = root.value ("file_infos").toArray();
+
+		if (arr.size() < 1) {
+			return responseHandler ("");
+		}
+
+		responseHandler (arr.at(0).toObject().value("id").toString());
 	});
 }
 

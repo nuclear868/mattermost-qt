@@ -4,11 +4,14 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 
+#include "OutgoingPostCreator.h"
+
 namespace Ui {
 class ChatArea;
 }
 
 class QListWidgetItem;
+class QVBoxLayout;
 
 namespace Mattermost {
 
@@ -18,6 +21,7 @@ class BackendChannel;
 class BackendPost;
 class BackendUser;
 class ChannelMissingPosts;
+class OutgoingAttachmentList;
 
 class ChatArea: public QWidget {
 	Q_OBJECT
@@ -42,8 +46,14 @@ public:
 	 */
 	void onMainWindowActivate ();
 
+	QVBoxLayout& getAttachmentListParentWidget ();
+
 	void addFileToload (BackendFile* file);
 private:
+	void dragEnterEvent (QDragEnterEvent* event) override;
+	void dragMoveEvent (QDragMoveEvent* event) override;
+	void dropEvent (QDropEvent* event) override;
+
 	void setUserAvatar (const BackendUser& user);
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
@@ -53,8 +63,8 @@ private:
 	BackendChannel& 				channel;
 	std::vector<BackendFile*>		filesToLoad;
 	QString 						lastReadPostId;
-
-	QTreeWidgetItem					*treeItem;
+	QTreeWidgetItem*				treeItem;
+	OutgoingPostCreator				outgoingPostCreator;
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;

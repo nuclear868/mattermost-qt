@@ -20,6 +20,7 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 :QListWidget (parent)
 ,newMessagesSeparator (nullptr)
 {
+	verticalScrollBar()->setSingleStep (10);
 	removeNewMessagesSeparatorTimer.setSingleShot (true);
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
 }

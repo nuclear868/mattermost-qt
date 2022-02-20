@@ -7,6 +7,7 @@
 
 #include "MessageTextEditWidget.h"
 #include <QKeyEvent>
+#include <QDebug>
 
 namespace Mattermost {
 
