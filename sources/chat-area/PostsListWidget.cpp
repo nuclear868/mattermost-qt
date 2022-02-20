@@ -8,11 +8,11 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QResizeEvent>
-#include "MessageSeparatorWidget.h"
+#include "PostSeparatorWidget.h"
 #include "backend/types/BackendPost.h"
-#include "MessageWidget.h"
+#include "PostWidget.h"
 #include "PostsListWidget.h"
-#include "MessageWidget.h"
+#include "PostWidget.h"
 
 namespace Mattermost {
 
@@ -24,14 +24,14 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
 }
 
-void PostsListWidget::insertPost (int position, MessageWidget* postWidget)
+void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
 	insertItem (position, newItem);
 	setItemWidget (newItem, postWidget);
 }
 
-void PostsListWidget::insertPost (MessageWidget* postWidget)
+void PostsListWidget::insertPost (PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
 	addItem (newItem);
@@ -46,7 +46,7 @@ int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)
 
 	while (startIndex < count()) {
 
-		MessageWidget* message = static_cast <MessageWidget*> (itemWidget (item (startIndex)));
+		PostWidget* message = static_cast <PostWidget*> (itemWidget (item (startIndex)));
 
 		if (message->post.id == postId) {
 			return startIndex;
@@ -74,7 +74,7 @@ void PostsListWidget::addNewMessagesSeparator ()
 		return;
 	}
 
-	MessageSeparatorWidget* separator = new MessageSeparatorWidget ("New messages");
+	PostSeparatorWidget* separator = new PostSeparatorWidget ("New messages");
 	newMessagesSeparator = new QListWidgetItem();
 	addItem (newMessagesSeparator);
 	setItemWidget (newMessagesSeparator, separator);

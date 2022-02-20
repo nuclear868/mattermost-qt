@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include <QScrollBar>
 #include "ui_ChatArea.h"
-#include "MessageWidget.h"
+#include "PostWidget.h"
 #include "backend/Backend.h"
 #include "log.h"
 
@@ -158,7 +158,7 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 				qDebug() << "\tAdd post " << post->id;
 			}
 
-			ui->listWidget->insertPost (insertPos, new MessageWidget (backend, *post, ui->listWidget, this));
+			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this));
 			++insertPos;
 
 			if (post->id == lastReadPostId) {
@@ -181,7 +181,7 @@ void ChatArea::appendChannelPost (BackendPost& post)
 		ui->listWidget->addNewMessagesSeparator ();
 	}
 
-	ui->listWidget->insertPost (new MessageWidget (backend, post, ui->listWidget, this));
+	ui->listWidget->insertPost (new PostWidget (backend, post, ui->listWidget, this));
 
 	ui->listWidget->adjustSize();
 	ui->listWidget->scrollToBottom();

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MessageWidget</class>
- <widget class="QWidget" name="MessageWidget">
+ <class>PostWidget</class>
+ <widget class="QWidget" name="PostWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

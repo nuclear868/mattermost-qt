@@ -12,14 +12,14 @@
 
 namespace Mattermost {
 
-class MessageWidget;
+class PostWidget;
 
 class PostsListWidget: public QListWidget {
 public:
 	explicit PostsListWidget (QWidget* parent);
 public:
-	void insertPost (int position, MessageWidget* postWidget);
-	void insertPost (MessageWidget* postWidget);
+	void insertPost (int position, PostWidget* postWidget);
+	void insertPost (PostWidget* postWidget);
 	int findPostByIndex (const QString& postId, int startIndex);
 
 	void scrollToUnreadPostsOrBottom ();

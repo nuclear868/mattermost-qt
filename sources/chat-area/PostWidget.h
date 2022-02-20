@@ -5,7 +5,7 @@
 #include <memory>
 
 namespace Ui {
-class MessageWidget;
+class PostWidget;
 }
 
 namespace Mattermost {
@@ -15,20 +15,20 @@ class BackendPost;
 class MessageAttachmentList;
 class ChatArea;
 
-class MessageWidget: public QWidget
+class PostWidget: public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit MessageWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
-    ~MessageWidget();
+    explicit PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
+    ~PostWidget();
 public:
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
 
     BackendPost&							post;
 private:
-    Ui::MessageWidget*						ui;
+    Ui::PostWidget*						ui;
     std::unique_ptr<MessageAttachmentList>	attachments;
 };
 

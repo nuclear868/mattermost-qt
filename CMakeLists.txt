@@ -54,8 +54,8 @@ else()
     sources/chat-area/ChatArea.ui
     sources/preview-window/FilePreview.ui
     sources/chat-area/attachments/MessageAttachmentList.ui
-    sources/chat-area/MessageWidget.ui
-    sources/chat-area/MessageSeparatorWidget.ui
+    sources/chat-area/PostWidget.ui
+    sources/chat-area/PostSeparatorWidget.ui
     resource.qrc
   )
 endif()

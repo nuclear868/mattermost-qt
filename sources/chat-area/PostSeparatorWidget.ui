@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MessageSeparatorWidget</class>
- <widget class="QWidget" name="MessageSeparatorWidget">
+ <class>PostSeparatorWidget</class>
+ <widget class="QWidget" name="PostSeparatorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

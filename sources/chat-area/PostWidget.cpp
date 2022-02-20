@@ -3,18 +3,18 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QResizeEvent>
-#include "MessageWidget.h"
+#include "PostWidget.h"
 #include "ChatArea.h"
 #include "attachments/MessageAttachmentList.h"
-#include "ui_MessageWidget.h"
+#include "ui_PostWidget.h"
 #include "backend/types/BackendPost.h"
 
 namespace Mattermost {
 
-MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
+PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
 :QWidget(parent)
 ,post (post)
-,ui(new Ui::MessageWidget)
+,ui(new Ui::PostWidget)
 {
 	ui->setupUi(this);
 
@@ -52,12 +52,12 @@ MessageWidget::MessageWidget (Backend& backend, BackendPost &post, QWidget *pare
 	}
 }
 
-MessageWidget::~MessageWidget()
+PostWidget::~PostWidget()
 {
     delete ui;
 }
 
-QString MessageWidget::formatMessageText (const QString& str)
+QString PostWidget::formatMessageText (const QString& str)
 {
 	QString ret (str.toHtmlEscaped ());
 
@@ -109,7 +109,7 @@ QString MessageWidget::formatMessageText (const QString& str)
 	return ret;
 }
 
-QString MessageWidget::getMessageTimeString (uint64_t timestamp)
+QString PostWidget::getMessageTimeString (uint64_t timestamp)
 {
 	QDate currentDate = QDateTime::currentDateTime().date();
 	QDateTime postTime = QDateTime::fromMSecsSinceEpoch (timestamp);

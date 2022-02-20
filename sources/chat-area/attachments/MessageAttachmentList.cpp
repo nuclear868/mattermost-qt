@@ -86,8 +86,8 @@ void MessageAttachmentList::addFile (const BackendFile& file, const QString& aut
     label->setPixmap (QPixmap::fromImage(img));
 
 	/*
-	 * Parent of MessageAttachmentList is MessageWidget.
-	 * Parent of MessageWidget is PostListWidget.
+	 * Parent of MessageAttachmentList is PostWidget.
+	 * Parent of PostWidget is PostListWidget.
 	 * However, no idea why the last parentWidget() is needed
 	 */
     parentWidget()->parentWidget()->parentWidget()->adjustSize();
@@ -107,8 +107,8 @@ void MessageAttachmentList::addFile (const BackendFile& file, const QString& aut
 			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
 			/*
-			 * Parent of MessageAttachmentList is MessageWidget.
-			 * Parent of MessageWidget is PostListWidget.
+			 * Parent of MessageAttachmentList is PostWidget.
+			 * Parent of PostWidget is PostListWidget.
 			 * However, no idea why the last parentWidget() is needed
 			 */
 			parentWidget()->parentWidget()->parentWidget()->adjustSize();
