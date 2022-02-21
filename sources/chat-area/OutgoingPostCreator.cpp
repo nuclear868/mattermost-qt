@@ -75,6 +75,7 @@ void OutgoingPostCreator::sendPost (Backend& backend, BackendChannel& channel)
 			}
 
 			delete (attachmentList);
+			attachmentList = nullptr;
 		});
 	}
 }

@@ -88,13 +88,16 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		outgoingPostCreator.sendPost (this->backend, this->channel);
 	});
 
+	connect (ui->textEdit, &MessageTextEditWidget::enterPressed, [this] {
+		outgoingPostCreator.sendPost (this->backend, this->channel);
+	});
+
 	connect (ui->attachButton, &QPushButton::clicked, &outgoingPostCreator, &OutgoingPostCreator::onAttachButtonClick);
 
 	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
 	});
 
-	connect (ui->textEdit, &MessageTextEditWidget::enterPressed, this, &ChatArea::sendNewPost);
 
 	connect (ui->textEdit, &MessageTextEditWidget::textChanged, [this] {
 		QSize size = ui->textEdit->document()->size().toSize();
