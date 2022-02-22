@@ -20,7 +20,6 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 :QListWidget (parent)
 ,newMessagesSeparator (nullptr)
 {
-	verticalScrollBar()->setSingleStep (10);
 	removeNewMessagesSeparatorTimer.setSingleShot (true);
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
 }
@@ -30,6 +29,7 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 	QListWidgetItem* newItem = new QListWidgetItem();
 	insertItem (position, newItem);
 	setItemWidget (newItem, postWidget);
+	verticalScrollBar()->setSingleStep (10);
 }
 
 void PostsListWidget::insertPost (PostWidget* postWidget)
@@ -37,6 +37,7 @@ void PostsListWidget::insertPost (PostWidget* postWidget)
 	QListWidgetItem* newItem = new QListWidgetItem();
 	addItem (newItem);
 	setItemWidget (newItem, postWidget);
+	verticalScrollBar()->setSingleStep (10);
 }
 
 int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)
