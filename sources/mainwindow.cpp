@@ -125,6 +125,14 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 MainWindow::~MainWindow() = default;
 
+static QString infoText (QString ("Version " PROJECT_VER "<br/>"
+"An unofficial Mattermost Client, using the QT framework<br/>") +
+R"(
+<br/>
+<br/>
+More information:<br/> 
+<a href='https://github.com/nuclear868/mattermost-qt'>https://github.com/nuclear868/mattermost-qt</a>)");
+
 void MainWindow::createMenu ()
 {
 	QMenu* mainMenu = new QMenu (ui->toolButton);
@@ -143,15 +151,21 @@ void MainWindow::createMenu ()
 	});
 
 	QMenu* helpMenu = mainMenu->addMenu ("Help");
-	helpMenu->addAction ("About", [this] {
+	helpMenu->addAction ("About Mattermost", [this] {
 		QMessageBox *msgBox = new QMessageBox (QMessageBox::Information,
-				"About Mattermost",
-				"Mattermost QT Client v" PROJECT_VER);
+				"About Mattermost", infoText);
 
+		msgBox->setIconPixmap (windowIcon().pixmap (QSize (64, 64)));
+		msgBox->setTextFormat(Qt::RichText);
 		msgBox->setStandardButtons(QMessageBox::Ok);
 		msgBox->setDefaultButton(QMessageBox::Ok);
 		msgBox->open();
 	});
+
+	helpMenu->addAction ("About QT", [this] {
+		QMessageBox::aboutQt (this, "About QT");
+	});
+
 	ui->toolButton->setMenu(mainMenu);
 }
 
