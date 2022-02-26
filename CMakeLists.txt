@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(qmattermost LANGUAGES CXX)
+file(READ .version version)
+project(qmattermost VERSION ${version} LANGUAGES CXX)
+configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/sources/config.h)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 

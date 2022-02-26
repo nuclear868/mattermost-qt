@@ -3,11 +3,13 @@
 
 #include <QWindow>
 #include <QCloseEvent>
+#include <QMessageBox>
 #include <QSystemTrayIcon>
 #include "./ui_mainwindow.h"
 #include "chat-area/ChatArea.h"
 #include "ChannelListForTeam.h"
 #include "backend/Backend.h"
+#include "config.h"
 #include "log.h"
 
 namespace Mattermost {
@@ -141,7 +143,15 @@ void MainWindow::createMenu ()
 	});
 
 	QMenu* helpMenu = mainMenu->addMenu ("Help");
-	helpMenu->addAction ("About");
+	helpMenu->addAction ("About", [this] {
+		QMessageBox *msgBox = new QMessageBox (QMessageBox::Information,
+				"About Mattermost",
+				"Mattermost QT Client v" PROJECT_VER);
+
+		msgBox->setStandardButtons(QMessageBox::Ok);
+		msgBox->setDefaultButton(QMessageBox::Ok);
+		msgBox->open();
+	});
 	ui->toolButton->setMenu(mainMenu);
 }
 
