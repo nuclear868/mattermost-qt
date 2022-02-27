@@ -11,17 +11,18 @@ Mattermost native desktop client, using the QT framework
 
 # What does work
 * viewing all available channels
-* sending and receiving messages
+* Sending and receiving messages
 * Receiving attached files. Image files can be viewed in a simple viewer and other files can be downloaded or opened with default application
+* Sending messages with attachments is supported too
+* If a reconnect occurs, the chat history is synchronized with the server, so that no messages are lost.
+* Cache is used for faster image loading.
 * update, when a new team is added and you are added to it
 * visual notifications for new messages
 
 # What does not work / What is planned to be implemented
-* sending files
 * notifications when someone is typing and sending a notification when you are typing
-* message editing
+* message editing and deleting
 * emoticons, reactions, etc... (visual pleasures :) )
-* caching of received data, mainly images (user avatars and channel images). Now all data is downloaded from the server at each startup
 * Preview of team members, channel members, users, etc...
 * Properly handing adding / deleting users / channels / teams
 
