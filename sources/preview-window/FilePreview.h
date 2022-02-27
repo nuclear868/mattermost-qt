@@ -15,13 +15,15 @@ struct FilePreviewData {
 	QString				fileAuthor;
 };
 
-class FilePreview : public QDialog
-{
+class FilePreview: public QDialog {
     Q_OBJECT
-
 public:
     explicit FilePreview (const FilePreviewData& file, QWidget *parent = nullptr);
     ~FilePreview();
+public:
+    QSize getMinimumSize (const QPixmap& pixmap);
+
+    void resizeEvent(QResizeEvent* event) override;
 
 private:
     Ui::FilePreview*	ui;
