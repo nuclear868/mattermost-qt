@@ -22,6 +22,11 @@ FilePreview::FilePreview (const FilePreviewData& file, QWidget *parent)
 
 	ui->fileInfo->setText (file.fileName);
 	adjustSize();
+
+	resizeTimer.setSingleShot (true);
+	connect (&resizeTimer, &QTimer::timeout, [this] {
+		resize (newWindowSize);
+	});
 }
 
 FilePreview::~FilePreview()
@@ -44,34 +49,54 @@ QSize FilePreview::getMinimumSize (const QPixmap& pixmap)
 
 void FilePreview::resizeEvent (QResizeEvent* event)
 {
+	//new window size
 	QSize newWindowSize (event->size());
+
+	//difference between the current and the previous size. Used to determine whether the user wants to expand or to shrink the window
+	QSize diff (event->size() - event->oldSize());
 	//qDebug () << "Window Resize to:" << event->size();
 
 	/*
 	 * Apply the new size in order to get the new image size
 	 */
 	QDialog::resizeEvent (event);
+
+	/*
+	 * Get the new image size. It will be scaled, so that the aspect ratio is preserved
+	 */
 	QSize newImageSize (ui->fileContents->size());
 	//qDebug () << "Image Resize to:" << newImageSize;
 
 	QSize newImageSizeScaled (pixmap.size());
-	newImageSizeScaled.scale (newImageSize, Qt::KeepAspectRatio);
+
+	//if the window is being expanded, keep aspect ratio by expanding
+	if (diff.width() > 0 || diff.height() > 0) {
+		newImageSizeScaled.scale (newImageSize, Qt::KeepAspectRatioByExpanding);
+	} else {
+		newImageSizeScaled.scale (newImageSize, Qt::KeepAspectRatio);
+	}
 
 	/*
-	 * Get the difference between the new image size and the new image size, with preserved aspect ration
+	 * Get the difference between the new image size and the new image size, with preserved aspect ratio
+	 * The same difference will be applied to the window
 	 */
 	QSize aspectRatioDiff = newImageSizeScaled - newImageSize;
 	//qDebug () << "Image Scale to:" << newImageSizeScaled;
 
 	/*
-	 * Apply this difference to the window, so that the aspect ratio is preserved
+	 * Apply this difference to the window, so that the aspect ratio is preserved.
+	 * Use a timer, so that the resize is done (hopefully) only when the user stops resizing
 	 */
-	if (abs (aspectRatioDiff.width()) > 100 || abs (aspectRatioDiff.height()) > 100) {
-		//qDebug () << "Window add resize:" << newImageSizeScaled - newImageSize;
-		resize (newWindowSize + aspectRatioDiff);
+	int absWidth = abs (aspectRatioDiff.width());
+	int absHeight = abs (aspectRatioDiff.height());
+
+	if (absWidth > newImageSizeScaled.width() * 0.05 || absHeight > newImageSizeScaled.height() * 0.05) {
+		this->newWindowSize = newWindowSize + aspectRatioDiff;
+		//qDebug () << "Window start resize timer:" << aspectRatioDiff << " new size: " << newWindowSize + aspectRatioDiff;
+		resizeTimer.start (200);
 	}
 
-	//qDebug () << " ";
+	qDebug () << " ";
 }
 
 } /* namespace Mattermost */

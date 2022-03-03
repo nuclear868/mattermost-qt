@@ -2,6 +2,7 @@
 #define FILEPREVIEW_H
 
 #include <QDialog>
+#include <QTimer>
 
 namespace Ui {
 class FilePreview;
@@ -28,6 +29,8 @@ public:
 private:
     Ui::FilePreview*	ui;
     QPixmap				pixmap;
+    QTimer				resizeTimer;
+    QSize				newWindowSize;
 };
 
 } /* namespace Mattermost */
