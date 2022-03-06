@@ -27,7 +27,8 @@ public:
 	void removeNewMessagesSeparator ();
 	void removeNewMessagesSeparatorAfterTimeout (int timeoutMs);
 private:
-	void resizeEvent (QResizeEvent *event)	override;
+	void resizeEvent (QResizeEvent *event)		override;
+	void showContextMenu (const QPoint &pos);
 private:
 	QTimer							removeNewMessagesSeparatorTimer;
 	QListWidgetItem					*newMessagesSeparator;

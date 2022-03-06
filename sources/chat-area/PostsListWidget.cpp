@@ -7,6 +7,7 @@
 
 #include <QScrollBar>
 #include <QDebug>
+#include <QMenu>
 #include <QResizeEvent>
 #include "PostSeparatorWidget.h"
 #include "backend/types/BackendPost.h"
@@ -22,6 +23,8 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 {
 	removeNewMessagesSeparatorTimer.setSingleShot (true);
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
+
+	connect (this, &QListWidget::customContextMenuRequested, this, &PostsListWidget::showContextMenu);
 }
 
 void PostsListWidget::insertPost (int position, PostWidget* postWidget)
@@ -99,6 +102,46 @@ void PostsListWidget::removeNewMessagesSeparatorAfterTimeout (int timeoutMs)
 	}
 }
 
+void PostsListWidget::showContextMenu (const QPoint& pos)
+{
+	// Handle global position
+	QPoint globalPos = mapToGlobal(pos);
+
+	QListWidgetItem* pointedItem = itemAt(pos);
+	PostWidget* post = static_cast <PostWidget*> (itemWidget (pointedItem));
+
+	// Create menu and insert some actions
+	QMenu myMenu;
+
+	if (post->post.isOwnPost()) {
+		myMenu.addAction ("Edit", [post] {
+			qDebug() << "Edit " << post->post.message;
+		});
+
+		myMenu.addAction ("Delete", [post] {
+			qDebug() << "Erase " << post->post.message;
+		});
+
+		myMenu.addSeparator();
+	}
+
+	myMenu.addAction ("Copy to clipboard", [post] {
+		qDebug() << "Copy " << post->post.message;
+	});
+
+	myMenu.addAction ("Reply", [post] {
+		qDebug() << "Reply " << post->post.message;
+	});
+
+	myMenu.addAction ("Pin", [post] {
+		qDebug() << "Pin " << post->post.message;
+	});
+
+
+	// Show context menu at handling position
+	myMenu.exec(globalPos + QPoint (10, 0));
+}
+
 void PostsListWidget::resizeEvent (QResizeEvent* event)
 {
 	for (int i = 0; i < count(); ++i) {
@@ -122,5 +165,6 @@ void PostsListWidget::resizeEvent (QResizeEvent* event)
 		scrollToBottom ();
 	}
 }
+
 
 } /* namespace Mattermost */

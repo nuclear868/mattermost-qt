@@ -61,6 +61,9 @@
        <height>32</height>
       </size>
      </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::NoContextMenu</enum>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Box</enum>
      </property>
@@ -93,8 +96,12 @@
          <property name="font">
           <font>
            <pointsize>8</pointsize>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::NoContextMenu</enum>
          </property>
          <property name="text">
           <string>authorName</string>
@@ -116,6 +123,9 @@
           <font>
            <pointsize>8</pointsize>
           </font>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::NoContextMenu</enum>
          </property>
          <property name="text">
           <string>time</string>
@@ -143,6 +153,9 @@
          <width>50</width>
          <height>0</height>
         </size>
+       </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::NoContextMenu</enum>
        </property>
        <property name="text">
         <string>message</string>
