@@ -592,6 +592,17 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 	});
 }
 
+void Backend::deletePost (const QString postID)
+{
+	NetworkRequest request ("posts/" + postID);
+
+	httpConnector.del (request);
+}
+
+void Backend::pinPost (const QString postID)
+{
+}
+
 void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std::function<void (QString)> responseHandler)
 {
 	QFileInfo fileInfo (filePath);

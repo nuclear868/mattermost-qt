@@ -28,6 +28,7 @@ public:
 	void get (const QNetworkRequest &request, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 	void post (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray)> responseHandler);
 	void post (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
+	void del (const QNetworkRequest &request);
 
 signals:
 	void onNetworkError (uint32_t errorNumber, const QString& errorText);

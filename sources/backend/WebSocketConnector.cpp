@@ -23,11 +23,18 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	{"channel_viewed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (ChannelViewedEvent (data));
 	}},
+
 	{"posted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (PostEvent (data, broadcast));
 	}},
+
 	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (TypingEvent (data, broadcast));
+	}},
+
+	//post deleted
+	{"post_deleted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (PostDeletedEvent (data, broadcast));
 	}},
 
 	//user added to channel

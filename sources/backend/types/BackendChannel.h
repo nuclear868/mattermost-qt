@@ -72,6 +72,12 @@ signals:
 	void onNewPost (BackendPost& post);
 
 	/**
+	 * Called when a post is being deleted
+	 * @param postId postId
+	 */
+	void onPostDeleted (const QString& postId);
+
+	/**
 	 * Called when new posts are received.
 	 * Either after init or after WebSocket disconnect.
 	 *

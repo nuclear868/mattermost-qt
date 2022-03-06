@@ -20,12 +20,14 @@ public:
 public:
 	void insertPost (int position, PostWidget* postWidget);
 	void insertPost (PostWidget* postWidget);
+	PostWidget* findPost (const QString& postId);
 	int findPostByIndex (const QString& postId, int startIndex);
 
 	void scrollToUnreadPostsOrBottom ();
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void removeNewMessagesSeparatorAfterTimeout (int timeoutMs);
+	Backend*						backend;
 private:
 	void resizeEvent (QResizeEvent *event)		override;
 	void showContextMenu (const QPoint &pos);

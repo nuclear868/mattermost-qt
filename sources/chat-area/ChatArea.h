@@ -30,9 +30,10 @@ public:
 	~ChatArea();
 public:
 	BackendChannel& getChannel ();
-	void fillChannelPosts (const ChannelMissingPosts& collection);
 	void appendChannelPost (BackendPost& post);
+	void fillChannelPosts (const ChannelMissingPosts& collection);
 	void handleUserTyping (const BackendUser& user);
+	void handlePostDeleted (const QString& postId);
 	void sendNewPost ();
 
 	/**

@@ -10,6 +10,7 @@
 #include "events/ChannelCreatedEvent.h"
 #include "events/ChannelViewedEvent.h"
 #include "events/PostEvent.h"
+#include "events/PostDeletedEvent.h"
 #include "events/UserTeamEvent.h"
 #include "events/UserRemovedFromChannelEvent.h"
 #include "events/TypingEvent.h"
@@ -26,6 +27,7 @@ public:
 public:
 	void handleEvent (const ChannelViewedEvent& event);
 	void handleEvent (const PostEvent& event);
+	void handleEvent (const PostDeletedEvent& event);
 	void handleEvent (const TypingEvent& event);
 	void handleEvent (const UserAddedEvent& event);
 	void handleEvent (const UserAddedToTeamEvent& event);

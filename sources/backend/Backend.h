@@ -81,6 +81,12 @@ public:
 	//add new post in a channel (/posts)
 	void addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments = QList<QString> (), const QString& rootID = "");
 
+	//delete a post (/posts/{post_id})
+	void deletePost (const QString postID);
+
+	//pin a post (/posts/{post_id}/pin)
+	void pinPost (const QString postID);
+
 	//upload a file, to be added to a post (/files)
 	void uploadFile (BackendChannel& channel, const QString& filePath, std::function<void(QString)> responseHandler);
 

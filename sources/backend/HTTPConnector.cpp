@@ -62,6 +62,12 @@ void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data
 	setProcessReply (reply, std::move (responseHandler));
 }
 
+void HTTPConnector::del (const QNetworkRequest& request)
+{
+	QNetworkReply* reply = qnetworkManager->deleteResource (request);
+	setProcessReply (reply, [](QVariant, QByteArray, const QNetworkReply&){});
+}
+
 void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
 {
 	connect(reply, &QNetworkReply::finished, [this, reply, responseHandler]() {

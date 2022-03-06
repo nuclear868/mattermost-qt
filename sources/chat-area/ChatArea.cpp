@@ -22,6 +22,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	setAcceptDrops(true);
 
 	ui->setupUi(this);
+	ui->listWidget->backend = &backend;
 
 	ui->title->setText (channel.display_name);
 	treeItem->setText (0, channel.display_name);
@@ -79,6 +80,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
+
+	connect (&channel, &BackendChannel::onPostDeleted, this, &ChatArea::handlePostDeleted);
 
 
 	/*
@@ -202,6 +205,16 @@ void ChatArea::sendNewPost ()
 void ChatArea::handleUserTyping (const BackendUser& user)
 {
 	LOG_DEBUG (channel.display_name << ": " << user.getDisplayName() << " is typing");
+}
+
+void ChatArea::handlePostDeleted (const QString& postId)
+{
+	PostWidget* postWidget = ui->listWidget->findPost (postId);
+
+	if (postWidget) {
+		postWidget->markAsDeleted ();
+		ui->listWidget->adjustSize();
+	}
 }
 
 void ChatArea::onActivate ()

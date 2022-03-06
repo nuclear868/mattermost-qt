@@ -14,10 +14,10 @@ namespace Mattermost {
 PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
 :QWidget(parent)
 ,post (post)
+,isDeleted (false)
 ,ui(new Ui::PostWidget)
 {
 	ui->setupUi(this);
-
 	ui->authorName->setText (post.getDisplayAuthorName ());
 
 	if (post.isOwnPost()) {
@@ -55,6 +55,13 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 PostWidget::~PostWidget()
 {
     delete ui;
+}
+
+void PostWidget::markAsDeleted ()
+{
+	ui->message->setText ("(Message deleted)");
+	attachments.reset (nullptr);
+	isDeleted = true;
 }
 
 QString PostWidget::formatMessageText (const QString& str)

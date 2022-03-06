@@ -52,6 +52,17 @@ void WebSocketEventHandler::handleEvent (const PostEvent& event)
 	}
 }
 
+void WebSocketEventHandler::handleEvent (const PostDeletedEvent& event)
+{
+	BackendChannel* channel = storage.getChannelById (event.channelId);
+
+	LOG_DEBUG ("Delete post in  '" << (channel ? channel->name : event.channelId) << "' : '" << event.postId);
+
+	if (channel) {
+		emit channel->onPostDeleted (event.postId);
+	}
+}
+
 void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 {
 	BackendChannel* channel = storage.getChannelById(event.channel_id);

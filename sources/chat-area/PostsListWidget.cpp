@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <QResizeEvent>
 #include "PostSeparatorWidget.h"
+#include "backend/Backend.h"
 #include "backend/types/BackendPost.h"
 #include "PostWidget.h"
 #include "PostsListWidget.h"
@@ -19,6 +20,7 @@ namespace Mattermost {
 
 PostsListWidget::PostsListWidget (QWidget* parent)
 :QListWidget (parent)
+,backend (nullptr)
 ,newMessagesSeparator (nullptr)
 {
 	removeNewMessagesSeparatorTimer.setSingleShot (true);
@@ -62,6 +64,28 @@ int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)
 
 	qDebug() << "Post with id " << postId << " not found";
 	return -1;
+}
+
+PostWidget* PostsListWidget::findPost (const QString& postId)
+{
+	if (postId.isEmpty()) {
+		return nullptr;
+	}
+
+	int startIndex = 0;
+
+	while (startIndex < count()) {
+
+		PostWidget* message = static_cast <PostWidget*> (itemWidget (item (startIndex)));
+
+		if (message->post.id == postId) {
+			return message;
+		}
+
+		++startIndex;
+	}
+
+	return nullptr;
 }
 
 void PostsListWidget::scrollToUnreadPostsOrBottom ()
@@ -110,6 +134,10 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	QListWidgetItem* pointedItem = itemAt(pos);
 	PostWidget* post = static_cast <PostWidget*> (itemWidget (pointedItem));
 
+	if (post->isDeleted) {
+		return;
+	}
+
 	// Create menu and insert some actions
 	QMenu myMenu;
 
@@ -118,8 +146,9 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 			qDebug() << "Edit " << post->post.message;
 		});
 
-		myMenu.addAction ("Delete", [post] {
-			qDebug() << "Erase " << post->post.message;
+		myMenu.addAction ("Delete", [this, post] {
+			qDebug() << "Delete " << post->post.message;
+			backend->deletePost (post->post.id);
 		});
 
 		myMenu.addSeparator();

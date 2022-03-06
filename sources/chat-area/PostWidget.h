@@ -23,10 +23,13 @@ public:
     explicit PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
     ~PostWidget();
 public:
+    void markAsDeleted ();
+
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
 
-    BackendPost&							post;
+    BackendPost&						post;
+    bool								isDeleted;
 private:
     Ui::PostWidget*						ui;
     std::unique_ptr<PostAttachmentList>	attachments;
