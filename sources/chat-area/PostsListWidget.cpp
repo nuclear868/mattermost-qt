@@ -8,6 +8,8 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QMenu>
+#include <QApplication>
+#include <QClipboard>
 #include <QResizeEvent>
 #include "PostSeparatorWidget.h"
 #include "backend/Backend.h"
@@ -123,6 +125,23 @@ void PostsListWidget::removeNewMessagesSeparatorAfterTimeout (int timeoutMs)
 {
 	if (newMessagesSeparator) {
 		removeNewMessagesSeparatorTimer.start (timeoutMs);
+	}
+}
+
+void PostsListWidget::keyPressEvent (QKeyEvent* event)
+{
+	/*
+	 * Handle the key sequence for 'Copy' and copy all posts to clipboard (properly formatted)
+	 */
+	if (event->matches (QKeySequence::Copy)) {
+		QString str;
+		for (auto& item: selectedItems()) {
+			PostWidget* post = static_cast <PostWidget*> (itemWidget (item));
+			str += post->formatForClipboardSelection ();
+		}
+
+		qDebug() << "Copy Posts Selection";
+		QApplication::clipboard()->setText (str);
 	}
 }
 

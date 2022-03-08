@@ -29,6 +29,7 @@ public:
 	void removeNewMessagesSeparatorAfterTimeout (int timeoutMs);
 	Backend*						backend;
 private:
+	void keyPressEvent (QKeyEvent *event)		override;
 	void resizeEvent (QResizeEvent *event)		override;
 	void showContextMenu (const QPoint &pos);
 private:

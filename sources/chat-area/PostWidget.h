@@ -27,6 +27,7 @@ public:
 
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
+    QString formatForClipboardSelection () const;
 
     BackendPost&						post;
     bool								isDeleted;

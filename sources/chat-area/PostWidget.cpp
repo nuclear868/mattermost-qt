@@ -135,5 +135,12 @@ QString PostWidget::getMessageTimeString (uint64_t timestamp)
 	return postTime.toString (format);
 }
 
+QString PostWidget::formatForClipboardSelection () const
+{
+	QString ret (post.getDisplayAuthorName() + "\t[" + ui->time->text() + "]\n");
+	ret += " " + post.message + "\n\n";
+	return ret;
+}
+
 } /* namespace Mattermost */
 
