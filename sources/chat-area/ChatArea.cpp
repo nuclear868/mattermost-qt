@@ -101,7 +101,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		texteditDefaultHeight = ui->splitter->sizes()[1];
 	});
 
-
 	connect (ui->textEdit, &MessageTextEditWidget::textChanged, [this] {
 		QSize size = ui->textEdit->document()->size().toSize();
 
@@ -141,10 +140,12 @@ BackendChannel& ChatArea::getChannel ()
 
 void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 {
+	QDate currentDate = QDateTime::currentDateTime().date();
 	int insertPos = 0;
 	int startPos = 0;
+	int lastDaysAgo = INT32_MAX;
 
-	for (auto& list: collection.postsToAdd) {
+	for (const ChannelMissingPostsSequence& list: collection.postsToAdd) {
 
 		if (!list.previousPostId.isEmpty()) {
 			qDebug() << "Add posts after" << list.previousPostId;
@@ -160,6 +161,20 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 				qDebug() << "\tAdd post " << post->id;
 			}
 
+			QDateTime postTime = QDateTime::fromMSecsSinceEpoch (post->create_at);
+			QDate postDate = postTime.date();
+
+			int postDaysAgo = (postDate.daysTo (currentDate));
+
+			if (postDaysAgo < lastDaysAgo) {
+				lastDaysAgo = postDaysAgo;
+
+				if (postDaysAgo < 3) {
+					ui->listWidget->addDaySeparator (postDaysAgo);
+					++insertPos;
+				}
+			}
+
 			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this));
 			++insertPos;
 
@@ -168,6 +183,8 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 				++insertPos;
 				++unreadMessagesCount;
 			}
+
+			//ui->listWidget->addDaySeparator (0);
 		}
 	}
 
@@ -224,7 +241,7 @@ void ChatArea::onActivate ()
 
 	backend.markChannelAsViewed (channel);
 
-	for (auto& file: filesToLoad) {
+	for (BackendFile* file: filesToLoad) {
 
 		if (!file->contents.isEmpty()) {
 			continue;

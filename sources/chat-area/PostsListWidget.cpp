@@ -20,6 +20,13 @@
 
 namespace Mattermost {
 
+namespace ItemType {
+enum id {
+	post,
+	separator,
+};
+}
+
 PostsListWidget::PostsListWidget (QWidget* parent)
 :QListWidget (parent)
 ,backend (nullptr)
@@ -34,7 +41,9 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
+	newItem->setData(Qt::UserRole, ItemType::post);
 	insertItem (position, newItem);
+
 	setItemWidget (newItem, postWidget);
 	verticalScrollBar()->setSingleStep (10);
 }
@@ -42,7 +51,9 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 void PostsListWidget::insertPost (PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
+	newItem->setData(Qt::UserRole, ItemType::post);
 	addItem (newItem);
+
 	setItemWidget (newItem, postWidget);
 	verticalScrollBar()->setSingleStep (10);
 }
@@ -99,6 +110,30 @@ void PostsListWidget::scrollToUnreadPostsOrBottom ()
 	}
 }
 
+static QString getDayString (int daysAgo)
+{
+	switch (daysAgo) {
+	case 0:
+		return "Today";
+	case 1:
+		return "Yesterday";
+	case 2:
+		return "2 days ago";
+	}
+
+	return "";
+}
+
+
+void PostsListWidget::addDaySeparator (int daysAgo)
+{
+	PostSeparatorWidget* separator = new PostSeparatorWidget (getDayString (daysAgo));
+	QListWidgetItem* newItem = new QListWidgetItem();
+	newItem->setData(Qt::UserRole, ItemType::separator);
+	addItem (newItem);
+	setItemWidget (newItem, separator);
+}
+
 void PostsListWidget::addNewMessagesSeparator ()
 {
 	if (newMessagesSeparator) {
@@ -107,6 +142,7 @@ void PostsListWidget::addNewMessagesSeparator ()
 
 	PostSeparatorWidget* separator = new PostSeparatorWidget ("New messages");
 	newMessagesSeparator = new QListWidgetItem();
+
 	addItem (newMessagesSeparator);
 	setItemWidget (newMessagesSeparator, separator);
 }
@@ -136,13 +172,19 @@ void PostsListWidget::keyPressEvent (QKeyEvent* event)
 	if (event->matches (QKeySequence::Copy)) {
 		QString str;
 		for (auto& item: selectedItems()) {
-			PostWidget* post = static_cast <PostWidget*> (itemWidget (item));
-			str += post->formatForClipboardSelection ();
+
+			if (item->data(Qt::UserRole) == ItemType::post) {
+				PostWidget* post = static_cast <PostWidget*> (itemWidget (item));
+				str += post->formatForClipboardSelection ();
+			}
 		}
 
 		qDebug() << "Copy Posts Selection";
 		QApplication::clipboard()->setText (str);
+		return;
 	}
+
+	QListWidget::keyPressEvent (event);
 }
 
 void PostsListWidget::showContextMenu (const QPoint& pos)
@@ -151,6 +193,11 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	QPoint globalPos = mapToGlobal(pos);
 
 	QListWidgetItem* pointedItem = itemAt(pos);
+
+	if (pointedItem->data(Qt::UserRole) != ItemType::post) {
+		return;
+	}
+
 	PostWidget* post = static_cast <PostWidget*> (itemWidget (pointedItem));
 
 	if (post->isDeleted) {
@@ -214,5 +261,11 @@ void PostsListWidget::resizeEvent (QResizeEvent* event)
 	}
 }
 
+void PostsListWidget::focusOutEvent (QFocusEvent* event)
+{
+	//qDebug() << "FocusOutEvent";
+	clearSelection ();
+	QListWidget::focusOutEvent (event);
+}
 
 } /* namespace Mattermost */

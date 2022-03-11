@@ -24,13 +24,15 @@ public:
 	int findPostByIndex (const QString& postId, int startIndex);
 
 	void scrollToUnreadPostsOrBottom ();
+	void addDaySeparator (int daysAgo);
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void removeNewMessagesSeparatorAfterTimeout (int timeoutMs);
 	Backend*						backend;
 private:
-	void keyPressEvent (QKeyEvent *event)		override;
-	void resizeEvent (QResizeEvent *event)		override;
+	void keyPressEvent (QKeyEvent* event)		override;
+	void resizeEvent (QResizeEvent* event)		override;
+	void focusOutEvent (QFocusEvent* event)		override;
 	void showContextMenu (const QPoint &pos);
 private:
 	QTimer							removeNewMessagesSeparatorTimer;

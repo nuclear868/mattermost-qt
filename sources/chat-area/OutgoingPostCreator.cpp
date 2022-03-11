@@ -34,11 +34,6 @@ void OutgoingPostCreator::onAttachButtonClick ()
 	for (auto& filename: QFileDialog::getOpenFileNames (&chatArea, "Select File(s) to attach")) {
 		qDebug() << filename;
 		attachmentList->addFile (filename);
-#if 0
-		this->backend.uploadFile (this->channel, filename, [] (QString fileID) {
-
-		});
-#endif
 	}
 }
 
