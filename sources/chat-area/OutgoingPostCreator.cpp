@@ -15,30 +15,60 @@
 #include "MessageTextEditWidget.h"
 #include "OutgoingPostCreator.h"
 #include "OutgoingAttachmentList.h"
+#include "ui_ChatArea.h"
 
 namespace Mattermost {
 
-OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea, MessageTextEditWidget*& textEdit)
-:chatArea (chatArea)
-,textEdit (textEdit)
+OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
+:chatArea (pchatArea)
 ,attachmentList (nullptr)
 {
+	QTimer::singleShot (0, [this, chatAreaUi = chatArea.getUi()] {
+		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPost);
+
+		connect (chatAreaUi->textEdit, &MessageTextEditWidget::textChanged, [chatAreaUi] {
+				if (chatAreaUi->textEdit->document()->characterCount() == 1) {
+					chatAreaUi->sendButton->setDisabled (true);
+				} else {
+					chatAreaUi->sendButton->setDisabled (false);
+				}
+		});
+
+		/*
+		 * Send new post after pressing enter or clicking the 'Send' button
+		 */
+		connect (chatAreaUi->sendButton, &QPushButton::clicked, this, &OutgoingPostCreator::sendPost);
+
+		connect (chatAreaUi->attachButton, &QPushButton::clicked, this, &OutgoingPostCreator::onAttachButtonClick);
+
+		chatAreaUi->sendButton->setDisabled (true);
+	});
 }
 
 OutgoingPostCreator::~OutgoingPostCreator () = default;
 
 void OutgoingPostCreator::onAttachButtonClick ()
 {
+	QStringList files = QFileDialog::getOpenFileNames (&chatArea, "Select File(s) to attach");
+
+	if (files.empty()) {
+		return;
+	}
+
 	createAttachmentList ();
 
-	for (auto& filename: QFileDialog::getOpenFileNames (&chatArea, "Select File(s) to attach")) {
+	for (auto& filename: files) {
 		qDebug() << filename;
 		attachmentList->addFile (filename);
 	}
 }
 
-void OutgoingPostCreator::sendPost (Backend& backend, BackendChannel& channel)
+void OutgoingPostCreator::sendPost ()
 {
+	auto& backend = chatArea.getBackend();
+	auto& channel = chatArea.getChannel();
+
+	auto* textEdit = chatArea.getUi()->textEdit;
 	QString message = textEdit->toPlainText ();
 
 	//do not send empty messages
@@ -60,17 +90,18 @@ void OutgoingPostCreator::sendPost (Backend& backend, BackendChannel& channel)
 	fileIds.clear ();
 
 	for (auto& file: files) {
-		backend.uploadFile (channel, file, [this, &backend, &channel, message] (QString fileId ){
+		backend.uploadFile (channel, file, [this, &backend, &channel, message, textEdit] (QString fileId ){
 			--filesCount;
 			qDebug () << "Remaining file count: " << filesCount;
 			fileIds.push_back (fileId);
 
 			if (filesCount == 0) {
+				textEdit->clear();
 				backend.addPost (channel, message, fileIds);
+				delete (attachmentList);
+				attachmentList = nullptr;
 			}
 
-			delete (attachmentList);
-			attachmentList = nullptr;
 		});
 	}
 }
@@ -104,6 +135,11 @@ void OutgoingPostCreator::createAttachmentList ()
 	if (!attachmentList) {
 		attachmentList = new OutgoingAttachmentList (&chatArea);
 		chatArea.getAttachmentListParentWidget().insertWidget(2, attachmentList);
+
+		connect (attachmentList, &OutgoingAttachmentList::deleted, [this] {
+			delete (attachmentList);
+			attachmentList = nullptr;
+		});
 	}
 }
 

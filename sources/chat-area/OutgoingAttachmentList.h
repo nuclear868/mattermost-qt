@@ -12,6 +12,7 @@
 namespace Mattermost {
 
 class OutgoingAttachmentList: public QTreeWidget {
+	Q_OBJECT
 public:
 	OutgoingAttachmentList (QWidget* parent);
 public:
@@ -20,6 +21,8 @@ public:
 	QSize sizeHint () const override;
 
 	QList<QString> getAllFiles ();
+signals:
+	void deleted ();
 };
 
 } /* namespace Mattermost */

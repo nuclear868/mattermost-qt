@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <QObject>
 #include "fwd.h"
 
 class QDragEnterEvent;
@@ -18,21 +19,23 @@ namespace Mattermost {
 class OutgoingPostCreator: public QObject {
 	Q_OBJECT
 public:
-	OutgoingPostCreator (ChatArea& chatArea, MessageTextEditWidget*& textEdit);
+	OutgoingPostCreator (ChatArea& chatArea);
 	virtual ~OutgoingPostCreator ();
-public:
 
+public slots:
 	void onAttachButtonClick ();
-	void sendPost (Backend& backend, BackendChannel& channel);
+	void sendPost ();
 
+public:
 	void onDragEnterEvent (QDragEnterEvent* event);
 	void onDragMoveEvent (QDragMoveEvent* event);
 	void onDropEvent (QDropEvent* event);
+
 private:
 	void createAttachmentList ();
+
 private:
 	ChatArea& 				chatArea;
-	MessageTextEditWidget*&	textEdit;
 	OutgoingAttachmentList*	attachmentList;
 
 };

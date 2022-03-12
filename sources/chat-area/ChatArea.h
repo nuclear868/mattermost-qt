@@ -29,6 +29,8 @@ public:
 	explicit ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* tree, QWidget *parent = nullptr);
 	~ChatArea();
 public:
+	Ui::ChatArea* getUi ();
+	Backend& getBackend ();
 	BackendChannel& getChannel ();
 	void appendChannelPost (BackendPost& post);
 	void fillChannelPosts (const ChannelMissingPosts& collection);

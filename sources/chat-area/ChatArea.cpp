@@ -14,7 +14,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 ,backend (backend)
 ,channel (channel)
 ,treeItem (new QTreeWidgetItem (tree))
-,outgoingPostCreator (*this, ui->textEdit)
+,outgoingPostCreator (*this)
 ,unreadMessagesCount (0)
 ,texteditDefaultHeight (80)
 {
@@ -61,12 +61,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		}
 
 		backend.retrieveChannelPosts (channel, 0, 200);
-
-#if 0
-		backend.retrieveChannelPosts (channel, 0, 200, [this, postId]() {
-			fillChannelPosts (postId);
-		});
-#endif
 	});
 
 	connect (&channel, &BackendChannel::onViewed, [this] {
@@ -82,20 +76,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
 
 	connect (&channel, &BackendChannel::onPostDeleted, this, &ChatArea::handlePostDeleted);
-
-
-	/*
-	 * Send new post after pressing enter or clicking the 'Send' button
-	 */
-	connect (ui->sendButton, &QPushButton::clicked, [this] {
-		outgoingPostCreator.sendPost (this->backend, this->channel);
-	});
-
-	connect (ui->textEdit, &MessageTextEditWidget::enterPressed, [this] {
-		outgoingPostCreator.sendPost (this->backend, this->channel);
-	});
-
-	connect (ui->attachButton, &QPushButton::clicked, &outgoingPostCreator, &OutgoingPostCreator::onAttachButtonClick);
 
 	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
@@ -131,6 +111,16 @@ void ChatArea::setUserAvatar (const BackendUser& user)
 	if (channel.type == BackendChannel::directChannel) {
 		treeItem->setIcon(0, QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
 	}
+}
+
+Ui::ChatArea* ChatArea::getUi ()
+{
+	return ui;
+}
+
+Backend& ChatArea::getBackend ()
+{
+	return backend;
 }
 
 BackendChannel& ChatArea::getChannel ()
