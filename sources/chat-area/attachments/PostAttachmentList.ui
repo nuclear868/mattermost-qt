@@ -56,7 +56,7 @@
       <enum>Qt::NoContextMenu</enum>
      </property>
      <property name="styleSheet">
-      <string notr="true">*:hover {background:gray;}</string>
+      <string notr="true">padding: 1px</string>
      </property>
      <property name="verticalScrollBarPolicy">
       <enum>Qt::ScrollBarAsNeeded</enum>

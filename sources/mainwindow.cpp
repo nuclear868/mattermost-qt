@@ -9,7 +9,7 @@
 #include "chat-area/ChatArea.h"
 #include "ChannelListForTeam.h"
 #include "backend/Backend.h"
-#include "config.h"
+#include "build-config.h"
 #include "log.h"
 
 namespace Mattermost {

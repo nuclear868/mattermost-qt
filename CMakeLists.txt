@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 file(READ .version version)
 project(qmattermost VERSION ${version} LANGUAGES CXX)
-configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/sources/config.h)
+configure_file(build-config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/sources/build-config.h)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 

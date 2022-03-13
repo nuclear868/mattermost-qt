@@ -1,6 +1,7 @@
 
 
 #include <QMimeDatabase>
+#include <QStyle>
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QFile>
@@ -106,18 +107,21 @@ void AttachedBinaryFile::setFileMimeIcon (const QString& filename)
 {
 	static QMimeDatabase mimeDatabase;
 
-	for (auto& mimeType: mimeDatabase.mimeTypesForFileName (filename)) {
-		QIcon icon = QIcon::fromTheme (mimeType.iconName());
+	QMimeType mimeType = mimeDatabase.mimeTypeForUrl (filename);
 
-		ui->fileTypeLabel->setText ("Type: " + mimeType.name());
+	QIcon icon = QIcon::fromTheme (mimeType.iconName());
 
-		if (!icon.isNull()) {
-			//QPixmap pixmap = icon.pixmap (QSize (32, 32));
-			QPixmap pixmap = icon.pixmap (QSize (128, 128));
-			ui->fileIcon->setPixmap (pixmap);
-			ui->fileIcon->setFixedSize (pixmap.size());
-			break;
-		}
+	ui->fileTypeLabel->setText ("Type: " + mimeType.name());
+
+	if (icon.isNull()) {
+		icon = QApplication::style()->standardIcon(QStyle::SP_FileIcon);
+	}
+
+	if (!icon.isNull()) {
+		//QPixmap pixmap = icon.pixmap (QSize (32, 32));
+		QPixmap pixmap = icon.pixmap (QSize (64, 64));
+		ui->fileIcon->setPixmap (pixmap);
+		ui->fileIcon->setFixedSize (pixmap.size());
 	}
 }
 
