@@ -20,17 +20,24 @@ MessageTextEditWidget::~MessageTextEditWidget () = default;
 
 void MessageTextEditWidget::keyPressEvent (QKeyEvent* event)
 {
-	if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
+	if (event->key() == Qt::Key_Up) {
+		emit upArrowPressed ();
+	} else if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
 		if (event->modifiers() & Qt::ShiftModifier) {
-
+			//do nothing, new line will be added
 		} else {
-			emit enterPressed();
+			emit enterPressed ();
 			return;
 		}
 
 	}
 
 	QTextEdit::keyPressEvent (event);
+}
+
+bool MessageTextEditWidget::hasNonEmptyText ()
+{
+	return document()->characterCount() > 1;
 }
 
 } /* namespace Mattermost */

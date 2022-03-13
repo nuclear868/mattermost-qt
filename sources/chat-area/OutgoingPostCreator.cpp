@@ -26,8 +26,14 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
 	QTimer::singleShot (0, [this, chatAreaUi = chatArea.getUi()] {
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPost);
 
+		connect (chatAreaUi->textEdit, &MessageTextEditWidget::upArrowPressed, [chatAreaUi] {
+			if (!chatAreaUi->textEdit->hasNonEmptyText ()) {
+				qDebug () << "Up Arrow pressed. Ready to implement message editing";
+			}
+		});
+
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::textChanged, [chatAreaUi] {
-				if (chatAreaUi->textEdit->document()->characterCount() == 1) {
+				if (!chatAreaUi->textEdit->hasNonEmptyText ()) {
 					chatAreaUi->sendButton->setDisabled (true);
 				} else {
 					chatAreaUi->sendButton->setDisabled (false);

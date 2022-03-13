@@ -18,8 +18,10 @@ public:
 	virtual ~MessageTextEditWidget ();
 public:
 	void keyPressEvent (QKeyEvent* event) override;
+	bool hasNonEmptyText ();
 signals:
 	void enterPressed ();
+	void upArrowPressed ();
 };
 
 } /* namespace Mattermost */
