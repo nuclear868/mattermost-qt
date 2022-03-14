@@ -11,7 +11,6 @@
 
 namespace Mattermost {
 
-
 class UserTeamEvent {
 public:
 	UserTeamEvent (const QJsonObject& object);

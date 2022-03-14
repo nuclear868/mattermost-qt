@@ -471,12 +471,6 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 		LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
 
 		emit team.onNewChannel (*channel);
-#if 0
-		auto object = doc.object();
-		BackendTeam *team = storage.addTeam (doc.object());
-
-		emit onAddedToTeam (*team);
-#endif
     });
 }
 

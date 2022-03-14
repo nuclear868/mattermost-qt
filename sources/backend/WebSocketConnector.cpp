@@ -28,13 +28,18 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 		conn.eventHandler.handleEvent (PostEvent (data, broadcast));
 	}},
 
+	//post deleted
+	{"post_deleted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (PostDeletedEvent (data, broadcast));
+	}},
+
 	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (TypingEvent (data, broadcast));
 	}},
 
-	//post deleted
-	{"post_deleted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (PostDeletedEvent (data, broadcast));
+	//new direct channel created
+	{"direct_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (NewDirectChannelEvent (data, broadcast));
 	}},
 
 	//user added to channel
@@ -152,6 +157,15 @@ void WebSocketConnector::close ()
 	webSocket.close(QWebSocketProtocol::CloseCodeNormal, "Client Close");
 }
 
+static bool printEvent (const QString& name)
+{
+	if (name == "channel_viewed") {
+		return false;
+	}
+
+	return true;
+}
+
 void WebSocketConnector::onNewPacket (const QString& string)
 {
 	QJsonDocument doc = QJsonDocument::fromJson(string.toUtf8());
@@ -172,18 +186,25 @@ void WebSocketConnector::onNewPacket (const QString& string)
 
 	auto it = eventHandlers.find(event.toString());
 
-	QString jsonString = doc.toJson(QJsonDocument::Indented);
-	std::cout << jsonString.toStdString();
+
 	if (it == eventHandlers.end()) {
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString();
+
 		LOG_DEBUG ("Unhandled WebSocket event '" << event.toString() << "'\n");
 		qDebug() << "========" << '\n';
 		return;
 	}
 
+	if (printEvent (it.key())) {
+	qDebug() << "========" << '\n';
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString();
+	}
+
 	it.value() (*this, 	jsonObject.value ("data").toObject(),
 						jsonObject.value ("broadcast").toObject());
 
-	qDebug() << "========" << '\n';
 
 //	if (obj.value("seq_reply")) {
 //

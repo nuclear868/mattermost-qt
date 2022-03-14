@@ -70,10 +70,22 @@ void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 	BackendUser* user = storage.getUserById (event.user_id);
 
 	if (!user || !channel) {
-		//return;
+		return;
 	}
-	//LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
+
 	emit (channel->onUserTyping(*user));
+}
+
+void WebSocketEventHandler::handleEvent (const NewDirectChannelEvent& event)
+{
+	BackendTeam* team = &storage.directChannels;
+
+	LOG_DEBUG ("New Direct channel " << event.channelId << " created by: " << event.userId);
+	if (!team) {
+		return;
+	}
+
+	backend.retrieveChannel (*team, event.channelId);
 }
 
 void WebSocketEventHandler::handleEvent (const UserAddedEvent& event)
