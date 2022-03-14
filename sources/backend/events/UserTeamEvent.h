@@ -20,10 +20,6 @@ public:
 	QString user_id;
 };
 
-class UserAddedEvent: public UserTeamEvent {
-	using UserTeamEvent::UserTeamEvent;
-};
-
 class UserAddedToTeamEvent: public UserTeamEvent {
 	using UserTeamEvent::UserTeamEvent;
 };

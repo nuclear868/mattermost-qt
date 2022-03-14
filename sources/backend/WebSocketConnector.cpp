@@ -43,8 +43,8 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	}},
 
 	//user added to channel
-	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (UserAddedEvent (data));
+	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (UserAddedToChannelEvent (data, broadcast));
 	}},
 
 	//user added to team

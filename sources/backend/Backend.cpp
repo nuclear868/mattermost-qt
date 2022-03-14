@@ -211,6 +211,7 @@ void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> c
 		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
 
 		BackendUser *user = storage.addUser (doc.object());
+		retrieveUserAvatar (user->id);
 		callback (*user);
 	});
 }

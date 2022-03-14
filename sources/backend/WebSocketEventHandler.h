@@ -14,6 +14,7 @@
 #include "events/TypingEvent.h"
 #include "events/NewDirectChannelEvent.h"
 #include "events/UserTeamEvent.h"
+#include "events/UserAddedToChannelEvent.h"
 #include "events/UserRemovedFromChannelEvent.h"
 
 namespace Mattermost {
@@ -31,7 +32,7 @@ public:
 	void handleEvent (const PostDeletedEvent& event);
 	void handleEvent (const TypingEvent& event);
 	void handleEvent (const NewDirectChannelEvent& event);
-	void handleEvent (const UserAddedEvent& event);
+	void handleEvent (const UserAddedToChannelEvent& event);
 	void handleEvent (const UserAddedToTeamEvent& event);
 	void handleEvent (const UserLeaveTeamEvent& event);
 	void handleEvent (const UserRemovedFromChannelEvent& event);

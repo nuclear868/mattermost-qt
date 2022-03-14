@@ -88,11 +88,24 @@ void WebSocketEventHandler::handleEvent (const NewDirectChannelEvent& event)
 	backend.retrieveChannel (*team, event.channelId);
 }
 
-void WebSocketEventHandler::handleEvent (const UserAddedEvent& event)
+void WebSocketEventHandler::handleEvent (const UserAddedToChannelEvent& event)
 {
-	BackendTeam* team = storage.getTeamById (event.team_id);
-	QString teamName = team ? team->name : event.team_id;
-	LOG_DEBUG ("User " << event.user_id << " added to: " << teamName);
+	BackendTeam* team = storage.getTeamById (event.teamId);
+	QString teamName = team ? team->name : event.teamId;
+
+	BackendChannel* channel = storage.getChannelById (event.channelId);
+
+	//new channel?
+	if (!channel) {
+		backend.retrieveChannel (*team, event.channelId);
+	}
+
+	BackendUser* user = storage.getUserById (event.userId);
+	if (!user) {
+		backend.retrieveUser (event.userId, [] (BackendUser&){});
+	}
+
+	LOG_DEBUG ("User " << event.userId << " added to channel " << event.channelId << " of team " << teamName);
 }
 
 void WebSocketEventHandler::handleEvent (const UserAddedToTeamEvent& event)
