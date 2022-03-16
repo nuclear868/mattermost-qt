@@ -1,8 +1,8 @@
 /**
- * @file PostEvent.h
+ * @file PostEditedEvent.h
  * @brief
  * @author Lyubomir Filipov
- * @date Dec 31, 2021
+ * @date Mar 16, 2022
  */
 
 #pragma once
@@ -12,15 +12,14 @@
 
 namespace Mattermost {
 
-class PostEvent {
+class PostEditedEvent {
 public:
-	PostEvent (const QJsonObject& data, const QJsonObject& broadcast);
-	virtual ~PostEvent ();
+	PostEditedEvent (const QJsonObject& data, const QJsonObject& broadcast);
+	virtual ~PostEditedEvent ();
 public:
 	QString		teamId;
 	QString		channelId;
 	QJsonObject	postObject;
-	bool		set_online;
 };
 
 } /* namespace Mattermost */

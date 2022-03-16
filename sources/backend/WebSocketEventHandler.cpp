@@ -34,7 +34,6 @@ void WebSocketEventHandler::handleEvent (const PostEvent& event)
 	BackendTeam* team = storage.getTeamById (event.teamId);
 	QString teamName = team ? team->name : event.teamId;
 
-
 	BackendChannel* channel = storage.getChannelById (event.channelId);
 
 	if (!channel) {
@@ -50,6 +49,29 @@ void WebSocketEventHandler::handleEvent (const PostEvent& event)
 		emit channel->onNewPost (*post);
 		emit backend.onNewPost (*channel, *post);
 	}
+}
+
+void WebSocketEventHandler::handleEvent (const PostEditedEvent& event)
+{
+	BackendTeam* team = storage.getTeamById (event.teamId);
+	QString teamName = team ? team->name : event.teamId;
+
+	BackendChannel* channel = storage.getChannelById (event.channelId);
+
+	if (!channel) {
+		return;
+	}
+
+	QString channelName = channel ? channel->name : event.channelId;
+#if 0
+	BackendPost* post = channel->addPost (event.postObject);
+
+	LOG_DEBUG ("Post edited in  '" << teamName << "' : '" << channelName << "' by " << post->getDisplayAuthorName() << ": " << post->message);
+	if (channel) {
+		emit channel->onNewPost (*post);
+		emit backend.onNewPost (*channel, *post);
+	}
+#endif
 }
 
 void WebSocketEventHandler::handleEvent (const PostDeletedEvent& event)
@@ -158,6 +180,5 @@ void WebSocketEventHandler::handleEvent (const ChannelCreatedEvent& event)
 
 	backend.retrieveChannel (*team, event.channelId);
 }
-
 
 } /* namespace Mattermost */

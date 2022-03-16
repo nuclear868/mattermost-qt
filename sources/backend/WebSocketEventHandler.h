@@ -10,6 +10,7 @@
 #include "events/ChannelCreatedEvent.h"
 #include "events/ChannelViewedEvent.h"
 #include "events/PostEvent.h"
+#include "events/PostEditedEvent.h"
 #include "events/PostDeletedEvent.h"
 #include "events/TypingEvent.h"
 #include "events/NewDirectChannelEvent.h"
@@ -29,6 +30,7 @@ public:
 public:
 	void handleEvent (const ChannelViewedEvent& event);
 	void handleEvent (const PostEvent& event);
+	void handleEvent (const PostEditedEvent& event);
 	void handleEvent (const PostDeletedEvent& event);
 	void handleEvent (const TypingEvent& event);
 	void handleEvent (const NewDirectChannelEvent& event);

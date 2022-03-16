@@ -28,6 +28,11 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 		conn.eventHandler.handleEvent (PostEvent (data, broadcast));
 	}},
 
+	//post edited
+	{"post_edited", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (PostEditedEvent (data, broadcast));
+	}},
+
 	//post deleted
 	{"post_deleted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (PostDeletedEvent (data, broadcast));
