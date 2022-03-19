@@ -11,13 +11,46 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Login</string>
+   <string>Login - Mattermost</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/img/icon0.ico</normaloff>:/icons/img/icon0.ico</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="icon">
+       <property name="minimumSize">
+        <size>
+         <width>64</width>
+         <height>64</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>64</width>
+         <height>64</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="scaledContents">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="titleLabel">
+       <property name="text">
+        <string>Login to Mattermost</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
@@ -36,6 +69,29 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="username_lineEdit">
+       <property name="maxLength">
+        <number>512</number>
+       </property>
+       <property name="placeholderText">
+        <string>Username</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="password_lineEdit">
+       <property name="maxLength">
+        <number>512</number>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>Password</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="domain_label">
        <property name="toolTip">
@@ -49,30 +105,7 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="domain_lineEdit">
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="maxLength">
-        <number>512</number>
-       </property>
-       <property name="placeholderText">
-        <string>Domain</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="username_lineEdit">
-       <property name="maxLength">
-        <number>512</number>
-       </property>
-       <property name="placeholderText">
-        <string>Username</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="username_label">
        <property name="toolTip">
         <string>Your username</string>
@@ -85,7 +118,7 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="password_label">
        <property name="toolTip">
         <string>Your password</string>
@@ -98,36 +131,16 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="password_lineEdit">
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="domain_lineEdit">
+       <property name="toolTip">
+        <string/>
+       </property>
        <property name="maxLength">
         <number>512</number>
        </property>
-       <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
-       </property>
        <property name="placeholderText">
-        <string>Password</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="alias_label">
-       <property name="toolTip">
-        <string>Your alias</string>
-       </property>
-       <property name="text">
-        <string>&amp;Alias</string>
-       </property>
-       <property name="buddy">
-        <cstring>alias_lineEdit</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="alias_lineEdit">
-       <property name="echoMode">
-        <enum>QLineEdit::Normal</enum>
+        <string>Domain</string>
        </property>
       </widget>
      </item>
@@ -186,7 +199,6 @@
   <tabstop>domain_lineEdit</tabstop>
   <tabstop>username_lineEdit</tabstop>
   <tabstop>password_lineEdit</tabstop>
-  <tabstop>alias_lineEdit</tabstop>
   <tabstop>login_pushButton</tabstop>
  </tabstops>
  <resources>

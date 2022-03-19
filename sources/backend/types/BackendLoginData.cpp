@@ -14,7 +14,6 @@ void BackendLoginData::loadFromSettings (const QSettings& settings)
 	domain = settings.value("domain").toString();
 	username = settings.value("username").toString();
 	password = settings.value("password").toString();
-	alias = settings.value("alias").toString();
 }
 
 void BackendLoginData::saveToSettings (QSettings& settings) const
@@ -22,7 +21,6 @@ void BackendLoginData::saveToSettings (QSettings& settings) const
 	settings.setValue("domain", domain);
 	settings.setValue("username", username);
 	settings.setValue("password", password);
-	settings.setValue("alias", alias);
 }
 
 bool BackendLoginData::areAllFieldsFilled () const

@@ -21,7 +21,7 @@ public:
 	QString 	domain;
 	QString 	username;
 	QString 	password;
-	QString 	alias;
+	//QString 	alias;
 };
 
 } /* namespace Mattermost */
