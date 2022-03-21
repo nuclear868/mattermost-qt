@@ -21,6 +21,7 @@ public:
 	static void setHost (const QString& host);
 	static void clearToken ();
 	static void setToken (const QString& token);
+	static const QString& getToken ();
 	static const QString& host ();
 private:
 	static QString		httpHost;

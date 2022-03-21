@@ -104,6 +104,11 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 		pingTimer.stop();
 		pongTimer.stop();
 		QTimer::singleShot (2000, [this] {
+
+			if (token.isEmpty()) {
+				return;
+			}
+
 			LOG_DEBUG ("WebSocket Reconnecting");
 			hasReconnect = true;
 			webSocket.open (webSocket.requestUrl());
@@ -125,20 +130,23 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 	});
 }
 
-WebSocketConnector::~WebSocketConnector ()
-{
-	// TODO Auto-generated destructor stub
-}
+WebSocketConnector::~WebSocketConnector () = default;
 
 void WebSocketConnector::open (const QString& urlString, const QString& token)
 {
 	QUrl url (urlString + "websocket");
 	url.setScheme("wss");
 
-	//qDebug() << "WebSocket open: " << url;
+	//qDebug() << "WebSocket open: " << url << " " << token;
 
 	this->token = token;
 	webSocket.open (url);
+}
+
+void WebSocketConnector::close ()
+{
+	token = "";
+	reset ();
 }
 
 void WebSocketConnector::doHandshake ()
@@ -157,7 +165,7 @@ void WebSocketConnector::doHandshake ()
 	webSocket.sendBinaryMessage(data);
 }
 
-void WebSocketConnector::close ()
+void WebSocketConnector::reset ()
 {
 	webSocket.close(QWebSocketProtocol::CloseCodeNormal, "Client Close");
 }
@@ -170,6 +178,7 @@ static bool printEvent (const QString& name)
 
 	return true;
 }
+
 
 void WebSocketConnector::onNewPacket (const QString& string)
 {

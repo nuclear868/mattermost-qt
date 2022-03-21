@@ -21,6 +21,7 @@ public:
 	QString 	domain;
 	QString 	username;
 	QString 	password;
+	QString		token;
 	//QString 	alias;
 };
 

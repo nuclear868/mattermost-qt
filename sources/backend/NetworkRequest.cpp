@@ -21,9 +21,10 @@ NetworkRequest::NetworkRequest (const QString& url, bool useCache)
 	setUrl (httpHost + url);
 
 	setRawHeader("User-Agent", "QT");
+	setRawHeader("X-Requested-With", "XMLHttpRequest");
 
 	if (!httpToken.isEmpty()) {
-		setRawHeader("Authorization", httpToken.toUtf8());
+		setRawHeader("Cookie", "MMAUTHTOKEN=" + httpToken.toUtf8());
 	}
 
 	setAttribute (QNetworkRequest::CacheSaveControlAttribute, useCache);
@@ -44,12 +45,17 @@ void NetworkRequest::setHost (const QString& host)
 
 void NetworkRequest::clearToken ()
 {
-	NetworkRequest::httpToken = "";
+	httpToken = "";
 }
 
 void NetworkRequest::setToken (const QString& token)
 {
-	NetworkRequest::httpToken = "Bearer " + token;
+	httpToken = token;
+}
+
+const QString& NetworkRequest::getToken ()
+{
+	return httpToken;
 }
 
 const QString& NetworkRequest::host ()

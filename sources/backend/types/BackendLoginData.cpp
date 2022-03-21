@@ -13,21 +13,21 @@ void BackendLoginData::loadFromSettings (const QSettings& settings)
 {
 	domain = settings.value("domain").toString();
 	username = settings.value("username").toString();
-	password = settings.value("password").toString();
+	token = settings.value("token").toString();
 }
 
 void BackendLoginData::saveToSettings (QSettings& settings) const
 {
 	settings.setValue("domain", domain);
 	settings.setValue("username", username);
-	settings.setValue("password", password);
+	settings.setValue("token", token);
 }
 
 bool BackendLoginData::areAllFieldsFilled () const
 {
 	return !domain.isEmpty()
 			&& !username.isEmpty()
-			&& !password.isEmpty();
+			&& !token.isEmpty();
 }
 
 } /* namespace Mattermost */

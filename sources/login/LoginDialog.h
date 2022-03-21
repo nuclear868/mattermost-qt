@@ -23,6 +23,7 @@ private slots:
 	void onHttpError (uint32_t errorNumber, const QString& errorText);
 
 private:
+	void setError (const QString& errorStr);
 	void loginToServer (const BackendLoginData& loginData);
 
 	Backend&			backend;

@@ -139,7 +139,9 @@ void MainWindow::createMenu ()
 
 	QMenu* fileMenu = mainMenu->addMenu ("File");
 	fileMenu->addAction ("Logout", [this] {
-		backend.logout ([] {
+		backend.logout ([this] {
+			doDeinit = true;
+			QMainWindow::close ();
 			LOG_DEBUG ("Logout done");
 		});
 
@@ -147,6 +149,7 @@ void MainWindow::createMenu ()
 			backend.reset();
 			doDeinit = true;
 			QMainWindow::close ();
+			LOG_DEBUG ("Logout timer");
 		});
 	});
 

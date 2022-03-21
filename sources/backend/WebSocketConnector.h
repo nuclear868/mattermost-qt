@@ -23,6 +23,7 @@ public:
 public:
 	void open (const QString& urlString, const QString& token);
 	void close ();
+	void reset ();
 	void doHandshake ();
 signals:
 	void onReconnect ();

@@ -51,29 +51,18 @@ Backend::Backend(QObject *parent)
 
 		emit onHttpError (errorNumber, errorText);
 
-		if (errorNumber == 401 && isLoggedIn) { //invalid session, login again
-			QTimer::singleShot (1000, [this] {
-				httpConnector.reset ();
-				webSocketConnector.close();
-				loginRetry ();
-			});
+		if (errorNumber == 401) {
+			if (isLoggedIn) { //invalid session, login again
+				QTimer::singleShot (1000, [this] {
+					httpConnector.reset ();
+					webSocketConnector.reset ();
+					loginRetry ();
+				});
+			} else {
+				NetworkRequest::clearToken ();
+			}
 		}
 	});
-}
-
-void Backend::reset ()
-{
-	/*
-	 * This is important. Disconnect all signals. Added lambda functions are not removed when
-	 * objects are destroyed
-	 */
-	disconnect ();
-
-	//reinit all network connectors
-	httpConnector.reset ();
-	webSocketConnector.close ();
-	storage.reset ();
-	nonFilledTeams = 0;
 }
 
 void debugRequest (const QNetworkRequest& request, QByteArray data = QByteArray())
@@ -81,15 +70,29 @@ void debugRequest (const QNetworkRequest& request, QByteArray data = QByteArray(
   qDebug() << request.url().toString();
   const QList<QByteArray>& rawHeaderList(request.rawHeaderList());
   foreach (QByteArray rawHeader, rawHeaderList) {
-    qDebug() << request.rawHeader(rawHeader);
+    qDebug() << rawHeader << ":"  << request.rawHeader(rawHeader);
   }
   qDebug() << data;
 }
 
-void Backend::login (const BackendLoginData& loginData, std::function<void()> callback)
+void Backend::login (const BackendLoginData& loginData, std::function<void(const QString&)> callback)
 {
 	this->loginData = loginData;
 	NetworkRequest::setHost (loginData.domain);
+
+	if (!loginData.token.isEmpty()) {
+
+		NetworkRequest::setToken (loginData.token);
+		NetworkRequest request ("users/me");
+
+		//debugRequest (request);
+
+		httpConnector.get (request, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
+			loginSuccess (data, reply, callback);
+		});
+
+		return;
+	}
 
 	QJsonDocument  json;
 	QJsonObject  jsonRoot;
@@ -106,31 +109,36 @@ void Backend::login (const BackendLoginData& loginData, std::function<void()> ca
 
 	NetworkRequest request ("users/login");
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
 	//debugRequest (request, data);
 
 	httpConnector.post(request, data, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
-		QJsonDocument doc = QJsonDocument::fromJson(data);
-
-#if 0
-		QString jsonString = doc.toJson(QJsonDocument::Indented);
-		std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
-#endif
-		BackendUser* loginUser = storage.addUser (doc.object(), true);
-		loginUser->isLoginUser = true;
-
-		QString loginToken = reply.rawHeader ("Token");
-		NetworkRequest::setToken (loginToken);
-
-		if (loginToken.isEmpty()) {
-			qCritical() << "Login Token is empty. WebSocket communication may not work";
-		}
-
-		webSocketConnector.open (NetworkRequest::host(), loginToken);
-		isLoggedIn = true;
-		callback ();
+		loginSuccess (data, reply, callback);
 	});
+}
+
+void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void (const QString&)> callback)
+{
+	QJsonDocument doc = QJsonDocument::fromJson (data);
+
+#if 1
+	QString jsonString = doc.toJson(QJsonDocument::Indented);
+	std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
+#endif
+	BackendUser* loginUser = storage.addUser (doc.object(), true);
+	loginUser->isLoginUser = true;
+
+	if (NetworkRequest::getToken().isEmpty()) {
+		NetworkRequest::setToken (reply.rawHeader ("Token"));
+	}
+
+	if (NetworkRequest::getToken().isEmpty()) {
+		qCritical() << "Login Token is empty. WebSocket communication may not work";
+	}
+
+	webSocketConnector.open (NetworkRequest::host(), NetworkRequest::getToken());
+	isLoggedIn = true;
+	callback (NetworkRequest::getToken());
 }
 
 void Backend::loginRetry ()
@@ -182,13 +190,31 @@ void Backend::loginRetry ()
 	});
 }
 
+void Backend::reset ()
+{
+	/*
+	 * This is important. Disconnect all signals. Added lambda functions are not removed when
+	 * objects are destroyed
+	 */
+	disconnect ();
+	NetworkRequest::clearToken ();
+
+	//reinit all network connectors
+	httpConnector.reset ();
+	webSocketConnector.close ();
+	storage.reset ();
+	nonFilledTeams = 0;
+}
+
 void Backend::logout (std::function<void ()> callback)
 {
 	NetworkRequest request ("users/logout");
 	isLoggedIn = false;
 
-	httpConnector.post (request, QByteArray(), [callback] (QVariant, QByteArray data) {
+	httpConnector.post (request, QByteArray(), [this, callback] (QVariant, QByteArray data) {
 		LOG_DEBUG ("Logout done");
+
+		reset ();
 
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);

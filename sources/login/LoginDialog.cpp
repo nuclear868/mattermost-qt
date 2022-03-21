@@ -30,7 +30,6 @@ LoginDialog::LoginDialog (QWidget *parent, Backend& backend, bool autoLogin)
 
 	ui->domain_lineEdit->setText (loginData.domain);
 	ui->username_lineEdit->setText (loginData.username);
-	ui->password_lineEdit->setText (loginData.password);
 
 	QIcon icon (":/icons/img/icon0.ico");
 	ui->icon->setPixmap (icon.pixmap (QSize (64, 64)));
@@ -54,10 +53,12 @@ void LoginDialog::on_login_pushButton_clicked()
 	loginData.domain = ui->domain_lineEdit->text();
 	loginData.username = ui->username_lineEdit->text();
 	loginData.password = ui->password_lineEdit->text();
+	loginData.token = "";
 
 	loginData.saveToSettings (settings);
 	loginToServer (loginData);
 }
+
 
 void LoginDialog::loginToServer (const BackendLoginData& loginData)
 {
@@ -68,29 +69,45 @@ void LoginDialog::loginToServer (const BackendLoginData& loginData)
     ui->error_label->clear();
 
     LOG_DEBUG ("LoginDialog login");
-    backend.login (loginData, [this]{
-    	accept();
-    });
+    backend.login (loginData, [this, loginData = loginData] (const QString& token) mutable {
+
+		//token already saved. If the callback is called, the login is ok
+		if (!loginData.token.isEmpty()) {
+			accept ();
+			return;
+		}
+
+		if (token.isEmpty()) {
+			setError ("Unable to login using the saved token. Please enter your login credentials.");
+			return;
+		}
+
+		loginData.token = token;
+		QSettings settings;
+		loginData.saveToSettings (settings);
+		accept();
+	});
 }
 
 void LoginDialog::onNetworkError (uint32_t errorNumber, const QString& errorText)
 {
 	qCritical() << "Net error: " << errorNumber << ": " << errorText;
-
-    ui->domain_lineEdit->setEnabled(true);
-    ui->username_lineEdit->setEnabled(true);
-    ui->password_lineEdit->setEnabled(true);
-    ui->login_pushButton->setEnabled(true);
-    ui->error_label->setText ("Network Error: " + errorText);
+    setError ("Network Error: " + errorText);
 }
 
 void LoginDialog::onHttpError (uint32_t errorNumber, const QString& errorText)
+{
+	setError ("HTTP Error " + QString::number(errorNumber) + ": "  + errorText);
+}
+
+void LoginDialog::setError (const QString& errorStr)
 {
     ui->domain_lineEdit->setEnabled(true);
     ui->username_lineEdit->setEnabled(true);
     ui->password_lineEdit->setEnabled(true);
     ui->login_pushButton->setEnabled(true);
-    ui->error_label->setText ("HTTP Error " + QString::number(errorNumber) + ": "  + errorText);
+
+    ui->error_label->setText (errorStr);
 }
 
 } /* namespace Mattermost */

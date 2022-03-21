@@ -28,7 +28,7 @@ public:
 	void reset ();
 
 	//login to server (/users/login)
-	void login (const BackendLoginData& loginData, std::function<void()> callback);
+	void login (const BackendLoginData& loginData, std::function<void(const QString&)> callback);
 
 	//login retry - after a HTTP error
 	void loginRetry ();
@@ -130,6 +130,8 @@ signals:
 
     void onNetworkError (uint32_t errorNumber, const QString& errorText);
     void onHttpError (uint32_t errorNumber, const QString& errorText);
+private:
+    void loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
 private:
     Storage							storage;
 
