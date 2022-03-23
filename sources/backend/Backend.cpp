@@ -117,38 +117,30 @@ void Backend::login (const BackendLoginData& loginData, std::function<void(const
 	});
 }
 
-void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void (const QString&)> callback)
-{
-	QJsonDocument doc = QJsonDocument::fromJson (data);
-
-#if 1
-	QString jsonString = doc.toJson(QJsonDocument::Indented);
-	std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
-#endif
-	BackendUser* loginUser = storage.addUser (doc.object(), true);
-	loginUser->isLoginUser = true;
-
-	if (NetworkRequest::getToken().isEmpty()) {
-		NetworkRequest::setToken (reply.rawHeader ("Token"));
-	}
-
-	if (NetworkRequest::getToken().isEmpty()) {
-		qCritical() << "Login Token is empty. WebSocket communication may not work";
-	}
-
-	webSocketConnector.open (NetworkRequest::host(), NetworkRequest::getToken());
-	isLoggedIn = true;
-	callback (NetworkRequest::getToken());
-}
-
 void Backend::loginRetry ()
 {
-	NetworkRequest::clearToken ();
+	if (!loginData.token.isEmpty()) {
 
+		NetworkRequest::setToken (loginData.token);
+		NetworkRequest request ("users/me");
+
+		debugRequest (request);
+
+		httpConnector.get (request, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
+			webSocketConnector.open (NetworkRequest::host(), loginData.token);
+			isLoggedIn = true;
+			//loginSuccess (data, reply, [this] (const QString& token) {
+		//	});
+		});
+
+		return;
+	}
+
+	LOG_DEBUG ("Login retry - no token");
+#if 0
 	QJsonDocument  json;
 	QJsonObject  jsonRoot;
 
-	LOG_DEBUG ("Login retry");
 
 	jsonRoot.insert("login_id", loginData.username);
 	jsonRoot.insert("password", loginData.password);
@@ -188,6 +180,31 @@ void Backend::loginRetry ()
 		webSocketConnector.open (NetworkRequest::host(), loginToken);
 		isLoggedIn = true;
 	});
+#endif
+}
+
+void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void (const QString&)> callback)
+{
+	QJsonDocument doc = QJsonDocument::fromJson (data);
+
+#if 1
+	QString jsonString = doc.toJson(QJsonDocument::Indented);
+	std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
+#endif
+	BackendUser* loginUser = storage.addUser (doc.object(), true);
+	loginUser->isLoginUser = true;
+
+	if (NetworkRequest::getToken().isEmpty()) {
+		NetworkRequest::setToken (reply.rawHeader ("Token"));
+	}
+
+	if (NetworkRequest::getToken().isEmpty()) {
+		qCritical() << "Login Token is empty. WebSocket communication may not work";
+	}
+
+	webSocketConnector.open (NetworkRequest::host(), NetworkRequest::getToken());
+	isLoggedIn = true;
+	callback (NetworkRequest::getToken());
 }
 
 void Backend::reset ()
