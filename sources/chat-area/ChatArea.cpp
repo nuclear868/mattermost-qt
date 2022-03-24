@@ -69,13 +69,47 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 		ui->listWidget->removeNewMessagesSeparatorAfterTimeout (1000);
 	});
 
+	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
+
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
 
-	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
+	//let the post creator know that the last sent / edited post has appeared so that the input box can be cleared
+	connect (&channel, &BackendChannel::onNewPost, &outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
+	connect (&channel, &BackendChannel::onPostEdited, &outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
 
-	connect (&channel, &BackendChannel::onPostDeleted, this, &ChatArea::handlePostDeleted);
+	connect (&channel, &BackendChannel::onPostEdited, [this] (BackendPost& post) {
+		PostWidget* postWidget = ui->listWidget->findPost (post.id);
+
+		if (postWidget) {
+			postWidget->setEdited (post.message);
+			ui->listWidget->adjustSize();
+		}
+	});
+
+	//initiate editing of last post, after an up arrow is pressed
+	connect (ui->textEdit, &MessageTextEditWidget::upArrowPressed, [this] {
+		QListWidgetItem* post = ui->listWidget->getLastOwnPost ();
+
+		if (post) {
+			ui->listWidget->initiatePostEdit (*post);
+		}
+	});
+
+	//initiate editing of post, when edit is selected from the context menu
+	connect (ui->listWidget, &PostsListWidget::postEditInitiated, &outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
+
+	connect (&outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
+
+	connect (&channel, &BackendChannel::onPostDeleted, [this] (const QString& postId) {
+		PostWidget* postWidget = ui->listWidget->findPost (postId);
+
+		if (postWidget) {
+			postWidget->markAsDeleted ();
+			ui->listWidget->adjustSize();
+		}
+	});
 
 	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
@@ -152,9 +186,9 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 			}
 
 			QDateTime postTime = QDateTime::fromMSecsSinceEpoch (post->create_at);
-			QDate postDate = postTime.date();
+			lastPostDate = postTime.date();
 
-			int postDaysAgo = (postDate.daysTo (currentDate));
+			int postDaysAgo = (lastPostDate.daysTo (currentDate));
 
 			if (postDaysAgo < lastDaysAgo) {
 				lastDaysAgo = postDaysAgo;
@@ -173,8 +207,6 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 				++insertPos;
 				++unreadMessagesCount;
 			}
-
-			//ui->listWidget->addDaySeparator (0);
 		}
 	}
 
@@ -184,6 +216,14 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 
 void ChatArea::appendChannelPost (BackendPost& post)
 {
+	QDate currentDate = QDateTime::currentDateTime().date();
+
+	if (lastPostDate.daysTo (currentDate) >= 1) {
+		ui->listWidget->addDaySeparator (0);
+		QDateTime postTime = QDateTime::fromMSecsSinceEpoch (post.create_at);
+		lastPostDate = postTime.date();
+	}
+
 	bool chatAreaHasFocus = treeItem->isSelected() && isActiveWindow ();
 
 	if (!chatAreaHasFocus) {
@@ -204,24 +244,9 @@ void ChatArea::appendChannelPost (BackendPost& post)
 	setUnreadMessagesCount (unreadMessagesCount);
 }
 
-void ChatArea::sendNewPost ()
-{
-
-}
-
 void ChatArea::handleUserTyping (const BackendUser& user)
 {
 	LOG_DEBUG (channel.display_name << ": " << user.getDisplayName() << " is typing");
-}
-
-void ChatArea::handlePostDeleted (const QString& postId)
-{
-	PostWidget* postWidget = ui->listWidget->findPost (postId);
-
-	if (postWidget) {
-		postWidget->markAsDeleted ();
-		ui->listWidget->adjustSize();
-	}
 }
 
 void ChatArea::onActivate ()

@@ -56,6 +56,8 @@ public:
 	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence, bool initialLoad);
 
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
+
+	void editPost (const QString& postID, const QString& postMessage);
 signals:
 
 	/**
@@ -65,6 +67,14 @@ signals:
 	void onViewed ();
 
 	/**
+	 * Called when new posts are received.
+	 * Either after init or after WebSocket disconnect.
+	 *
+	 * @param posts Collection of the missing posts only
+	 */
+	void onNewPosts (const ChannelMissingPosts& collection);
+
+	/**
 	 * Called when a new post has arrived in the channel
 	 * Same notification as Backend::onNewPost()
 	 * @param post post
@@ -72,18 +82,17 @@ signals:
 	void onNewPost (BackendPost& post);
 
 	/**
+	 * Called when a post is being edited
+	 * @param postId postId
+	 */
+	void onPostEdited (BackendPost& post);
+
+	/**
 	 * Called when a post is being deleted
 	 * @param postId postId
 	 */
 	void onPostDeleted (const QString& postId);
 
-	/**
-	 * Called when new posts are received.
-	 * Either after init or after WebSocket disconnect.
-	 *
-	 * @param posts Collection of the missing posts only
-	 */
-	void onNewPosts (const ChannelMissingPosts& collection);
 
 	/**
 	 * Called when someone is typing in the channel.

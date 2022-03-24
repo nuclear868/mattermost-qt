@@ -126,7 +126,7 @@ void Backend::loginRetry ()
 
 		debugRequest (request);
 
-		httpConnector.get (request, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
+		httpConnector.get (request, [this](QVariant, QByteArray, const QNetworkReply&) {
 			webSocketConnector.open (NetworkRequest::host(), loginData.token);
 			isLoggedIn = true;
 			//loginSuccess (data, reply, [this] (const QString& token) {
@@ -629,6 +629,44 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 
 	});
 }
+
+void Backend::editPost (const QString& postID, const QString& message, const QList<QString>* attachments)
+{
+	QJsonArray files;
+
+	if (attachments) {
+		for (auto& id: *attachments) {
+			files.push_back (id);
+		}
+	}
+
+	QJsonObject  json;
+
+	json.insert ("message", message);
+
+	if (!files.isEmpty()) {
+		json.insert ("file_ids", files);
+	}
+
+	QString jsonString = QJsonDocument(json).toJson(QJsonDocument::Indented);
+	std::cout << jsonString.toStdString() << std::endl;
+
+    QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
+
+	NetworkRequest request ("posts/" + postID + "/patch");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	httpConnector.put (request, data, [this](QVariant, QByteArray data) {
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+#if 1
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+
+	});
+}
+
 
 void Backend::deletePost (const QString postID)
 {

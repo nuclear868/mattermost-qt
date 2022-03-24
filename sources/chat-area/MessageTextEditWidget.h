@@ -21,6 +21,7 @@ public:
 	bool hasNonEmptyText ();
 signals:
 	void enterPressed ();
+	void escapePressed ();
 	void upArrowPressed ();
 };
 

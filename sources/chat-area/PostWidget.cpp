@@ -57,6 +57,11 @@ PostWidget::~PostWidget()
     delete ui;
 }
 
+void Mattermost::PostWidget::setEdited (const QString& message)
+{
+	ui->message->setText (message);
+}
+
 void PostWidget::markAsDeleted ()
 {
 	ui->message->setText ("(Message deleted)");

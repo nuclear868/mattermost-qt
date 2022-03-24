@@ -16,5 +16,6 @@ class OutgoingAttachmentList;
 
 class Backend;
 class BackendChannel;
+class BackendPost;
 
 } /* namespace Mattermost */

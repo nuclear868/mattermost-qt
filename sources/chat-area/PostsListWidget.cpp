@@ -7,6 +7,7 @@
 
 #include <QScrollBar>
 #include <QDebug>
+#include <set>
 #include <QMenu>
 #include <QApplication>
 #include <QClipboard>
@@ -31,6 +32,9 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 :QListWidget (parent)
 ,backend (nullptr)
 ,newMessagesSeparator (nullptr)
+,lastOwnPost (nullptr)
+,currentEditedItem (nullptr)
+,menuShown (false)
 {
 	removeNewMessagesSeparatorTimer.setSingleShot (true);
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
@@ -46,6 +50,10 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 
 	setItemWidget (newItem, postWidget);
 	verticalScrollBar()->setSingleStep (10);
+
+	if (postWidget->post.isOwnPost()) {
+		lastOwnPost = newItem;
+	}
 }
 
 void PostsListWidget::insertPost (PostWidget* postWidget)
@@ -56,6 +64,10 @@ void PostsListWidget::insertPost (PostWidget* postWidget)
 
 	setItemWidget (newItem, postWidget);
 	verticalScrollBar()->setSingleStep (10);
+
+	if (postWidget->post.isOwnPost()) {
+		lastOwnPost = newItem;
+	}
 }
 
 int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)
@@ -164,27 +176,80 @@ void PostsListWidget::removeNewMessagesSeparatorAfterTimeout (int timeoutMs)
 	}
 }
 
+QListWidgetItem* PostsListWidget::getLastOwnPost () const
+{
+	return lastOwnPost;
+}
+
+void PostsListWidget::initiatePostEdit (QListWidgetItem& postItem)
+{
+	PostWidget* post = static_cast <PostWidget*> (itemWidget (&postItem));
+
+	qDebug() << "Edit " << post->post.message;
+	currentEditedItem = &postItem;
+	emit postEditInitiated (post->post);
+	postItem.setBackground(Qt::darkYellow);
+	clearSelection ();
+}
+
+void PostsListWidget::postEditFinished ()
+{
+	if (currentEditedItem) {
+		currentEditedItem->setBackground(QBrush());
+		currentEditedItem = nullptr;
+	}
+}
+
 void PostsListWidget::keyPressEvent (QKeyEvent* event)
 {
 	/*
 	 * Handle the key sequence for 'Copy' and copy all posts to clipboard (properly formatted)
 	 */
 	if (event->matches (QKeySequence::Copy)) {
-		QString str;
-		for (auto& item: selectedItems()) {
-
-			if (item->data(Qt::UserRole) == ItemType::post) {
-				PostWidget* post = static_cast <PostWidget*> (itemWidget (item));
-				str += post->formatForClipboardSelection ();
-			}
-		}
-
-		qDebug() << "Copy Posts Selection";
-		QApplication::clipboard()->setText (str);
+		copySelectedItemsToClipboard ();
 		return;
 	}
 
 	QListWidget::keyPressEvent (event);
+}
+
+/*
+ * get selected items in the order, in which they appear in the PostsListWidget
+ */
+QList<QListWidgetItem*> PostsListWidget::sortedSelectedItems () const
+{
+	auto cmp = [this] (const QListWidgetItem* lhs, const QListWidgetItem* rhs) {
+		return row (lhs) < row (rhs);
+	};
+
+	std::set<QListWidgetItem*, decltype (cmp)> set (cmp);
+
+	for (auto& item: selectedItems()) {
+		set.insert (item);
+	}
+
+	QList<QListWidgetItem*> sortedItems;
+
+	for (auto item: set) {
+		sortedItems.push_back (item);
+	}
+
+	return sortedItems;
+}
+
+void PostsListWidget::copySelectedItemsToClipboard ()
+{
+	QString str;
+	for (auto& item: sortedSelectedItems ()) {
+
+		if (item->data(Qt::UserRole) == ItemType::post) {
+			PostWidget* post = static_cast <PostWidget*> (itemWidget (item));
+			str += post->formatForClipboardSelection ();
+		}
+	}
+
+	qDebug() << "Copy Posts Selection";
+	QApplication::clipboard()->setText (str);
 }
 
 void PostsListWidget::showContextMenu (const QPoint& pos)
@@ -198,6 +263,8 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		return;
 	}
 
+	uint32_t selectedItemsCount = selectedItems().size();
+
 	PostWidget* post = static_cast <PostWidget*> (itemWidget (pointedItem));
 
 	if (post->isDeleted) {
@@ -208,33 +275,40 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	QMenu myMenu;
 
 	if (post->post.isOwnPost()) {
-		myMenu.addAction ("Edit", [post] {
-			qDebug() << "Edit " << post->post.message;
-		});
 
-		myMenu.addAction ("Delete", [this, post] {
-			qDebug() << "Delete " << post->post.message;
-			backend->deletePost (post->post.id);
-		});
+		if (selectedItemsCount == 1) {
+			myMenu.addAction ("Edit", [this, pointedItem, post] {
+				initiatePostEdit (*pointedItem);
+			});
 
-		myMenu.addSeparator();
+			myMenu.addAction ("Delete", [this, post] {
+				qDebug() << "Delete " << post->post.message;
+				backend->deletePost (post->post.id);
+			});
+
+			myMenu.addSeparator();
+		}
 	}
 
-	myMenu.addAction ("Copy to clipboard", [post] {
-		qDebug() << "Copy " << post->post.message;
+	myMenu.addAction ("Copy to clipboard", [this, post] {
+		//qDebug() << "Copy " << post->post.message;
+		copySelectedItemsToClipboard ();
 	});
 
-	myMenu.addAction ("Reply", [post] {
-		qDebug() << "Reply " << post->post.message;
-	});
+	if (selectedItemsCount == 1) {
+		myMenu.addAction ("Reply", [post] {
+			qDebug() << "Reply " << post->post.message;
+		});
+	}
 
 	myMenu.addAction ("Pin", [post] {
 		qDebug() << "Pin " << post->post.message;
 	});
 
-
-	// Show context menu at handling position
+	// Show context menu at handling position. And do not focus-out
+	menuShown = true;
 	myMenu.exec(globalPos + QPoint (10, 0));
+	menuShown = false;
 }
 
 void PostsListWidget::resizeEvent (QResizeEvent* event)
@@ -264,7 +338,9 @@ void PostsListWidget::resizeEvent (QResizeEvent* event)
 void PostsListWidget::focusOutEvent (QFocusEvent* event)
 {
 	//qDebug() << "FocusOutEvent";
-	clearSelection ();
+	if (!menuShown) {
+		clearSelection ();
+	}
 	QListWidget::focusOutEvent (event);
 }
 

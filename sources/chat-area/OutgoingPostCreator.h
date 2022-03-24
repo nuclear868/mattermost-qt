@@ -24,7 +24,12 @@ public:
 
 public slots:
 	void onAttachButtonClick ();
+	void onPostReceived (BackendPost& post);
 	void sendPost ();
+	void postEditInitiated (BackendPost& post);
+
+signals:
+	void postEditFinished ();
 
 public:
 	void onDragEnterEvent (QDragEnterEvent* event);
@@ -36,8 +41,9 @@ private:
 
 private:
 	ChatArea& 				chatArea;
+	const BackendPost*		postToEdit;
 	OutgoingAttachmentList*	attachmentList;
-
+	bool					waitingForNewPostToAppear;
 };
 
 } /* namespace Mattermost */

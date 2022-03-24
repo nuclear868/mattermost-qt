@@ -63,6 +63,10 @@ void WebSocketEventHandler::handleEvent (const PostEditedEvent& event)
 	}
 
 	QString channelName = channel ? channel->name : event.channelId;
+
+	BackendPost post (event.postObject);
+	channel->editPost (post.id, post.message);
+
 #if 0
 	BackendPost* post = channel->addPost (event.postObject);
 

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QDate>
 #include <QTreeWidgetItem>
 
 #include "OutgoingPostCreator.h"
@@ -35,8 +36,6 @@ public:
 	void appendChannelPost (BackendPost& post);
 	void fillChannelPosts (const ChannelMissingPosts& collection);
 	void handleUserTyping (const BackendUser& user);
-	void handlePostDeleted (const QString& postId);
-	void sendNewPost ();
 
 	/**
 	 * Called when the chat area is being selected from the channels menu (so that it's contents is shown)
@@ -71,6 +70,7 @@ private:
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;
+	QDate							lastPostDate;
 };
 
 } /* namespace Mattermost */

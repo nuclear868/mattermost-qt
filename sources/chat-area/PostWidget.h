@@ -23,6 +23,8 @@ public:
     explicit PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
     ~PostWidget();
 public:
+    void setEdited (const QString& message);
+
     void markAsDeleted ();
 
     QString getMessageTimeString (uint64_t timestamp);

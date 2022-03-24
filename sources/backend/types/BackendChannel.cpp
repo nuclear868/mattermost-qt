@@ -147,5 +147,15 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 	emit onNewPosts (allMissingPosts);
 }
 
+void BackendChannel::editPost (const QString& postID, const QString& postMessage)
+{
+	for (auto& post: posts) {
+		if (post.id == postID) {
+			post.message = postMessage;
+			emit onPostEdited (post);
+		}
+	}
+}
+
 } /* namespace Mattermost */
 

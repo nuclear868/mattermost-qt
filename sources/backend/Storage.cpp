@@ -11,8 +11,8 @@
 namespace Mattermost {
 
 Storage::Storage ()
-:totalUsersCount (0)
-,directChannels (DIRECT_TEAM_ID)
+:directChannels (DIRECT_TEAM_ID)
+,totalUsersCount (0)
 {
 	directChannels.display_name = "Direct Messages";
 }

@@ -15,6 +15,7 @@ namespace Mattermost {
 class PostWidget;
 
 class PostsListWidget: public QListWidget {
+	Q_OBJECT
 public:
 	explicit PostsListWidget (QWidget* parent);
 public:
@@ -28,15 +29,26 @@ public:
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void removeNewMessagesSeparatorAfterTimeout (int timeoutMs);
+	QListWidgetItem* getLastOwnPost () const;
+	void initiatePostEdit (QListWidgetItem& postItem);
+	void postEditFinished ();
 	Backend*						backend;
+signals:
+	void postEditInitiated (BackendPost& post);
 private:
+	QList<QListWidgetItem*> sortedSelectedItems () const;
+
+	void copySelectedItemsToClipboard ();
 	void keyPressEvent (QKeyEvent* event)		override;
 	void resizeEvent (QResizeEvent* event)		override;
 	void focusOutEvent (QFocusEvent* event)		override;
 	void showContextMenu (const QPoint &pos);
 private:
 	QTimer							removeNewMessagesSeparatorTimer;
-	QListWidgetItem					*newMessagesSeparator;
+	QListWidgetItem*				newMessagesSeparator;
+	QListWidgetItem*				lastOwnPost;
+	QListWidgetItem*				currentEditedItem;
+	bool							menuShown;
 };
 
 } /* namespace Mattermost */

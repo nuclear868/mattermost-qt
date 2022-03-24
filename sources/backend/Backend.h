@@ -81,6 +81,9 @@ public:
 	//add new post in a channel (/posts)
 	void addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments = QList<QString> (), const QString& rootID = "");
 
+	//edit post (/posts/{post_id}/patch)
+	void editPost (const QString& postID, const QString& message, const QList<QString>* attachments);
+
 	//delete a post (/posts/{post_id})
 	void deletePost (const QString postID);
 

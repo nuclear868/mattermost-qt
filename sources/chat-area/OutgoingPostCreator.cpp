@@ -12,6 +12,7 @@
 #include <QVBoxLayout>
 #include "ChatArea.h"
 #include "backend/Backend.h"
+#include "backend/types/BackendPost.h"
 #include "MessageTextEditWidget.h"
 #include "OutgoingPostCreator.h"
 #include "OutgoingAttachmentList.h"
@@ -21,10 +22,19 @@ namespace Mattermost {
 
 OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
 :chatArea (pchatArea)
+,postToEdit (nullptr)
 ,attachmentList (nullptr)
+,waitingForNewPostToAppear (false)
 {
 	QTimer::singleShot (0, [this, chatAreaUi = chatArea.getUi()] {
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPost);
+
+		connect (chatAreaUi->textEdit, &MessageTextEditWidget::escapePressed, [this] {
+			auto* textEdit = chatArea.getUi()->textEdit;
+			textEdit->clear();
+			postToEdit = nullptr;
+			postEditFinished ();
+		});
 
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::upArrowPressed, [chatAreaUi] {
 			if (!chatAreaUi->textEdit->hasNonEmptyText ()) {
@@ -69,6 +79,14 @@ void OutgoingPostCreator::onAttachButtonClick ()
 	}
 }
 
+void OutgoingPostCreator::postEditInitiated (BackendPost& post)
+{
+	auto* textEdit = chatArea.getUi()->textEdit;
+
+	textEdit->setText (post.message);
+	postToEdit = &post;
+}
+
 void OutgoingPostCreator::sendPost ()
 {
 	auto& backend = chatArea.getBackend();
@@ -83,8 +101,14 @@ void OutgoingPostCreator::sendPost ()
 	}
 
 	if (!attachmentList) {
-		textEdit->clear();
-		backend.addPost (channel, message);
+		waitingForNewPostToAppear = true;
+		if (postToEdit) {
+			backend.editPost (postToEdit->id, message, nullptr);
+			postToEdit = nullptr;
+			emit postEditFinished();
+		} else {
+			backend.addPost (channel, message);
+		}
 		return;
 	}
 
@@ -102,8 +126,15 @@ void OutgoingPostCreator::sendPost ()
 			fileIds.push_back (fileId);
 
 			if (filesCount == 0) {
-				textEdit->clear();
-				backend.addPost (channel, message, fileIds);
+				waitingForNewPostToAppear = true;
+
+				if (postToEdit) {
+					backend.editPost (postToEdit->id, message, &fileIds);
+					postToEdit = nullptr;
+					emit postEditFinished();
+				} else {
+					backend.addPost (channel, message, fileIds);
+				}
 				delete (attachmentList);
 				attachmentList = nullptr;
 			}
@@ -133,6 +164,15 @@ void OutgoingPostCreator::onDropEvent (QDropEvent* event)
 	for (auto& url: event->mimeData ()->urls()) {
 		qDebug() << "Drop" << url;
 		attachmentList->addFile (url.toLocalFile());
+	}
+}
+
+void OutgoingPostCreator::onPostReceived (BackendPost& post)
+{
+	if (waitingForNewPostToAppear && post.isOwnPost()) {
+		waitingForNewPostToAppear = false;
+		auto* textEdit = chatArea.getUi()->textEdit;
+		textEdit->clear();
 	}
 }
 
