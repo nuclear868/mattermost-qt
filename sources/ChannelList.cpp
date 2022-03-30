@@ -17,6 +17,7 @@ namespace Mattermost {
 ChannelList::ChannelList (QWidget* parent)
 :QTreeWidget (parent)
 {
+	connect (this, &QTreeWidget::customContextMenuRequested, this, &ChannelList::showContextMenu);
 //	setColumnCount (2);
 //	setIconSize (QSize(24,24));
 //	header()->resizeSection(0 /*column index*/, 50 /*width*/);
@@ -70,6 +71,15 @@ ChannelListForTeam* ChannelList::addTeam (Backend& backend, BackendTeam& team)
 	}
 
 	return teamList;
+}
+
+void ChannelList::showContextMenu (const QPoint& pos)
+{
+	// Handle global position
+	QPoint globalPos = mapToGlobal(pos);
+
+	ChannelListForTeam* pointedItem = static_cast<ChannelListForTeam*> (itemAt(pos));
+	pointedItem->showContextMenu (globalPos + QPoint (10, 10));
 }
 
 } /* namespace Mattermost */

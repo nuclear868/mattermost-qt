@@ -172,6 +172,9 @@ font-size: 16px;</string>
         <height>16777215</height>
        </size>
       </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="styleSheet">
        <string notr="true">QTreeWidget::branch:!has-children {
 	border: none;

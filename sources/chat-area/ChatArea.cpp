@@ -1,6 +1,7 @@
 
 #include "ChatArea.h"
 
+#include "ChannelItem.h"
 #include "ui_ChatArea.h"
 #include "PostWidget.h"
 #include "backend/Backend.h"
@@ -8,12 +9,12 @@
 
 namespace Mattermost {
 
-ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* tree, QWidget *parent)
+ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent)
 :QWidget(parent)
 ,ui(new Ui::ChatArea)
 ,backend (backend)
 ,channel (channel)
-,treeItem (new QTreeWidgetItem (tree))
+,treeItem (treeItem)
 ,outgoingPostCreator (*this)
 ,unreadMessagesCount (0)
 ,texteditDefaultHeight (80)
@@ -25,14 +26,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* 
 	ui->listWidget->backend = &backend;
 
 	ui->title->setText (channel.display_name);
-	treeItem->setText (0, channel.display_name);
-	treeItem->setData(0, Qt::UserRole, QVariant::fromValue(this));
-	setTextEditWidgetHeight (texteditDefaultHeight);
 
-	QFont font1;
-	font1.setPixelSize(14);
-	font1.setBold (true);
-	treeItem->setFont (1, font1);
+	setTextEditWidgetHeight (texteditDefaultHeight);
 
 	const Mattermost::BackendUser* user = backend.getStorage().getUserById (channel.name);
 
@@ -143,7 +138,7 @@ void ChatArea::setUserAvatar (const BackendUser& user)
 	ui->userAvatar->setPixmap (QPixmap::fromImage(img));
 
 	if (channel.type == BackendChannel::directChannel) {
-		treeItem->setIcon(0, QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
+		treeItem->setIcon (QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
 	}
 }
 

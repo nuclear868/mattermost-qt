@@ -34,6 +34,7 @@ public:
 	virtual ~ChannelListForTeam ();
 public:
 	void addChannel (BackendChannel& channel, QWidget *parent);
+	void showContextMenu (const QPoint& pos);
 public:
 	Backend&							backend;
 	QString								teamId;

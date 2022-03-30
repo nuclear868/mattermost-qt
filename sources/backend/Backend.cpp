@@ -57,6 +57,7 @@ Backend::Backend(QObject *parent)
 					httpConnector.reset ();
 					webSocketConnector.reset ();
 					loginRetry ();
+					exit (1);
 				});
 			} else {
 				NetworkRequest::clearToken ();

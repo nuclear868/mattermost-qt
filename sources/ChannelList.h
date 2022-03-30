@@ -33,6 +33,7 @@ public:
 	ChannelListForTeam* addTeam (Backend& backend, BackendTeam& team);
 	void removeTeam (BackendTeam& team);
 private:
+	void showContextMenu (const QPoint& pos);
 };
 
 } /* namespace Mattermost */

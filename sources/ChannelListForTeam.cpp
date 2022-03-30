@@ -6,6 +6,10 @@
  */
 
 #include "ChannelListForTeam.h"
+
+#include <QMenu>
+#include "ChannelItemWidget.h"
+#include "ChannelItem.h"
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
 
@@ -28,7 +32,29 @@ ChannelListForTeam::~ChannelListForTeam () = default;
 
 void ChannelListForTeam::addChannel (BackendChannel& channel, QWidget *parent)
 {
-	chatAreas.emplace_back(std::make_unique<ChatArea> (backend, channel, this, parent));
+	ChannelItemWidget* itemWidget = new ChannelItemWidget (parent);
+	itemWidget->setLabel (channel.display_name);
+
+	ChannelItem* item = new ChannelItem (this, itemWidget);
+
+	chatAreas.emplace_back(std::make_unique<ChatArea> (backend, channel, item, parent));
+	ChatArea* chatArea = chatAreas.back ().get();
+
+	item->setData(0, Qt::UserRole, QVariant::fromValue (chatArea));
+
+	treeWidget()->setItemWidget (item, 0, itemWidget);
+}
+
+void ChannelListForTeam::showContextMenu (const QPoint& pos)
+{
+	// Create menu and insert some actions
+	QMenu myMenu;
+
+	myMenu.addAction ("ChannelListForTeam", [] {
+		qDebug() << "ChannelListForTeam ";
+	});
+
+	myMenu.exec (pos);
 }
 
 } /* namespace Mattermost */

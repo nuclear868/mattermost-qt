@@ -21,13 +21,14 @@ class Backend;
 class BackendChannel;
 class BackendPost;
 class BackendUser;
+class ChannelItem;
 class ChannelMissingPosts;
 class OutgoingAttachmentList;
 
 class ChatArea: public QWidget {
 	Q_OBJECT
 public:
-	explicit ChatArea (Backend& backend, BackendChannel& channel, QTreeWidgetItem* tree, QWidget *parent = nullptr);
+	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr);
 	~ChatArea();
 public:
 	Ui::ChatArea* getUi ();
@@ -59,13 +60,13 @@ private:
 	void setUserAvatar (const BackendUser& user);
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
-private:
+public:
 	Ui::ChatArea 					*ui;
 	Backend& 						backend;
 	BackendChannel& 				channel;
+	ChannelItem* 					treeItem;
 	std::vector<BackendFile*>		filesToLoad;
 	QString 						lastReadPostId;
-	QTreeWidgetItem*				treeItem;
 	OutgoingPostCreator				outgoingPostCreator;
 
 	uint32_t						unreadMessagesCount;
