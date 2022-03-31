@@ -1,5 +1,5 @@
 /**
- * @file ChannelList.h
+ * @file ChannelTree.h
  * @brief
  * @author Lyubomir Filipov
  * @date Dec 18, 2021
@@ -22,15 +22,15 @@ namespace Mattermost {
 
 class Backend;
 class BackendTeam;
-class ChannelListForTeam;
+class TeamItem;
 
-class ChannelList: public QTreeWidget {
+class ChannelTree: public QTreeWidget {
 	Q_OBJECT
 public:
-	ChannelList (QWidget* parent = nullptr);
-	virtual ~ChannelList ();
+	ChannelTree (QWidget* parent = nullptr);
+	virtual ~ChannelTree ();
 public:
-	ChannelListForTeam* addTeam (Backend& backend, BackendTeam& team);
+	TeamItem* addTeam (Backend& backend, BackendTeam& team);
 	void removeTeam (BackendTeam& team);
 private:
 	void showContextMenu (const QPoint& pos);

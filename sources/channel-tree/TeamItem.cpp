@@ -1,11 +1,11 @@
 /**
- * @file ChannelListForTeam.cpp
+ * @file TeamItem.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Dec 27, 2021
  */
 
-#include "ChannelListForTeam.h"
+#include "TeamItem.h"
 
 #include <QMenu>
 #include "ChannelItemWidget.h"
@@ -15,8 +15,8 @@
 
 namespace Mattermost {
 
-ChannelListForTeam::ChannelListForTeam (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId)
-:QTreeWidgetItem (&parent, QStringList() << name)
+TeamItem::TeamItem (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId)
+:ChannelTreeItem (&parent, QStringList() << name)
 ,backend (backend)
 ,teamId (teamId)
 {
@@ -28,9 +28,9 @@ ChannelListForTeam::ChannelListForTeam (QTreeWidget& parent, Backend& backend, c
 	setExpanded (true);
 }
 
-ChannelListForTeam::~ChannelListForTeam () = default;
+TeamItem::~TeamItem () = default;
 
-void ChannelListForTeam::addChannel (BackendChannel& channel, QWidget *parent)
+void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 {
 	ChannelItemWidget* itemWidget = new ChannelItemWidget (parent);
 	itemWidget->setLabel (channel.display_name);
@@ -45,13 +45,13 @@ void ChannelListForTeam::addChannel (BackendChannel& channel, QWidget *parent)
 	treeWidget()->setItemWidget (item, 0, itemWidget);
 }
 
-void ChannelListForTeam::showContextMenu (const QPoint& pos)
+void TeamItem::showContextMenu (const QPoint& pos)
 {
 	// Create menu and insert some actions
 	QMenu myMenu;
 
-	myMenu.addAction ("ChannelListForTeam", [] {
-		qDebug() << "ChannelListForTeam ";
+	myMenu.addAction ("TeamItem", [] {
+		qDebug() << "TeamItem ";
 	});
 
 	myMenu.exec (pos);

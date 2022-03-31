@@ -1,5 +1,5 @@
 /**
- * @file ChannelListForTeam.h
+ * @file TeamItem.h
  * @brief
  * @author Lyubomir Filipov
  * @date Dec 27, 2021
@@ -9,7 +9,7 @@
 
 #include <list>
 #include <memory>
-#include <QTreeWidgetItem>
+#include "ChannelTreeItem.h"
 #include <QObject>
 
 class QListWidget;
@@ -27,14 +27,14 @@ class BackendTeam;
 class BackendChannel;
 class ChatArea;
 
-class ChannelListForTeam: public QObject, public QTreeWidgetItem {
+class TeamItem: public QObject, public ChannelTreeItem {
 	Q_OBJECT
 public:
-	ChannelListForTeam (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId);
-	virtual ~ChannelListForTeam ();
+	TeamItem (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId);
+	virtual ~TeamItem ();
 public:
 	void addChannel (BackendChannel& channel, QWidget *parent);
-	void showContextMenu (const QPoint& pos);
+	void showContextMenu (const QPoint& pos) override;
 public:
 	Backend&							backend;
 	QString								teamId;

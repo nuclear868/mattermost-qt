@@ -1,30 +1,30 @@
 /**
- * @file ChannelList.cpp
+ * @file ChannelTree.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Dec 18, 2021
  */
 
-#include "ChannelList.h"
+#include "ChannelTree.h"
 #include <QHeaderView>
-#include "ChannelListForTeam.h"
+#include "TeamItem.h"
 #include "backend/types/BackendTeam.h"
 #include "backend/Backend.h"
 #include "log.h"
 
 namespace Mattermost {
 
-ChannelList::ChannelList (QWidget* parent)
+ChannelTree::ChannelTree (QWidget* parent)
 :QTreeWidget (parent)
 {
-	connect (this, &QTreeWidget::customContextMenuRequested, this, &ChannelList::showContextMenu);
+	connect (this, &QTreeWidget::customContextMenuRequested, this, &ChannelTree::showContextMenu);
 //	setColumnCount (2);
 //	setIconSize (QSize(24,24));
 //	header()->resizeSection(0 /*column index*/, 50 /*width*/);
 //	header()->resizeSection(1 /*column index*/, 50 /*width*/);
 }
 
-ChannelList::~ChannelList () = default;
+ChannelTree::~ChannelTree () = default;
 
 /**
  * For this team, performs the following actions:
@@ -32,9 +32,9 @@ ChannelList::~ChannelList () = default;
  * 2. creates a QTreeWidgetItem for this team
  * 3. gets all channels of the team, where the user is member and creates QTreeWidgetItem for each of them
  */
-ChannelListForTeam* ChannelList::addTeam (Backend& backend, BackendTeam& team)
+TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 {
-	ChannelListForTeam* teamList = new ChannelListForTeam (*this, backend, team.display_name, team.id);
+	TeamItem* teamList = new TeamItem (*this, backend, team.display_name, team.id);
 
 	addTopLevelItem (teamList);
 	//header()->resizeSection (0, 200);
@@ -73,12 +73,12 @@ ChannelListForTeam* ChannelList::addTeam (Backend& backend, BackendTeam& team)
 	return teamList;
 }
 
-void ChannelList::showContextMenu (const QPoint& pos)
+void ChannelTree::showContextMenu (const QPoint& pos)
 {
 	// Handle global position
 	QPoint globalPos = mapToGlobal(pos);
 
-	ChannelListForTeam* pointedItem = static_cast<ChannelListForTeam*> (itemAt(pos));
+	ChannelTreeItem* pointedItem = static_cast<ChannelTreeItem*> (itemAt(pos));
 	pointedItem->showContextMenu (globalPos + QPoint (10, 10));
 }
 

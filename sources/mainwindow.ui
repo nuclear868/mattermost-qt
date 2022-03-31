@@ -159,7 +159,7 @@ font-size: 16px;</string>
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="Mattermost::ChannelList" name="channelList">
+     <widget class="Mattermost::ChannelTree" name="channelList">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -251,9 +251,9 @@ QTreeWidget::branch:closed:has-children {
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Mattermost::ChannelList</class>
+   <class>Mattermost::ChannelTree</class>
    <extends>QTreeWidget</extends>
-   <header>sources/ChannelList.h</header>
+   <header>sources/channel-tree/ChannelTree.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

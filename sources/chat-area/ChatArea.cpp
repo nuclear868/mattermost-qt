@@ -1,7 +1,7 @@
 
 #include "ChatArea.h"
 
-#include "ChannelItem.h"
+#include "channel-tree/ChannelItem.h"
 #include "ui_ChatArea.h"
 #include "PostWidget.h"
 #include "backend/Backend.h"

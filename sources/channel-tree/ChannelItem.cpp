@@ -6,12 +6,15 @@
  */
 
 #include "ChannelItem.h"
+
+#include <QDebug>
+#include <QMenu>
 #include "ChannelItemWidget.h"
 
 namespace Mattermost {
 
 ChannelItem::ChannelItem (QTreeWidgetItem* parent, ChannelItemWidget* widget)
-:QTreeWidgetItem (parent)
+:ChannelTreeItem (parent)
 ,widget (widget)
 {
 	QFont font1;
@@ -34,6 +37,18 @@ void ChannelItem::setLabel (const QString& label)
 	if (widget) {
 		widget->setLabel (label);
 	}
+}
+
+void ChannelItem::showContextMenu (const QPoint& pos)
+{
+	// Create menu and insert some actions
+	QMenu myMenu;
+
+	myMenu.addAction ("ChannelItem", [] {
+		qDebug() << "ChannelItem ";
+	});
+
+	myMenu.exec (pos);
 }
 
 } /* namespace Mattermost */

@@ -7,7 +7,6 @@
 #include <QSystemTrayIcon>
 #include "./ui_mainwindow.h"
 #include "chat-area/ChatArea.h"
-#include "ChannelListForTeam.h"
 #include "backend/Backend.h"
 #include "build-config.h"
 #include "log.h"
@@ -88,7 +87,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 //		QString currentTeam (settings.value ("current_team", 0).toString());
 
 		//Activate the same team that was active during the last session
-//				if (teamChannelList->team.id == currentTeam) {
+//				if (teamChannelTree->team.id == currentTeam) {
 //					LOG_DEBUG ("MainWindow activate team " << currentTeam);
 //					//ui->teamComboBox->setCurrentIndex (teamSeq);
 //					//channelList.activateTeam (teamSeq);
