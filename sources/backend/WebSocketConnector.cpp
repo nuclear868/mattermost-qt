@@ -162,7 +162,7 @@ void WebSocketConnector::doHandshake ()
 	});
 
 	QByteArray data = json.toJson(QJsonDocument::Compact);
-	webSocket.sendBinaryMessage(data);
+	webSocket.sendTextMessage (data);
 }
 
 void WebSocketConnector::reset ()
@@ -179,11 +179,9 @@ static bool printEvent (const QString& name)
 	return true;
 }
 
-
 void WebSocketConnector::onNewPacket (const QString& string)
 {
 	QJsonDocument doc = QJsonDocument::fromJson(string.toUtf8());
-
 
 	const QJsonObject& jsonObject = doc.object();
 
