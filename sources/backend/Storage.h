@@ -28,6 +28,8 @@ public:
 
 	BackendChannel* getChannelById (const QString& channelID);
 
+	const std::map<QString, BackendUser>& getAllUsers () const;
+
 	BackendUser* getUserById (const QString& userID);
 	const BackendUser* getUserById (const QString& userID) const;
 

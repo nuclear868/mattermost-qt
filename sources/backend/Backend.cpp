@@ -621,13 +621,11 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
-		QJsonDocument doc = QJsonDocument::fromJson(data);
-
 #if 0
+		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
-
 	});
 }
 
@@ -667,7 +665,6 @@ void Backend::editPost (const QString& postID, const QString& message, const QLi
 
 	});
 }
-
 
 void Backend::deletePost (const QString postID)
 {
@@ -713,6 +710,26 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 		}
 
 		responseHandler (arr.at(0).toObject().value("id").toString());
+	});
+}
+
+void Backend::createDirectChannel (const BackendUser& user)
+{
+	QJsonArray json {getLoginUser().id, user.id};
+
+    QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
+
+	NetworkRequest request ("channels/direct");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	httpConnector.post(request, data, [this](QVariant, QByteArray) {
+#if 0
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+
 	});
 }
 

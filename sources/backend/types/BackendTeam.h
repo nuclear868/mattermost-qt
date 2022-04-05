@@ -23,6 +23,9 @@ public:
 	BackendTeam (QString id);
 	BackendTeam (const QJsonObject& jsonObject);
 	virtual ~BackendTeam ();
+public:
+	bool isDirectChannelsCollection () const;
+
 signals:
 	void onLeave ();
 	void onNewChannel (BackendChannel& channel);

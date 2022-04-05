@@ -183,13 +183,18 @@ QListWidgetItem* PostsListWidget::getLastOwnPost () const
 
 void PostsListWidget::initiatePostEdit (QListWidgetItem& postItem)
 {
+	if (currentEditedItem) {
+		qDebug () << "Post edit requested while editing post";
+		return;
+	}
+
 	PostWidget* post = static_cast <PostWidget*> (itemWidget (&postItem));
 
 	qDebug() << "Edit " << post->post.message;
 	currentEditedItem = &postItem;
-	emit postEditInitiated (post->post);
-	postItem.setBackground(Qt::darkYellow);
+	postItem.setBackground(Qt::yellow);
 	clearSelection ();
+	emit postEditInitiated (post->post);
 }
 
 void PostsListWidget::postEditFinished ()

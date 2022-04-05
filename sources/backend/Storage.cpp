@@ -74,6 +74,11 @@ BackendChannel* Storage::getChannelById (const QString& channelID)
 	return *it;
 }
 
+const std::map<QString, BackendUser>& Storage::getAllUsers () const
+{
+	return users;
+}
+
 BackendTeam* Storage::addTeam (const QJsonObject& json)
 {
 	QString teamId (json.value("id").toString());

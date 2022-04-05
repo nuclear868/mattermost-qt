@@ -38,6 +38,8 @@ public:
 
 private:
 	void createAttachmentList ();
+	void updateSendButtonState ();
+	bool isCreatingPost ();
 
 private:
 	ChatArea& 				chatArea;

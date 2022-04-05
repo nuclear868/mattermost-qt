@@ -12,6 +12,7 @@
 #include "ChannelItem.h"
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
+#include "new-direct-channel/NewDirectChannelDialog.h"
 
 namespace Mattermost {
 
@@ -49,6 +50,26 @@ void TeamItem::showContextMenu (const QPoint& pos)
 {
 	// Create menu and insert some actions
 	QMenu myMenu;
+
+	//direct channel
+	if (teamId == "0") {
+		myMenu.addAction ("Add direct channel", [this] {
+			qDebug() << "Add direct channel ";
+			NewDirectChannelDialog* dialog = new NewDirectChannelDialog (backend.getStorage().getAllUsers(), treeWidget());
+			dialog->show ();
+
+			connect (dialog, &NewDirectChannelDialog::accepted, [this, dialog] {
+				const BackendUser* user = dialog->getSelectedUser();
+
+				if (user) {
+					qDebug() << "New Direct channel requested with " << user->getDisplayName();
+					backend.createDirectChannel (*user);
+				} else {
+					qDebug() << "dialog->getSelectedUser() returned nullptr";
+				}
+			});
+		});
+	}
 
 	myMenu.addAction ("TeamItem", [] {
 		qDebug() << "TeamItem ";

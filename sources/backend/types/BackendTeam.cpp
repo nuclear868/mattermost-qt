@@ -43,5 +43,10 @@ BackendTeam::BackendTeam (const QJsonObject& jsonObject)
 
 BackendTeam::~BackendTeam () = default;
 
+bool BackendTeam::isDirectChannelsCollection () const
+{
+	return id == "0";
+}
+
 } /* namespace Mattermost */
 

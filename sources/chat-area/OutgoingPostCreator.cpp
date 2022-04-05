@@ -36,18 +36,8 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
 			postEditFinished ();
 		});
 
-		connect (chatAreaUi->textEdit, &MessageTextEditWidget::upArrowPressed, [chatAreaUi] {
-			if (!chatAreaUi->textEdit->hasNonEmptyText ()) {
-				qDebug () << "Up Arrow pressed. Ready to implement message editing";
-			}
-		});
-
-		connect (chatAreaUi->textEdit, &MessageTextEditWidget::textChanged, [chatAreaUi] {
-				if (!chatAreaUi->textEdit->hasNonEmptyText ()) {
-					chatAreaUi->sendButton->setDisabled (true);
-				} else {
-					chatAreaUi->sendButton->setDisabled (false);
-				}
+		connect (chatAreaUi->textEdit, &MessageTextEditWidget::textChanged, [this, chatAreaUi] {
+			updateSendButtonState ();
 		});
 
 		/*
@@ -57,7 +47,7 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
 
 		connect (chatAreaUi->attachButton, &QPushButton::clicked, this, &OutgoingPostCreator::onAttachButtonClick);
 
-		chatAreaUi->sendButton->setDisabled (true);
+		updateSendButtonState();
 	});
 }
 
@@ -81,6 +71,12 @@ void OutgoingPostCreator::onAttachButtonClick ()
 
 void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 {
+	if (isCreatingPost()) {
+		qDebug () << "Post edit requested while creating post";
+		emit postEditFinished();
+		return;
+	}
+
 	auto* textEdit = chatArea.getUi()->textEdit;
 
 	textEdit->setText (post.message);
@@ -102,11 +98,14 @@ void OutgoingPostCreator::sendPost ()
 
 	if (!attachmentList) {
 		waitingForNewPostToAppear = true;
+		updateSendButtonState ();
 		if (postToEdit) {
 			backend.editPost (postToEdit->id, message, nullptr);
 			postToEdit = nullptr;
+			qDebug () << "Send post edit";
 			emit postEditFinished();
 		} else {
+			qDebug () << "Send post";
 			backend.addPost (channel, message);
 		}
 		return;
@@ -115,7 +114,8 @@ void OutgoingPostCreator::sendPost ()
 	QList<QString> files = attachmentList->getAllFiles();
 
 	static QList<QString> fileIds;
-	static uint32_t filesCount = files.size();
+	static uint32_t filesCount;
+	filesCount = files.size();
 
 	fileIds.clear ();
 
@@ -127,12 +127,15 @@ void OutgoingPostCreator::sendPost ()
 
 			if (filesCount == 0) {
 				waitingForNewPostToAppear = true;
+				updateSendButtonState ();
 
 				if (postToEdit) {
 					backend.editPost (postToEdit->id, message, &fileIds);
 					postToEdit = nullptr;
+					qDebug () << "Send post edit (+attachments)";
 					emit postEditFinished();
 				} else {
+					qDebug () << "Send post";
 					backend.addPost (channel, message, fileIds);
 				}
 				delete (attachmentList);
@@ -173,6 +176,7 @@ void OutgoingPostCreator::onPostReceived (BackendPost& post)
 		waitingForNewPostToAppear = false;
 		auto* textEdit = chatArea.getUi()->textEdit;
 		textEdit->clear();
+		updateSendButtonState ();
 	}
 }
 
@@ -181,12 +185,45 @@ void OutgoingPostCreator::createAttachmentList ()
 	if (!attachmentList) {
 		attachmentList = new OutgoingAttachmentList (&chatArea);
 		chatArea.getAttachmentListParentWidget().insertWidget(2, attachmentList);
+		updateSendButtonState ();
 
 		connect (attachmentList, &OutgoingAttachmentList::deleted, [this] {
 			delete (attachmentList);
 			attachmentList = nullptr;
+			updateSendButtonState ();
 		});
 	}
+}
+
+void OutgoingPostCreator::updateSendButtonState ()
+{
+	bool buttonDisabled = false;
+
+	if (waitingForNewPostToAppear) {
+		buttonDisabled = true;
+	} else {
+		if (!isCreatingPost()) {
+			buttonDisabled = true;
+		}
+	}
+
+	chatArea.getUi()->sendButton->setDisabled (buttonDisabled);
+}
+
+bool OutgoingPostCreator::isCreatingPost ()
+{
+	if (waitingForNewPostToAppear) {
+		return true;
+	}
+
+	auto* textEdit = chatArea.getUi()->textEdit;
+	QString message = textEdit->toPlainText ();
+
+	if (message.isEmpty() && !attachmentList) {
+		return false;
+	}
+
+	return true;
 }
 
 } /* namespace Mattermost */

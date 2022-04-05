@@ -79,7 +79,7 @@ void ChannelTree::showContextMenu (const QPoint& pos)
 	QPoint globalPos = mapToGlobal(pos);
 
 	ChannelTreeItem* pointedItem = static_cast<ChannelTreeItem*> (itemAt(pos));
-	pointedItem->showContextMenu (globalPos + QPoint (10, 10));
+	pointedItem->showContextMenu (globalPos + QPoint (25, 15));
 }
 
 } /* namespace Mattermost */
