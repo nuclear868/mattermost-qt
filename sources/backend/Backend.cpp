@@ -100,7 +100,7 @@ void Backend::login (const BackendLoginData& loginData, std::function<void(const
 
 	jsonRoot.insert("login_id", loginData.username);
 	jsonRoot.insert("password", loginData.password);
-	jsonRoot.insert("device_id", "QT Client");
+	//jsonRoot.insert("device_id", "QT Client");
 #if 0
 	if (!token.isEmpty())
 		jsonRoot.insert("token", token);
