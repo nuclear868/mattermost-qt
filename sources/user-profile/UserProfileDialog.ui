@@ -76,6 +76,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="statusLabel">
+         <property name="text">
+          <string>Status</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="timezoneLabel">
          <property name="text">
           <string>Time Zone</string>
@@ -129,6 +136,13 @@
        </item>
        <item>
         <widget class="QLabel" name="positionValue">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="statusValue">
          <property name="text">
           <string/>
          </property>

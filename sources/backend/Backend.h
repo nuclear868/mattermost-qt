@@ -39,6 +39,9 @@ public:
 	//get specific user (/users/userID);
 	void retrieveUser (QString userID, std::function<void(BackendUser&)> callback);
 
+	//get user's status (/users/status/ids)
+	void retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void()> callback);
+
 	//get count of all users in the system (users/stats)
 	void retrieveTotalUsersCount (std::function<void(uint32_t)> callback);
 

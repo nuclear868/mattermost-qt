@@ -21,6 +21,7 @@ UserProfileDialog::UserProfileDialog (const BackendUser& user, QWidget *parent)
     ui->usernameValue->setText (user.username);
     ui->emailValue->setText (user.email);
     ui->positionValue->setText (user.position.isEmpty() ? "N/A" : user.position);
+    ui->statusValue->setText (user.status);
     ui->timezoneValue->setText (user.timezone.automaticTimezone);
 }
 

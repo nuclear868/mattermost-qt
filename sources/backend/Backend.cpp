@@ -260,6 +260,50 @@ void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> c
 	});
 }
 
+void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void ()> callback)
+{
+	QJsonArray userIDsJson;
+
+	for (auto& id: userIDs) {
+		userIDsJson.push_back (id);
+	}
+
+	NetworkRequest request ("users/status/ids");
+
+    QByteArray data (QJsonDocument (userIDsJson).toJson(QJsonDocument::Compact));
+
+	httpConnector.post(request, data, [this, callback](QVariant, QByteArray data) {
+
+		LOG_DEBUG ("getStatus reply");
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		for (const auto& element: doc.array()) {
+
+			const QJsonObject& jsonObject = element.toObject();
+
+			QString userId = jsonObject.value("user_id").toString();;
+
+			BackendUser* user = storage.getUserById (userId);
+
+			if (!user) {
+				LOG_DEBUG ("retrieveMultipleUsersStatus: used with id '" << userId << "not found");
+				continue;
+			}
+
+			user->status = jsonObject.value("status").toString();
+			user->lastActivity = jsonObject.value("last_activity_at").toVariant().toULongLong();
+		}
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		qDebug() << "get user status reply: " << jsonString;
+#endif
+		callback ();
+	});
+}
+
+
 void Backend::retrieveTotalUsersCount (std::function<void(uint32_t)> callback)
 {
 	NetworkRequest request ("users/stats");
@@ -297,10 +341,17 @@ void Backend::retrieveAllUsers ()
 			//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
 			//std::cout << jsonString.toStdString() << std::endl;
 
+			QVector<QString> userIds;
+			userIds.reserve (200);
+
 			for (const auto &itemRef: doc.array()) {
 				BackendUser *user = storage.addUser (itemRef.toObject());
 				retrieveUserAvatar (user->id);
+				userIds.push_back (user->id);
 			}
+
+			retrieveMultipleUsersStatus (userIds, [] {
+			});
 
 			LOG_DEBUG ("Page " << page << " (" << obtainedPages << " of " << totalPages << "): users count " << storage.users.size());
 		#if 0

@@ -51,6 +51,10 @@ public:
     QString 			locale;
     BackendTimeZone		timezone;
     bool				isLoginUser;
+
+    //filled when status is requested
+	QString 			status;
+	uint64_t			lastActivity;
 };
 
 } /* namespace Mattermost */
