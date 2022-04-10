@@ -1,31 +1,21 @@
-#ifndef NEWDIRECTCHANNELDIALOG_H
-#define NEWDIRECTCHANNELDIALOG_H
+/**
+ * @file NewDirectChannelDialog.h
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Apr 10, 2022
+ */
 
-#include <map>
-#include <QDialog>
-#include "fwd.h"
+#pragma once
 
-namespace Ui {
-class NewDirectChannelDialog;
-}
+#include "UserListDialog.h"
+#include "ui_UserListDialog.h"
 
 namespace Mattermost {
 
-class NewDirectChannelDialog : public QDialog
-{
-    Q_OBJECT
-
+class NewDirectChannelDialog: public UserListDialog {
 public:
-    explicit NewDirectChannelDialog (const std::map<QString, BackendUser>& users, QWidget *parent = nullptr);
-    ~NewDirectChannelDialog();
-public:
-    const BackendUser* getSelectedUser ();
+	NewDirectChannelDialog (const std::map<QString, BackendUser>& users, QWidget *parent);
 private:
-    void applyFilter (const QString& filter);
-private:
-    Ui::NewDirectChannelDialog *ui;
 };
 
 } /* namespace Mattermost */
-
-#endif // NEWDIRECTCHANNELDIALOG_H

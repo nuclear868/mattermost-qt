@@ -123,26 +123,33 @@ BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
 		 */
 
 		//the channel name contains the userIDs of it's participants
-		QStringList all_users_id = newChannel->name.split("__");
+		QStringList allUserIds = newChannel->name.split("__");
 
-		//remove the logged-in user from this list
-		all_users_id.removeAll (loginUser->id);
+		//allUserIds the logged-in user from this list
+		allUserIds.removeAll (loginUser->id);
 
+		QString userID;
+
+		//if the list is empty, the user has a chat with himself
+		if (allUserIds.isEmpty()) {
+			userID = loginUser->id;
+		} else {
 		//the remote user ID is the remaining id
-		QString userID = all_users_id.first();
+			userID = allUserIds.first();
+		}
 
 		//set the user ID as a channel name in order to be able to access it
 		newChannel->name = userID;
 
 		//get pointer to the user
-		BackendUser* user = getUserById (all_users_id.first());
+		BackendUser* user = getUserById (userID);
 
 		//set user's name as the channel display name
 		if (user) {
 			newChannel->display_name = user->getDisplayName();
 		} else {
 			LOG_DEBUG ("Channel used not found for " << newChannel->id);
-			newChannel->display_name = all_users_id.first();
+			newChannel->display_name = userID;
 		}
 
 		useTeam = &directChannels;

@@ -13,6 +13,7 @@
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
 #include "new-direct-channel/NewDirectChannelDialog.h"
+#include "new-direct-channel/ChannelUsersListDialog.h"
 
 namespace Mattermost {
 
@@ -68,6 +69,31 @@ void TeamItem::showContextMenu (const QPoint& pos)
 					qDebug() << "dialog->getSelectedUser() returned nullptr";
 				}
 			});
+		});
+	} else {
+		myMenu.addAction ("View Members", [this] {
+
+			BackendTeam* team = backend.getStorage().getTeamById(teamId);
+
+			if (!team) {
+				return;
+			}
+
+			std::vector<BackendUser*> teamUsers;
+
+			for (auto& it: team->members) {
+
+				if (!it.user) {
+					qDebug () << "user " << it.user_id << " is nullptr";
+					continue;
+				}
+
+				teamUsers.push_back (it.user);
+			}
+			qDebug() << "View Team members " << team->members.size();
+
+			ChannelUsersListDialog* dialog = new ChannelUsersListDialog (team->display_name, teamUsers, treeWidget());
+			dialog->show ();
 		});
 	}
 

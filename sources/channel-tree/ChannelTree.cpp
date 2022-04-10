@@ -68,6 +68,8 @@ TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 		backend.retrieveOwnChannelMemberships (team, [this, teamList] (BackendChannel& channel) {
 			teamList->addChannel (channel, parentWidget());
 		});
+
+		backend.retrieveTeamMembers (team);
 	}
 
 	return teamList;

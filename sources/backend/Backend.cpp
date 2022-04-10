@@ -92,6 +92,18 @@ void Backend::login (const BackendLoginData& loginData, std::function<void(const
 			loginSuccess (data, reply, callback);
 		});
 
+
+#if 0
+		NetworkRequest request1 ("users/me/preferences");
+
+		httpConnector.get (request1, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
+			QJsonDocument doc = QJsonDocument::fromJson(data);
+
+			QString jsonString = doc.toJson(QJsonDocument::Indented);
+			LOG_DEBUG (jsonString);
+		});
+#endif
+
 		return;
 	}
 

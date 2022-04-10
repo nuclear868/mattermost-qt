@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NewDirectChannelDialog</class>
- <widget class="QDialog" name="NewDirectChannelDialog">
+ <class>UserListDialog</class>
+ <widget class="QDialog" name="UserListDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -35,7 +35,24 @@
       </layout>
      </item>
      <item>
-      <widget class="QListWidget" name="listWidget"/>
+      <widget class="QTreeWidget" name="treeWidget">
+       <property name="columnCount">
+        <number>2</number>
+       </property>
+       <attribute name="headerStretchLastSection">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Status</string>
+        </property>
+       </column>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="filterUsersLabel">
@@ -81,7 +98,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>NewDirectChannelDialog</receiver>
+   <receiver>UserListDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -97,7 +114,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>NewDirectChannelDialog</receiver>
+   <receiver>UserListDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
