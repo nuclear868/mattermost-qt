@@ -3,7 +3,9 @@
 #include "ui_UserListDialog.h"
 
 #include <set>
+#include <QMenu>
 #include "backend/types/BackendUser.h"
+#include "user-profile/UserProfileDialog.h"
 
 namespace Mattermost {
 
@@ -17,6 +19,8 @@ UserListDialog::UserListDialog (const std::map<QString, BackendUser>& users, QWi
 ,ui(new Ui::UserListDialog)
 {
     ui->setupUi(this);
+
+    connect (ui->treeWidget, &QTreeWidget::customContextMenuRequested, this, &UserListDialog::showContextMenu);
 
     std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
 
@@ -51,6 +55,8 @@ UserListDialog::UserListDialog (const std::vector<BackendUser*>& users, QWidget 
 ,ui(new Ui::UserListDialog)
 {
     ui->setupUi(this);
+
+    connect (ui->treeWidget, &QTreeWidget::customContextMenuRequested, this, &UserListDialog::showContextMenu);
 
     std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
 
@@ -112,6 +118,32 @@ const BackendUser* UserListDialog::getSelectedUser ()
 	}
 
 	return selection.first()->data(0, Qt::UserRole).value<BackendUser*>();
+}
+
+void UserListDialog::showContextMenu (const QPoint& pos)
+{
+	// Create menu and insert some actions
+	QMenu myMenu;
+
+	// Handle global position
+	QPoint globalPos = ui->treeWidget->mapToGlobal(pos);
+
+	QTreeWidgetItem* pointedItem = ui->treeWidget->itemAt(pos);
+
+	if (!pointedItem) {
+		return;
+	}
+
+	BackendUser *user = pointedItem->data(0, Qt::UserRole).value<BackendUser*>();
+
+	//direct channel
+	myMenu.addAction ("View Profile", [this, user] {
+	//	qDebug() << "View Profile for " << user->getDisplayName();
+		UserProfileDialog* dialog = new UserProfileDialog (*user, ui->treeWidget);
+		dialog->show ();
+	});
+
+	myMenu.exec (globalPos + QPoint (15, 35));
 }
 
 } /* namespace Mattermost */

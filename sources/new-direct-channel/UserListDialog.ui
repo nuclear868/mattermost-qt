@@ -36,6 +36,9 @@
      </item>
      <item>
       <widget class="QTreeWidget" name="treeWidget">
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="columnCount">
         <number>2</number>
        </property>

@@ -23,6 +23,7 @@ public:
     const BackendUser* getSelectedUser ();
 private:
     void applyFilter (const QString& filter);
+    void showContextMenu (const QPoint& pos);
 protected:
     Ui::UserListDialog *ui;
 };
