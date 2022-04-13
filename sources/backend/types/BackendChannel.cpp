@@ -114,12 +114,18 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 		QString newPostId = newPostEl.toString();
 
+		//if a post is deleted, it will exist locally, but will not exist in the list of received post
+		while (currentLocalPost->isDeleted && currentLocalPost != posts.rend()) {
+			++currentLocalPost;
+		}
+
 		//end of local posts list. Save the current missing post sequence and add all missing posts
 		if (currentLocalPost == posts.rend()) {
 			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentMissingPostsSeq, initialLoad);
 			++currentLocalPost;
 			continue;
 		}
+
 
 		//post already exists. No need to be added. Save the current missing post sequence and continue
 		if (currentLocalPost->id == newPostId) {

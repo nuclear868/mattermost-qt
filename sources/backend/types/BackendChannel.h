@@ -93,7 +93,6 @@ signals:
 	 */
 	void onPostDeleted (const QString& postId);
 
-
 	/**
 	 * Called when someone is typing in the channel.
 	 * Typing notifications are sent ~every 5 seconds, while the user is typing

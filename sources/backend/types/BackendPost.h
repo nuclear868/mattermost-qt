@@ -42,6 +42,8 @@ public:
 	QString						pending_post_id;
 	std::list<BackendFile>		files;
 
+	bool						isDeleted;
+
 	const BackendUser*			author;
 };
 

@@ -32,7 +32,6 @@ public:
     QString formatForClipboardSelection () const;
 
     BackendPost&						post;
-    bool								isDeleted;
 private:
     Ui::PostWidget*						ui;
     std::unique_ptr<PostAttachmentList>	attachments;

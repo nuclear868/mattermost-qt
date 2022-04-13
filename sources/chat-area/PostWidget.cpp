@@ -14,7 +14,6 @@ namespace Mattermost {
 PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
 :QWidget(parent)
 ,post (post)
-,isDeleted (false)
 ,ui(new Ui::PostWidget)
 {
 	ui->setupUi(this);
@@ -66,7 +65,7 @@ void PostWidget::markAsDeleted ()
 {
 	ui->message->setText ("(Message deleted)");
 	attachments.reset (nullptr);
-	isDeleted = true;
+	post.isDeleted = true;
 }
 
 QString PostWidget::formatMessageText (const QString& str)

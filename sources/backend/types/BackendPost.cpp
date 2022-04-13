@@ -13,6 +13,7 @@ namespace Mattermost {
 
 BackendPost::BackendPost (const QJsonObject& jsonObject)
 :author (nullptr)
+,isDeleted (false)
 {
 	id = jsonObject.value("id").toString();
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();

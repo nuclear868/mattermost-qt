@@ -272,7 +272,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 
 	PostWidget* post = static_cast <PostWidget*> (itemWidget (pointedItem));
 
-	if (post->isDeleted) {
+	if (post->post.isDeleted) {
 		return;
 	}
 

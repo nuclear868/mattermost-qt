@@ -101,6 +101,12 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 		this->messageNotify (channel, post);
 	});
 
+	connect (&backend, &Backend::onChannelViewed, [this] (const BackendChannel& channel) {
+		if (channelsWithNewPosts.remove (&channel)) {
+			setNotificationsCountVisualization (channelsWithNewPosts.size());
+		}
+	});
+
 	/*
 	 * onAddedToTeam comes after a WebSocket event, when the user is added to (new) team
 	 */
@@ -246,9 +252,11 @@ void MainWindow::channelListWidget_itemClicked (QTreeWidgetItem* item, QTreeWidg
 	currentPage = chatArea;
 	currentPage->onActivate ();
 
+#if 0
 	if (channelsWithNewPosts.remove (&currentPage->getChannel())) {
 		setNotificationsCountVisualization (channelsWithNewPosts.size());
 	}
+#endif
 }
 
 void MainWindow::messageNotify (const BackendChannel& channel, const BackendPost& post)
