@@ -60,6 +60,9 @@ public:
 	//get a team (/teams/teamID)
 	void retrieveTeam (QString teamID);
 
+	//get all public channels for a team (/teams/teamID/channels)
+	void retrieveTeamPublicChannels (QString teamID, std::function<void(std::list<BackendChannel>&)> callback);
+
 	//get own channel memberships (/users/me/teams/teamID/channels)
 	void retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback);
 

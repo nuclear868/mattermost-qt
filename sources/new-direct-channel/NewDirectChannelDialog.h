@@ -8,7 +8,7 @@
 #pragma once
 
 #include "UserListDialog.h"
-#include "ui_UserListDialog.h"
+#include "ui_FilterListDialog.h"
 
 namespace Mattermost {
 

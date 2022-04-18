@@ -1,33 +1,24 @@
-#ifndef USERDIALOG_H
-#define USERDIALOG_H
+/**
+ * @file UserListDialog.h
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Apr 16, 2022
+ */
 
-#include <map>
-#include <QDialog>
-#include "fwd.h"
+#pragma once
 
-namespace Ui {
-class UserListDialog;
-}
+#include "FilterListDialog.h"
 
 namespace Mattermost {
 
-class UserListDialog : public QDialog
-{
-    Q_OBJECT
-
+class UserListDialog: public FilterListDialog {
 public:
-    UserListDialog (const std::map<QString, BackendUser>& users, QWidget *parent);
-    UserListDialog (const std::vector<BackendUser*>& users, QWidget *parent);
-    ~UserListDialog();
+	UserListDialog (const std::map<QString, BackendUser>& users, QWidget *parent);
+	UserListDialog (const std::vector<BackendUser*>& users, QWidget *parent);
+	virtual ~UserListDialog ();
 public:
     const BackendUser* getSelectedUser ();
-private:
-    void applyFilter (const QString& filter);
-    void showContextMenu (const QPoint& pos);
-protected:
-    Ui::UserListDialog *ui;
+    void showContextMenu (const QPoint& pos)	override;
 };
 
 } /* namespace Mattermost */
-
-#endif // USERDIALOG_H

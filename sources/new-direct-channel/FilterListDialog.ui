@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UserListDialog</class>
- <widget class="QDialog" name="UserListDialog">
+ <class>FilterListDialog</class>
+ <widget class="QDialog" name="FilterListDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string/>
+   <string>Select a user - Mattermost</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -47,7 +47,7 @@
        </attribute>
        <column>
         <property name="text">
-         <string>User Name</string>
+         <string>Name</string>
         </property>
        </column>
        <column>
@@ -101,7 +101,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>UserListDialog</receiver>
+   <receiver>FilterListDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -117,7 +117,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>UserListDialog</receiver>
+   <receiver>FilterListDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

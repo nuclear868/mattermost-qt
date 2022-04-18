@@ -14,6 +14,7 @@
 #include "backend/Backend.h"
 #include "new-direct-channel/NewDirectChannelDialog.h"
 #include "new-direct-channel/ChannelUsersListDialog.h"
+#include "new-direct-channel/ViewTeamChannelsDialog.h"
 
 namespace Mattermost {
 
@@ -71,7 +72,7 @@ void TeamItem::showContextMenu (const QPoint& pos)
 			});
 		});
 	} else {
-		myMenu.addAction ("View Members", [this] {
+		myMenu.addAction ("View Team Members", [this] {
 
 			BackendTeam* team = backend.getStorage().getTeamById(teamId);
 
@@ -97,8 +98,13 @@ void TeamItem::showContextMenu (const QPoint& pos)
 		});
 	}
 
-	myMenu.addAction ("TeamItem", [] {
-		qDebug() << "TeamItem ";
+	myMenu.addAction ("View Public Channels", [this] {
+			BackendTeam* team = backend.getStorage().getTeamById(teamId);
+
+			backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
+				ViewTeamChannelsDialog* dialog = new ViewTeamChannelsDialog (team->display_name, channels, treeWidget());
+				dialog->show ();
+			});
 	});
 
 	myMenu.exec (pos);

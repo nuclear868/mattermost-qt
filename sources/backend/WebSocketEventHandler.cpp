@@ -25,8 +25,11 @@ void WebSocketEventHandler::handleEvent (const ChannelViewedEvent& event)
 {
 	BackendChannel* channel = storage.getChannelById (event.channelId);
 	QString channelName = channel ? channel->name : event.channelId;
-	emit channel->onViewed ();
-	emit backend.onChannelViewed (*channel);
+
+	if (channel) {
+		emit channel->onViewed ();
+		emit backend.onChannelViewed (*channel);
+	}
 }
 
 void WebSocketEventHandler::handleEvent (const PostEvent& event)
@@ -122,7 +125,7 @@ void WebSocketEventHandler::handleEvent (const UserAddedToChannelEvent& event)
 	BackendChannel* channel = storage.getChannelById (event.channelId);
 
 	//new channel?
-	if (!channel) {
+	if (team && !channel) {
 		backend.retrieveChannel (*team, event.channelId);
 	}
 

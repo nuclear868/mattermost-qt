@@ -1,63 +1,63 @@
+/**
+ * @file UserListDialog.cpp
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Apr 16, 2022
+ */
 
 #include "UserListDialog.h"
-#include "ui_UserListDialog.h"
 
 #include <set>
 #include <QMenu>
 #include "backend/types/BackendUser.h"
 #include "user-profile/UserProfileDialog.h"
+#include "ui_FilterListDialog.h"
+
 
 namespace Mattermost {
+
+namespace {
 
 auto nameComparator = [] (const BackendUser* const& lhs, const BackendUser* const& rhs)
 {
 	return lhs->username < rhs->username;
 };
 
-UserListDialog::UserListDialog (const std::map<QString, BackendUser>& users, QWidget* parent)
-:QDialog(parent)
-,ui(new Ui::UserListDialog)
-{
-    ui->setupUi(this);
-
-    connect (ui->treeWidget, &QTreeWidget::customContextMenuRequested, this, &UserListDialog::showContextMenu);
-
-    std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
-
-    for (auto& it: users) {
-    	set.insert (&it.second);
-    }
-
-    uint32_t usersCount = 0;
-    for (auto& user: set) {
-    	QString displayName (user->getDisplayName());
-
-    	if (!user->nickname.isEmpty()) {
-    		displayName += " (" + user->nickname + ")";
-    	}
-
-    	QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
-    	QImage img = QImage::fromData (user->avatar);
-    	item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
-    	item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
-    	ui->treeWidget->addTopLevelItem (item);
-    	++usersCount;
-    }
-
-    ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
-    ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
-    ui->usersCountLabel->setText(QString::number(usersCount) + " users");
-    connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &UserListDialog::applyFilter);
 }
 
-UserListDialog::UserListDialog (const std::vector<BackendUser*>& users, QWidget *parent)
-:QDialog(parent)
-,ui(new Ui::UserListDialog)
+UserListDialog::UserListDialog (const std::map<QString, BackendUser>& users, QWidget* parent)
+:FilterListDialog (parent)
 {
-    ui->setupUi(this);
+	std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
 
-    connect (ui->treeWidget, &QTreeWidget::customContextMenuRequested, this, &UserListDialog::showContextMenu);
+	for (auto& it: users) {
+		set.insert (&it.second);
+	}
 
+	uint32_t usersCount = 0;
+	for (auto& user: set) {
+		QString displayName (user->getDisplayName());
+
+		if (!user->nickname.isEmpty()) {
+			displayName += " (" + user->nickname + ")";
+		}
+
+		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
+		QImage img = QImage::fromData (user->avatar);
+		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
+		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
+		ui->treeWidget->addTopLevelItem (item);
+		++usersCount;
+	}
+
+	ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
+	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
+	ui->usersCountLabel->setText(QString::number(usersCount) + " users");
+}
+
+UserListDialog::UserListDialog (const std::vector<BackendUser*>& users, QWidget* parent)
+:FilterListDialog (parent)
+{
     std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
 
     for (auto& it: users) {
@@ -83,31 +83,9 @@ UserListDialog::UserListDialog (const std::vector<BackendUser*>& users, QWidget 
     ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
     ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
     ui->usersCountLabel->setText(QString::number(usersCount) + " users");
-    connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &UserListDialog::applyFilter);
 }
 
-UserListDialog::~UserListDialog()
-{
-    delete ui;
-}
-
-void UserListDialog::applyFilter (const QString& text)
-{
-	uint32_t usersCount = 0;
-
-	for (int row = 0; row < ui->treeWidget->topLevelItemCount(); ++row) {
-		QTreeWidgetItem* item = ui->treeWidget->topLevelItem (row);
-
-		if (item->text(0).contains(text, Qt::CaseInsensitive)) {
-			item->setHidden(false);
-			++usersCount;
-		} else {
-			item->setHidden(true);
-		}
-	}
-
-	ui->usersCountLabel->setText(QString::number(usersCount) + " users");
-}
+UserListDialog::~UserListDialog () = default;
 
 const BackendUser* UserListDialog::getSelectedUser ()
 {

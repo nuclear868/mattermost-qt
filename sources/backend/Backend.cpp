@@ -458,6 +458,7 @@ void Backend::retrieveTeam (QString teamID)
 
     std::cout << "get team " << teamID.toStdString() << std::endl;
 
+
     httpConnector.get(request, [this](QVariant, QByteArray data) {
     	LOG_DEBUG ("getTeam reply");
 
@@ -471,7 +472,33 @@ void Backend::retrieveTeam (QString teamID)
 		auto object = doc.object();
 		BackendTeam *team = storage.addTeam (doc.object());
 
-		emit onAddedToTeam (*team);
+		if (team) {
+			emit onAddedToTeam (*team);
+		}
+    });
+}
+
+
+void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std::list<BackendChannel>&)> callback)
+{
+	NetworkRequest request ("teams/" + teamID + "/channels");
+
+    std::cout << "get team channels " << teamID.toStdString() << std::endl;
+
+    httpConnector.get(request, [this, callback](QVariant, QByteArray data) {
+    	LOG_DEBUG ("getTeamChannels reply");
+
+    	std::list<BackendChannel> channels;
+
+		for (const auto &item: QJsonDocument::fromJson(data).array()) {
+			channels.emplace_back (storage, item.toObject());
+		}
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "get team channels reply: " <<  jsonString.toStdString() << std::endl;
+#endif
+		callback (channels);
     });
 }
 
@@ -576,7 +603,7 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 #endif
 
 		BackendChannel* channel =  storage.addChannel (team, doc.object());
-		LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
+		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit team.onNewChannel (*channel);
     });
@@ -588,7 +615,7 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 
     httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
 
-    	LOG_DEBUG ("getChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
+		LOG_DEBUG ("retrieveChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
 
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 

@@ -85,16 +85,12 @@ BackendTeam* Storage::addTeam (const QJsonObject& json)
 
 	auto it = teams.find (teamId);
 
-	BackendTeam* team;
-
 	//team already exists.
 	if (it != teams.end()) {
-		team = &it->second;
+		return nullptr;
 	} else {
-		team = &teams.emplace (teamId, json).first->second;
+		return &teams.emplace (teamId, json).first->second;
 	}
-
-	return team;
 }
 
 BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
