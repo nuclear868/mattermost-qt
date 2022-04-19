@@ -27,6 +27,7 @@ public:
 	BackendTeam* getTeamById (const QString& teamID);
 
 	BackendChannel* getChannelById (const QString& channelID);
+	BackendChannel* getDirectChannelByUserId (const QString& userID) const;
 
 	const std::map<QString, BackendUser>& getAllUsers () const;
 
@@ -46,6 +47,7 @@ public:
 	std::map<QString, BackendTeam>					teams;
 	BackendTeam										directChannels;
 	QMap<QString, BackendChannel*> 					channels;
+	QMap<QString, BackendChannel*> 					directChannelsByUser;
 	std::map<QString, BackendUser>					users;
 	BackendUser*									loginUser;
 	uint32_t										totalUsersCount;

@@ -1,5 +1,5 @@
 /**
- * @file NewDirectChannelDialog.h
+ * @file UserListDialogForNewDirect.h
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 10, 2022
@@ -12,9 +12,9 @@
 
 namespace Mattermost {
 
-class NewDirectChannelDialog: public UserListDialog {
+class UserListDialogForNewDirect: public UserListDialog {
 public:
-	NewDirectChannelDialog (const std::map<QString, BackendUser>& users, QWidget *parent);
+	UserListDialogForNewDirect (const std::map<QString, BackendUser>& users, QWidget *parent);
 private:
 };
 

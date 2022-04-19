@@ -1,16 +1,16 @@
 /**
- * @file ChannelUsersListDialog.cpp
+ * @file UserListDialogForTeam.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 10, 2022
  */
 
-#include "ChannelUsersListDialog.h"
+#include "UserListDialogForTeam.h"
 #include "ui_FilterListDialog.h"
 
 namespace Mattermost {
 
-ChannelUsersListDialog::ChannelUsersListDialog (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent)
+UserListDialogForTeam::UserListDialogForTeam (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent)
 :UserListDialog (users, parent)
 {
 	setWindowTitle("Team Members - Mattermost");
@@ -18,6 +18,6 @@ ChannelUsersListDialog::ChannelUsersListDialog (const QString& teamName, const s
 	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
 }
 
-ChannelUsersListDialog::~ChannelUsersListDialog () = default;
+UserListDialogForTeam::~UserListDialogForTeam () = default;
 
 } /* namespace Mattermost */

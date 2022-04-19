@@ -74,6 +74,21 @@ BackendChannel* Storage::getChannelById (const QString& channelID)
 	return *it;
 }
 
+BackendChannel* Storage::getDirectChannelByUserId (const QString& userID) const
+{
+	auto it = directChannelsByUser.find (userID);
+
+	if (it == directChannelsByUser.end()) {
+		return nullptr;
+	}
+
+	if ((*it)->type != BackendChannel::directChannel) {
+		return nullptr;
+	}
+
+	return *it;
+}
+
 const std::map<QString, BackendUser>& Storage::getAllUsers () const
 {
 	return users;
@@ -149,6 +164,7 @@ BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
 		}
 
 		useTeam = &directChannels;
+		directChannelsByUser[userID] = newChannel;
 	} else {
 		newChannel = new BackendChannel (*this, json);
 	}

@@ -1,5 +1,5 @@
 /**
- * @file ViewTeamChannelsDialog.h
+ * @file TeamChannelsListDialog.h
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 16, 2022
@@ -12,10 +12,10 @@
 
 namespace Mattermost {
 
-class ViewTeamChannelsDialog: public FilterListDialog {
+class TeamChannelsListDialog: public FilterListDialog {
 public:
-	ViewTeamChannelsDialog (const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent = nullptr);
-	virtual ~ViewTeamChannelsDialog ();
+	TeamChannelsListDialog (const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent = nullptr);
+	virtual ~TeamChannelsListDialog ();
 public:
 	void showContextMenu (const QPoint& pos)	override;
 };

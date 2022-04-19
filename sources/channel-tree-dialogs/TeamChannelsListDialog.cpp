@@ -1,11 +1,11 @@
 /**
- * @file ViewTeamChannelsDialog.cpp
+ * @file TeamChannelsListDialog.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 16, 2022
  */
 
-#include "ViewTeamChannelsDialog.h"
+#include "TeamChannelsListDialog.h"
 
 #include <set>
 #include <QMenu>
@@ -24,7 +24,7 @@ auto nameComparator = [] (const BackendChannel* const& lhs, const BackendChannel
 
 }
 
-ViewTeamChannelsDialog::ViewTeamChannelsDialog (const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent)
+TeamChannelsListDialog::TeamChannelsListDialog (const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent)
 :FilterListDialog (parent)
 {
 	std::set<const BackendChannel*, decltype (nameComparator)> set (nameComparator);
@@ -52,12 +52,12 @@ ViewTeamChannelsDialog::ViewTeamChannelsDialog (const QString& teamName, const s
 	ui->filterUsersLabel->setText("Filter channels by name");
 }
 
-ViewTeamChannelsDialog::~ViewTeamChannelsDialog ()
+TeamChannelsListDialog::~TeamChannelsListDialog ()
 {
 	// TODO Auto-generated destructor stub
 }
 
-void ViewTeamChannelsDialog::showContextMenu (const QPoint& pos)
+void TeamChannelsListDialog::showContextMenu (const QPoint& pos)
 {
 	// Create menu and insert some actions
 	QMenu myMenu;

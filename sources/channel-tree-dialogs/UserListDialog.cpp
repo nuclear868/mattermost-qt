@@ -10,7 +10,7 @@
 #include <set>
 #include <QMenu>
 #include "backend/types/BackendUser.h"
-#include "user-profile/UserProfileDialog.h"
+#include "info-dialogs/UserProfileDialog.h"
 #include "ui_FilterListDialog.h"
 
 

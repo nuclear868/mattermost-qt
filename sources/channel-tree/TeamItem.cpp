@@ -12,9 +12,9 @@
 #include "ChannelItem.h"
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
-#include "new-direct-channel/NewDirectChannelDialog.h"
-#include "new-direct-channel/ChannelUsersListDialog.h"
-#include "new-direct-channel/ViewTeamChannelsDialog.h"
+#include "channel-tree-dialogs/UserListDialogForNewDirect.h"
+#include "channel-tree-dialogs/UserListDialogForTeam.h"
+#include "channel-tree-dialogs/TeamChannelsListDialog.h"
 
 namespace Mattermost {
 
@@ -57,18 +57,32 @@ void TeamItem::showContextMenu (const QPoint& pos)
 	if (teamId == "0") {
 		myMenu.addAction ("Add direct channel", [this] {
 			qDebug() << "Add direct channel ";
-			NewDirectChannelDialog* dialog = new NewDirectChannelDialog (backend.getStorage().getAllUsers(), treeWidget());
+			UserListDialogForNewDirect* dialog = new UserListDialogForNewDirect (backend.getStorage().getAllUsers(), treeWidget());
 			dialog->show ();
 
-			connect (dialog, &NewDirectChannelDialog::accepted, [this, dialog] {
+			connect (dialog, &UserListDialogForNewDirect::accepted, [this, dialog] {
 				const BackendUser* user = dialog->getSelectedUser();
 
-				if (user) {
+				if (!user) {
+					qDebug() << "dialog->getSelectedUser() returned nullptr";
+					return;
+				}
+
+				//if the channel already exists, switch to it
+				const BackendChannel* existingChannel = backend.getStorage().getDirectChannelByUserId(user->id);
+				if (existingChannel) {
+					for (auto& chatArea: chatAreas) {
+						if (&chatArea->channel == existingChannel) {
+							qDebug() << "Open Direct channel requested with " << user->getDisplayName();
+							treeWidget()->setCurrentItem (chatArea->treeItem);
+							return;
+						}
+					}
+				} else {
 					qDebug() << "New Direct channel requested with " << user->getDisplayName();
 					backend.createDirectChannel (*user);
-				} else {
-					qDebug() << "dialog->getSelectedUser() returned nullptr";
 				}
+
 			});
 		});
 	} else {
@@ -93,7 +107,7 @@ void TeamItem::showContextMenu (const QPoint& pos)
 			}
 			qDebug() << "View Team members " << team->members.size();
 
-			ChannelUsersListDialog* dialog = new ChannelUsersListDialog (team->display_name, teamUsers, treeWidget());
+			UserListDialogForTeam* dialog = new UserListDialogForTeam (team->display_name, teamUsers, treeWidget());
 			dialog->show ();
 		});
 	}
@@ -102,7 +116,7 @@ void TeamItem::showContextMenu (const QPoint& pos)
 			BackendTeam* team = backend.getStorage().getTeamById(teamId);
 
 			backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
-				ViewTeamChannelsDialog* dialog = new ViewTeamChannelsDialog (team->display_name, channels, treeWidget());
+				TeamChannelsListDialog* dialog = new TeamChannelsListDialog (team->display_name, channels, treeWidget());
 				dialog->show ();
 			});
 	});

@@ -1,15 +1,15 @@
 /**
- * @file NewDirectChannelDialog.cpp
+ * @file UserListDialogForNewDirect.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 10, 2022
  */
 
-#include "NewDirectChannelDialog.h"
+#include "UserListDialogForNewDirect.h"
 
 namespace Mattermost {
 
-NewDirectChannelDialog::NewDirectChannelDialog (const std::map<QString, BackendUser>& users, QWidget* parent)
+UserListDialogForNewDirect::UserListDialogForNewDirect (const std::map<QString, BackendUser>& users, QWidget* parent)
 :UserListDialog (users, parent)
 {
 	setWindowTitle("New Direct Channel - Mattermost");

@@ -12,7 +12,7 @@
 #include "ChannelItemWidget.h"
 #include "backend/Backend.h"
 #include "chat-area/ChatArea.h"
-#include "user-profile/UserProfileDialog.h"
+#include "info-dialogs/UserProfileDialog.h"
 
 namespace Mattermost {
 
