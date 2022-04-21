@@ -10,7 +10,7 @@ class UserProfileDialog;
 
 namespace Mattermost {
 
-class UserProfileDialog : public QDialog
+class UserProfileDialog: public QDialog
 {
     Q_OBJECT
 

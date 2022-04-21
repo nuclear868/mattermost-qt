@@ -12,6 +12,7 @@
 #include "ChannelItemWidget.h"
 #include "backend/Backend.h"
 #include "chat-area/ChatArea.h"
+#include "info-dialogs/ChannelInfoDialog.h"
 #include "info-dialogs/UserProfileDialog.h"
 
 namespace Mattermost {
@@ -62,10 +63,13 @@ void ChannelItem::showContextMenu (const QPoint& pos)
 				dialog->show ();
 			});
 		}
+	} else {
+		myMenu.addAction ("View Channel details", [this, &channel] {
+			qDebug() << "ChannelItem ";
+			ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
+			dialog->show ();
+		});
 	}
-	myMenu.addAction ("ChannelItem", [] {
-		qDebug() << "ChannelItem ";
-	});
 
 	myMenu.exec (pos);
 }

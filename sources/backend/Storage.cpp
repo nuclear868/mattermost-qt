@@ -63,6 +63,18 @@ BackendTeam* Storage::getTeamById (const QString& teamID)
 	return &it->second;
 }
 
+const BackendTeam* Storage::getTeamById (const QString& teamID) const
+{
+	auto it = teams.find (teamID);
+
+	if (it == teams.end()) {
+		return nullptr;
+	}
+
+	return &it->second;
+}
+
+
 BackendChannel* Storage::getChannelById (const QString& channelID)
 {
 	auto it = channels.find (channelID);

@@ -2,21 +2,26 @@
 #define CHANNELINFODIALOG_H
 
 #include <QDialog>
+#include "fwd.h"
 
 namespace Ui {
 class ChannelInfoDialog;
 }
 
-class ChannelInfoDialog : public QDialog
+namespace Mattermost {
+
+class ChannelInfoDialog: public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ChannelInfoDialog(QWidget *parent = nullptr);
+    explicit ChannelInfoDialog (const BackendChannel& channel, QWidget *parent = nullptr);
     ~ChannelInfoDialog();
 
 private:
     Ui::ChannelInfoDialog *ui;
 };
+
+} /* namespace Mattermost */
 
 #endif // CHANNELINFODIALOG_H

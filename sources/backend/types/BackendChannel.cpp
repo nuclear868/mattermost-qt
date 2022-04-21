@@ -49,7 +49,7 @@ BackendChannel::BackendChannel (const Storage& storage, const QJsonObject& jsonO
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();
 	update_at = jsonObject.value("update_at").toVariant().toULongLong();
 	delete_at = jsonObject.value("delete_at").toVariant().toULongLong();
-	team_id = jsonObject.value("team_id").toString();
+	team = storage.getTeamById (jsonObject.value("team_id").toString());
 	display_name = jsonObject.value("display_name").toString();
 	name = jsonObject.value("name").toString();
 	header = jsonObject.value("header").toString();
@@ -60,7 +60,7 @@ BackendChannel::BackendChannel (const Storage& storage, const QJsonObject& jsonO
 	last_post_at = jsonObject.value("last_post_at").toInt();
 	total_msg_count = jsonObject.value("total_msg_count").toInt();
 	extra_update_at = jsonObject.value("extra_update_at").toInt();
-	creator_id = jsonObject.value("creator_id").toString();
+	creator = storage.getUserById (jsonObject.value("creator_id").toString());
 	scheme_id = jsonObject.value("scheme_id").toVariant();
 	props = jsonObject.value("props").toVariant();
 	referenceCount = 1;

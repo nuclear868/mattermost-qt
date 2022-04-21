@@ -52,14 +52,6 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 	backend.retrieveTotalUsersCount ([this] (uint32_t) {
 		backend.retrieveAllUsers ();
-
-		/*
-		 * Adds each team in which the LoginUser participates.
-		 * The callback is called once for each team
-		 */
-		backend.retrieveOwnTeams ([this](BackendTeam& team) {
-			ui->channelList->addTeam (backend, team);
-		}); //on getOwnTeams()
 	}); //on getTotalUsersCount()
 
 	/*
@@ -69,6 +61,13 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 	//getAllUsers is called from onShowEvent()
 	connect (&backend, &Backend::onAllUsers, [this]() {
+		/*
+		 * Adds each team in which the LoginUser participates.
+		 * The callback is called once for each team
+		 */
+		backend.retrieveOwnTeams ([this](BackendTeam& team) {
+			ui->channelList->addTeam (backend, team);
+		}); //on getOwnTeams()
 	});
 
 	/*

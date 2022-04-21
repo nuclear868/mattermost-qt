@@ -25,6 +25,7 @@ public:
 	void reset ();
 
 	BackendTeam* getTeamById (const QString& teamID);
+	const BackendTeam* getTeamById (const QString& teamID) const;
 
 	BackendChannel* getChannelById (const QString& channelID);
 	BackendChannel* getDirectChannelByUserId (const QString& userID) const;
