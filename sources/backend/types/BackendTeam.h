@@ -47,6 +47,7 @@ public:
     QVariant 		scheme_id;
 
 	QList<BackendTeamMember> 							members;
+	std::list<BackendChannel>							allPublicChannels;
 	std::vector<std::unique_ptr<BackendChannel>>		channels;
 };
 

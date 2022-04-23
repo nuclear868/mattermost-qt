@@ -102,6 +102,12 @@ public:
 	//create a direct channel with given user (/channels/direct)
 	void createDirectChannel (const BackendUser& user);
 
+	//join a channel (/channels/{channel_id}/members)
+	void joinChannel (const BackendChannel& channel);
+
+	//leave a channel (/channels/{channel_id}/members/{user_id})
+	void leaveChannel (const BackendChannel& channel);
+
 	const BackendUser& getLoginUser () const;
 
 	Storage& getStorage ();

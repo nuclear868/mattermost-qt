@@ -485,20 +485,26 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
 
     std::cout << "get team channels " << teamID.toStdString() << std::endl;
 
-    httpConnector.get(request, [this, callback](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, callback, teamID](QVariant, QByteArray data) {
     	LOG_DEBUG ("getTeamChannels reply");
 
-    	std::list<BackendChannel> channels;
+		BackendTeam* team = storage.getTeamById (teamID);
+
+		if (!team) {
+			return;
+		}
+
+		team->allPublicChannels.clear();
 
 		for (const auto &item: QJsonDocument::fromJson(data).array()) {
-			channels.emplace_back (storage, item.toObject());
+			team->allPublicChannels.emplace_back (storage, item.toObject());
 		}
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "get team channels reply: " <<  jsonString.toStdString() << std::endl;
 #endif
-		callback (channels);
+		callback (team->allPublicChannels);
     });
 }
 
@@ -821,6 +827,35 @@ void Backend::createDirectChannel (const BackendUser& user)
 #endif
 
 	});
+}
+
+void Backend::joinChannel (const BackendChannel& channel)
+{
+	QJsonObject json;
+
+	json.insert("user_id", getLoginUser().id);
+
+    QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
+
+	NetworkRequest request ("channels/" + channel.id + "/members");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	httpConnector.post(request, data, [this](QVariant, QByteArray) {
+#if 0
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+
+	});
+}
+
+void Backend::leaveChannel (const BackendChannel& channel)
+{
+	NetworkRequest request ("channels/" + channel.id + "/members/" + getLoginUser().id);
+
+	httpConnector.del (request);
 }
 
 const BackendUser& Backend::getLoginUser () const

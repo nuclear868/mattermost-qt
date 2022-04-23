@@ -38,7 +38,7 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 	ChannelItemWidget* itemWidget = new ChannelItemWidget (parent);
 	itemWidget->setLabel (channel.display_name);
 
-	ChannelItem* item = new ChannelItem (this, itemWidget);
+	ChannelItem* item = new ChannelItem (backend, this, itemWidget);
 
 	chatAreas.emplace_back(std::make_unique<ChatArea> (backend, channel, item, parent));
 	ChatArea* chatArea = chatAreas.back ().get();
@@ -116,7 +116,7 @@ void TeamItem::showContextMenu (const QPoint& pos)
 			BackendTeam* team = backend.getStorage().getTeamById(teamId);
 
 			backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
-				TeamChannelsListDialog* dialog = new TeamChannelsListDialog (team->display_name, channels, treeWidget());
+				TeamChannelsListDialog* dialog = new TeamChannelsListDialog (backend, team->display_name, channels, treeWidget());
 				dialog->show ();
 			});
 	});

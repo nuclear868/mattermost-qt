@@ -9,7 +9,9 @@
 
 #include <set>
 #include <QMenu>
+#include "backend/Backend.h"
 #include "backend/types/BackendChannel.h"
+#include "info-dialogs/ChannelInfoDialog.h"
 #include "ui_FilterListDialog.h"
 
 
@@ -24,8 +26,9 @@ auto nameComparator = [] (const BackendChannel* const& lhs, const BackendChannel
 
 }
 
-TeamChannelsListDialog::TeamChannelsListDialog (const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent)
+TeamChannelsListDialog::TeamChannelsListDialog (Backend& backend, const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent)
 :FilterListDialog (parent)
+,backend (backend)
 {
 	std::set<const BackendChannel*, decltype (nameComparator)> set (nameComparator);
 
@@ -39,7 +42,7 @@ TeamChannelsListDialog::TeamChannelsListDialog (const QString& teamName, const s
 		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << channel->display_name << channel->header);
 //		QImage img = QImage::fromData (user->avatar);
 //		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
-//		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
+		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendChannel*)channel));
 		ui->treeWidget->addTopLevelItem (item);
 		++channelsCount;
 	}
@@ -50,6 +53,8 @@ TeamChannelsListDialog::TeamChannelsListDialog (const QString& teamName, const s
 	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::Stretch);
 	ui->usersCountLabel->setText(QString::number(channelsCount) + " channels");
 	ui->filterUsersLabel->setText("Filter channels by name");
+
+	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
 }
 
 TeamChannelsListDialog::~TeamChannelsListDialog ()
@@ -71,13 +76,19 @@ void TeamChannelsListDialog::showContextMenu (const QPoint& pos)
 		return;
 	}
 
-//	BackendUser *user = pointedItem->data(0, Qt::UserRole).value<BackendUser*>();
+	BackendChannel *channel = pointedItem->data(0, Qt::UserRole).value<BackendChannel*>();
 
 	//direct channel
-	myMenu.addAction ("Add", [this] {
+	myMenu.addAction ("Join this channel", [this, channel] {
+		backend.joinChannel (*channel);
 	//	qDebug() << "View Profile for " << user->getDisplayName();
 		//UserProfileDialog* dialog = new UserProfileDialog (*user, ui->treeWidget);
 		//dialog->show ();
+	});
+
+	myMenu.addAction ("View channel details", [this, channel] {
+		ChannelInfoDialog* dialog = new ChannelInfoDialog (*channel, this);
+		dialog->show ();
 	});
 
 	myMenu.exec (globalPos + QPoint (15, 35));

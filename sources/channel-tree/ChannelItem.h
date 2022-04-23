@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ChannelTreeItem.h"
+#include "fwd.h"
 
 class ChannelItemWidget;
 
@@ -15,7 +16,7 @@ namespace Mattermost {
 
 class ChannelItem: public ChannelTreeItem {
 public:
-	explicit ChannelItem (QTreeWidgetItem *parent, ChannelItemWidget* widget);
+	explicit ChannelItem (Backend& backend, QTreeWidgetItem *parent, ChannelItemWidget* widget);
 	virtual ~ChannelItem ();
 public:
     void setIcon (const QIcon &icon);
@@ -23,6 +24,7 @@ public:
     void showContextMenu (const QPoint& pos) override;
 private:
     ChannelItemWidget* widget;
+    Backend& backend;
 };
 
 } /* namespace Mattermost */

@@ -17,8 +17,9 @@
 
 namespace Mattermost {
 
-ChannelItem::ChannelItem (QTreeWidgetItem* parent, ChannelItemWidget* widget)
+ChannelItem::ChannelItem (Backend& backend, QTreeWidgetItem* parent, ChannelItemWidget* widget)
 :ChannelTreeItem (parent)
+,backend (backend)
 ,widget (widget)
 {
 	QFont font1;
@@ -58,16 +59,18 @@ void ChannelItem::showContextMenu (const QPoint& pos)
 
 		if (user) {
 			myMenu.addAction ("View Profile", [this, user] {
-				qDebug() << "View Profile for " << user->getDisplayName();
 				UserProfileDialog* dialog = new UserProfileDialog (*user, treeWidget());
 				dialog->show ();
 			});
 		}
 	} else {
 		myMenu.addAction ("View Channel details", [this, &channel] {
-			qDebug() << "ChannelItem ";
 			ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
 			dialog->show ();
+		});
+
+		myMenu.addAction ("Leave Channel", [this, &channel] {
+			backend.leaveChannel (channel);
 		});
 	}
 
