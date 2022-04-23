@@ -168,8 +168,13 @@ void WebSocketEventHandler::handleEvent (const UserRemovedFromChannelEvent& even
 
 	LOG_DEBUG ("User " << event.userId << " left channel: " << event.channelId);
 
-	if (!channel) {
+	if (!channel || !user) {
 		return;
+	}
+
+	//if the logged-in user is being removed, remove the channel from the list
+	if (user->id == storage.loginUser->id) {
+		emit channel->onLeave ();
 	}
 #warning "TODO: Get channel's team and remove the channel"
 }

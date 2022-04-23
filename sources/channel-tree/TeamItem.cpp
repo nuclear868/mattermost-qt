@@ -46,6 +46,12 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 	item->setData(0, Qt::UserRole, QVariant::fromValue (chatArea));
 
 	treeWidget()->setItemWidget (item, 0, itemWidget);
+
+	connect (&channel, &BackendChannel::onLeave, [this, item] {
+		removeChild (item);
+		delete (item);
+	});
+
 }
 
 void TeamItem::showContextMenu (const QPoint& pos)

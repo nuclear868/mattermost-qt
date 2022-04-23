@@ -105,6 +105,11 @@ signals:
 	 * Called when there were missed posts - for example, because of a disconnect
 	 */
 	void onMissedPosts ();
+
+	/**
+	 * Called when the user is removed from the channel, or has left the channel
+	 */
+	void onLeave ();
 public:
 	const Storage&		storage;
     QString				id;
