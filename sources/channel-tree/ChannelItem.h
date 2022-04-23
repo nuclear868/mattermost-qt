@@ -23,8 +23,8 @@ public:
     void setLabel (const QString& label);
     void showContextMenu (const QPoint& pos) override;
 private:
-    ChannelItemWidget* widget;
-    Backend& backend;
+    Backend& 			backend;
+    ChannelItemWidget* 	widget;
 };
 
 } /* namespace Mattermost */

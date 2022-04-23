@@ -176,6 +176,8 @@ void WebSocketEventHandler::handleEvent (const UserRemovedFromChannelEvent& even
 	if (user->id == storage.loginUser->id) {
 		emit channel->onLeave ();
 	}
+
+	storage.eraseChannel (*channel);
 #warning "TODO: Get channel's team and remove the channel"
 }
 

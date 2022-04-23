@@ -47,7 +47,10 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 
 	treeWidget()->setItemWidget (item, 0, itemWidget);
 
-	connect (&channel, &BackendChannel::onLeave, [this, item] {
+	connect (&channel, &BackendChannel::onLeave, [this, &channel, item, &chatArea = chatAreas.back ()] {
+		qDebug() << "delete channel " << channel.name;
+
+		chatAreas.remove (chatArea);
 		removeChild (item);
 		delete (item);
 	});

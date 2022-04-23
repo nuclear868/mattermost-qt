@@ -9,6 +9,7 @@
 
 #include <QDebug>
 #include <QMenu>
+#include <QMessageBox>
 #include "ChannelItemWidget.h"
 #include "backend/Backend.h"
 #include "chat-area/ChatArea.h"
@@ -70,7 +71,10 @@ void ChannelItem::showContextMenu (const QPoint& pos)
 		});
 
 		myMenu.addAction ("Leave Channel", [this, &channel] {
-			backend.leaveChannel (channel);
+
+			if (QMessageBox::question (treeWidget(), "Are you sure?", "Are you sure that you want to leave the '" + channel.display_name + "' channel?") == QMessageBox::Yes) {
+				backend.leaveChannel (channel);
+			}
 		});
 	}
 

@@ -42,7 +42,7 @@ void ChannelMissingPosts::addSequence (ChannelMissingPostsSequence&& seq)
 	postsToAdd.emplace (postsToAdd.begin(), std::move (seq));
 }
 
-BackendChannel::BackendChannel (const Storage& storage, const QJsonObject& jsonObject)
+BackendChannel::BackendChannel (Storage& storage, const QJsonObject& jsonObject)
 :storage (storage)
 {
 	id = jsonObject.value("id").toString();

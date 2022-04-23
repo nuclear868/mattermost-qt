@@ -43,6 +43,8 @@ public:
 
 	void eraseTeam (const QString& teamID);
 
+	void eraseChannel (BackendChannel& channel);
+
 	void printTeams ();
 public:
 	std::map<QString, BackendTeam>					teams;

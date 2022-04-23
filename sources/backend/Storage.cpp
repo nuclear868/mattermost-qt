@@ -229,6 +229,25 @@ void Storage::eraseTeam (const QString& teamID)
 	}
 }
 
+void Storage::eraseChannel (BackendChannel& channel)
+{
+	auto& teamChannels = channel.team->channels;
+
+	for (auto it = teamChannels.begin(); it != teamChannels.end(); ++it) {
+		if (it->get() == &channel) {
+			auto channelIt = channels.find (it->get()->id);
+
+			if (channelIt != channels.end()) {
+				LOG_DEBUG ("Erase Channel: " << channelIt.key() << " " << channelIt.value() << " " << channelIt.value()->name);
+				channels.erase (channelIt);
+			}
+
+			teamChannels.erase (it);
+			return;
+		}
+	}
+}
+
 void Storage::printTeams ()
 {
 	qDebug() << teams.size() << " teams";

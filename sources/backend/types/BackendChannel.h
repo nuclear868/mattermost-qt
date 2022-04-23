@@ -47,7 +47,7 @@ public:
 		privateChannel,
 		directChannel,
 	};
-	BackendChannel (const Storage& storage, const QJsonObject& jsonObject);
+	BackendChannel (Storage& storage, const QJsonObject& jsonObject);
 	virtual ~BackendChannel ();
 public:
 	static uint32_t getChannelType (const QJsonObject& jsonObject);
@@ -116,7 +116,7 @@ public:
     uint64_t			create_at;
     uint64_t			update_at;
     uint64_t			delete_at;
-    const BackendTeam*	team;
+    BackendTeam*		team;
     QString				display_name;
     QString				name;
     QString				header;
