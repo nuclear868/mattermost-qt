@@ -300,6 +300,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		copySelectedItemsToClipboard ();
 	});
 
+#if 0
 	if (selectedItemsCount == 1) {
 		myMenu.addAction ("Reply", [post] {
 			qDebug() << "Reply " << post->post.message;
@@ -309,6 +310,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	myMenu.addAction ("Pin", [post] {
 		qDebug() << "Pin " << post->post.message;
 	});
+#endif
 
 	// Show context menu at handling position. And do not focus-out
 	menuShown = true;
