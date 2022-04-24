@@ -119,16 +119,17 @@ void TeamItem::showContextMenu (const QPoint& pos)
 			UserListDialogForTeam* dialog = new UserListDialogForTeam (team->display_name, teamUsers, treeWidget());
 			dialog->show ();
 		});
+
+		myMenu.addAction ("View Public Channels", [this] {
+				BackendTeam* team = backend.getStorage().getTeamById(teamId);
+
+				backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
+					TeamChannelsListDialog* dialog = new TeamChannelsListDialog (backend, team->display_name, channels, treeWidget());
+					dialog->show ();
+				});
+		});
 	}
 
-	myMenu.addAction ("View Public Channels", [this] {
-			BackendTeam* team = backend.getStorage().getTeamById(teamId);
-
-			backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
-				TeamChannelsListDialog* dialog = new TeamChannelsListDialog (backend, team->display_name, channels, treeWidget());
-				dialog->show ();
-			});
-	});
 
 	myMenu.exec (pos);
 }
