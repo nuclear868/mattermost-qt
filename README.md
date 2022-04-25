@@ -34,24 +34,35 @@ Mattermost native desktop client, using the QT framework
 * Auto-detect if you are working from home and setting it as a status. This can be achieved by looking for an active VPN connection. It will be fully configurable from the settings
 
 # Installation
-the application is developed and tested on Ubuntu linux. I think it can be easisy built on Windows (and even for Android ?), as it uses entirely the QT framework, which is cross-platform. I just need to find some time to test it on Windows
+The application is developed and tested on Ubuntu linux. I have build and tested it also on Windows 7 and Windows 10. Release 1.1 even includes a standalone build, suitable to be run from windows
 
-## Required packages
+## Required packages (Linux)
 * QT5 libraries (qtbase5-dev)
 * QT5 websockets library (libqt5websockets5-dev)
 
-## Build instructions
+## Build instructions (Linux)
 It is recommended to build in a separate directory:
 
     mkdir build
     cd build
     cmake ..
     make -j8
+
+## How to build on Windows
+
+Release 1.1 includes pre-built client for windows, which is expected to work on any windows installation.
+
+If you want to build it yourself, just for fun or for any othre reason, you need the following packages
+minGW - https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe/download
+Qt5 - https://doc.qt.io/qt-5/gettingstarted.html
+openSSL - https://slproweb.com/products/Win32OpenSSL.html
+CMake for windows
+
     
 ## Running
 from the build directory just start ./qmattermost
 A login form will appear and after a successful login all teams and channels should appear
-The credentials are saved in ~/.config/mattermost-native/Mattermost.conf (yes, they are not encrypted, I will find a cross-platform way to encrypt them. At least, since release 0.1 a login token is used instead of the password) and are
+The credentials are saved (if using linux) in ~/.config/mattermost-native/Mattermost.conf (yes, they are not encrypted, I will find a cross-platform way to encrypt them. At least, since release 1.1 a login token is used instead of the password) and are
 not requested again on next start (if the login is successful)
 
 ## Contribution
