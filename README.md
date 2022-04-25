@@ -12,19 +12,26 @@ Mattermost native desktop client, using the QT framework
 # What does work
 * viewing all available channels
 * Sending and receiving messages
+* visual notifications for new messages
+* message editing and deleting
 * Receiving attached files. Image files can be viewed in a simple viewer and other files can be downloaded or opened with default application
 * Sending messages with attachments is supported too
 * If a reconnect occurs, the chat history is synchronized with the server, so that no messages are lost.
 * Cache is used for faster image loading.
 * update, when a new team is added and you are added to it
-* visual notifications for new messages
+* Preview of team members, channel members, users, etc. There are more items to be added, but the basic functionality is supported
+* Properly handing adding / deleting users / channels / teams. However, it has to be tested more
 
 # What does not work / What is planned to be implemented
 * notifications when someone is typing and sending a notification when you are typing
-* message editing and deleting
+* pinning posts to a channel and displaying pinned posts
+* loading channel history when scrolling to the beginning of a channel
 * emoticons, reactions, etc... (visual pleasures :) )
-* Preview of team members, channel members, users, etc...
-* Properly handing adding / deleting users / channels / teams
+* settings - image preview sizes, download locations, etc... I want this application to be fully customizable
+
+# What is planned in a perfect world (when I have a time to do it)
+* LAN file transfer between 2 QT Mattermost clients
+* Auto-detect if you are working from home and setting it as a status. This can be achieved by looking for an active VPN connection. It will be fully configurable from the settings
 
 # Installation
 the application is developed and tested on Ubuntu linux. I think it can be easisy built on Windows (and even for Android ?), as it uses entirely the QT framework, which is cross-platform. I just need to find some time to test it on Windows
@@ -44,7 +51,7 @@ It is recommended to build in a separate directory:
 ## Running
 from the build directory just start ./qmattermost
 A login form will appear and after a successful login all teams and channels should appear
-The credentials are saved in ~/.config/mattermost-native/Mattermost.conf (yes, they are not encrypted, I will find a cross-platform way to encrypt them) and are
+The credentials are saved in ~/.config/mattermost-native/Mattermost.conf (yes, they are not encrypted, I will find a cross-platform way to encrypt them. At least, since release 0.1 a login token is used instead of the password) and are
 not requested again on next start (if the login is successful)
 
 ## Contribution
