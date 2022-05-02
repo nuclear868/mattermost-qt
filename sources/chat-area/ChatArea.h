@@ -22,7 +22,7 @@ class BackendChannel;
 class BackendPost;
 class BackendUser;
 class ChannelItem;
-class ChannelMissingPosts;
+class ChannelNewPosts;
 class OutgoingAttachmentList;
 
 class ChatArea: public QWidget {
@@ -35,7 +35,7 @@ public:
 	Backend& getBackend ();
 	BackendChannel& getChannel ();
 	void appendChannelPost (BackendPost& post);
-	void fillChannelPosts (const ChannelMissingPosts& collection);
+	void fillChannelPosts (const ChannelNewPosts& newPosts);
 	void handleUserTyping (const BackendUser& user);
 
 	/**
@@ -72,6 +72,7 @@ public:
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;
 	QDate							lastPostDate;
+	bool							gettingOlderPosts;
 };
 
 } /* namespace Mattermost */

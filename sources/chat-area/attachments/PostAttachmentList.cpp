@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QListWidgetItem>
 #include "AttachedBinaryFile.h"
+#include "../PostWidget.h"
 #include "backend/types/BackendFile.h"
 #include "preview-window/FilePreview.h"
 
@@ -90,7 +91,7 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 	 * Parent of PostWidget is PostListWidget.
 	 * However, no idea why the last parentWidget() is needed
 	 */
-    parentWidget()->parentWidget()->parentWidget()->adjustSize();
+    //parentWidget()->parentWidget()->parentWidget()->adjustSize();
 
     if (file.contents.isEmpty()) {
     	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, authorName, this] (const QByteArray& fileContents){
@@ -106,12 +107,33 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 			filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, authorName});
 			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
+			PostWidget* widget = static_cast<PostWidget*> (parent());
+			adjustSize();
+			widget->adjustSize();
+			emit widget->dimensionsChanged ();
+
+#if 0
+			qDebug () << "label size: " << QSize (label->width(), label->height());
+			qDebug () << "geometry: " << geometry();
+			qDebug () << "parent geometry: " << widget->geometry();
+			qDebug () << "==";
+			qDebug () << "hfw: " << heightForWidth(width());
+			qDebug () << "parent hfw: " << widget->heightForWidth(width());
+			qDebug () << "==";
+			qDebug () << "height: " << height();
+			qDebug () << "parent height: " << widget->height();
+			qDebug () << "==";
+			qDebug () << "sizehint: " << sizeHint();
+			qDebug () << "parent sizehint: " << widget->sizeHint();
+#endif
+
+
 			/*
 			 * Parent of PostAttachmentList is PostWidget.
 			 * Parent of PostWidget is PostListWidget.
 			 * However, no idea why the last parentWidget() is needed
 			 */
-			parentWidget()->parentWidget()->parentWidget()->adjustSize();
+			//parentWidget()->parentWidget()->parentWidget()->adjustSize();
     	});
     }
 }

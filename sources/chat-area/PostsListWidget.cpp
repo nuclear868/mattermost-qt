@@ -21,13 +21,6 @@
 
 namespace Mattermost {
 
-namespace ItemType {
-enum id {
-	post,
-	separator,
-};
-}
-
 PostsListWidget::PostsListWidget (QWidget* parent)
 :QListWidget (parent)
 ,backend (nullptr)
@@ -40,12 +33,19 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 	connect (&removeNewMessagesSeparatorTimer, &QTimer::timeout, this, &PostsListWidget::removeNewMessagesSeparator);
 
 	connect (this, &QListWidget::customContextMenuRequested, this, &PostsListWidget::showContextMenu);
+
+	connect (verticalScrollBar(), &QAbstractSlider::valueChanged, [this] (int value) {
+		if (value == 0) {
+			emit scrolledToTop ();
+		}
+	});
 }
 
 void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
 	newItem->setData(Qt::UserRole, ItemType::post);
+	newItem->setSizeHint (QSize (viewportSizeHint().width(), postWidget->heightForWidth(width())));
 	insertItem (position, newItem);
 
 	setItemWidget (newItem, postWidget);
@@ -54,12 +54,17 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 	if (postWidget->post.isOwnPost()) {
 		lastOwnPost = newItem;
 	}
+
+	connect (postWidget, &PostWidget::dimensionsChanged, [this, postWidget, newItem] {
+		newItem->setSizeHint (postWidget->sizeHint());
+	});
 }
 
 void PostsListWidget::insertPost (PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
 	newItem->setData(Qt::UserRole, ItemType::post);
+	newItem->setSizeHint (QSize (viewportSizeHint().width(), postWidget->heightForWidth(width())));
 	addItem (newItem);
 
 	setItemWidget (newItem, postWidget);
@@ -68,6 +73,10 @@ void PostsListWidget::insertPost (PostWidget* postWidget)
 	if (postWidget->post.isOwnPost()) {
 		lastOwnPost = newItem;
 	}
+
+	connect (postWidget, &PostWidget::dimensionsChanged, [this, postWidget, newItem] {
+		newItem->setSizeHint (postWidget->sizeHint());
+	});
 }
 
 int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)
@@ -320,6 +329,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 
 void PostsListWidget::resizeEvent (QResizeEvent* event)
 {
+	qDebug() << "ResizeEvent " << event->size();
 	for (int i = 0; i < count(); ++i) {
 		QListWidgetItem* item = this->item(i);
 		QWidget* widget = (QWidget*)itemWidget (item);

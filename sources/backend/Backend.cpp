@@ -41,7 +41,7 @@ Backend::Backend(QObject *parent)
 	connect (&webSocketConnector, &WebSocketConnector::onReconnect, [this] {
 		LOG_DEBUG ("Reconnect - check for missed posts");
 		for (auto& it: storage.channels) {
-			retrieveChannelPosts (*it, 0, 200);
+			retrieveChannelPosts (*it, 0, 25);
 		}
 	});
 
@@ -632,6 +632,26 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 
 		QJsonObject root = doc.object();
 		channel.addPosts (root.value("order").toArray(), root.value("posts").toObject());
+    });
+}
+
+void Backend::retrieveChannelOlderPosts (BackendChannel& channel, int perPage)
+{
+    NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(0) + "&per_page=" + QString::number(perPage) + "&before=" + channel.posts.front().id);
+
+    httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
+
+		LOG_DEBUG ("retrieveChannelOlderPosts reply for " << channel.display_name << " (" << channel.id << ") - since " << channel.posts.front().id);
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+
+		QJsonObject root = doc.object();
+		channel.prependPosts (root.value("order").toArray(), root.value("posts").toObject());
     });
 }
 

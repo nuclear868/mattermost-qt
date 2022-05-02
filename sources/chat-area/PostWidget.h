@@ -27,11 +27,14 @@ public:
 
     void markAsDeleted ();
 
+
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
     QString formatForClipboardSelection () const;
 
     BackendPost&						post;
+signals:
+	void dimensionsChanged ();
 private:
     Ui::PostWidget*						ui;
     std::unique_ptr<PostAttachmentList>	attachments;

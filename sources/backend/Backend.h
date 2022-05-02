@@ -78,6 +78,9 @@ public:
 	//get posts in a channel (/channels/ID/posts)
 	void retrieveChannelPosts (BackendChannel& channel, int page, int perPage);
 
+	//get older posts in a channel (before the first one) (/channels/ID/posts)
+	void retrieveChannelOlderPosts (BackendChannel& channel, int perPage);
+
 	//get first unread post in a channel (/users/{user_id}/channels/{channel_id}/posts/unread)
 	void retrieveChannelUnreadPost (BackendChannel& channel, std::function<void(const QString&)> responseHandler);
 

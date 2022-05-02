@@ -14,6 +14,13 @@ namespace Mattermost {
 
 class PostWidget;
 
+namespace ItemType {
+enum id {
+	post,
+	separator,
+};
+}
+
 class PostsListWidget: public QListWidget {
 	Q_OBJECT
 public:
@@ -35,6 +42,7 @@ public:
 	Backend*						backend;
 signals:
 	void postEditInitiated (BackendPost& post);
+	void scrolledToTop ();
 private:
 	QList<QListWidgetItem*> sortedSelectedItems () const;
 

@@ -18,6 +18,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 ,outgoingPostCreator (*this)
 ,unreadMessagesCount (0)
 ,texteditDefaultHeight (80)
+,gettingOlderPosts (false)
 {
 	//accept drag&drop attachments
 	setAcceptDrops(true);
@@ -55,7 +56,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
 		}
 
-		backend.retrieveChannelPosts (channel, 0, 200);
+		backend.retrieveChannelPosts (channel, 0, 25);
 	});
 
 	connect (&channel, &BackendChannel::onViewed, [this] {
@@ -125,6 +126,15 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 		setTextEditWidgetHeight (height);
 	});
+
+	//when scrolling to top, get older posts
+	connect (ui->listWidget, &PostsListWidget::scrolledToTop, [this, &backend, &channel] {
+		if (!gettingOlderPosts) {
+			//do not spam requests
+			gettingOlderPosts = true;
+			backend.retrieveChannelOlderPosts (channel, 40);
+		}
+	});
 }
 
 ChatArea::~ChatArea()
@@ -157,26 +167,38 @@ BackendChannel& ChatArea::getChannel ()
 	return channel;
 }
 
-void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
+void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 {
 	QDate currentDate = QDateTime::currentDateTime().date();
 	int insertPos = 0;
 	int startPos = 0;
 	int lastDaysAgo = INT32_MAX;
 
-	for (const ChannelMissingPostsSequence& list: collection.postsToAdd) {
+	//save the first post (before insertion), so that it is also displayed after the insertion
+	QListWidgetItem* firstPost = nullptr;
+	if (gettingOlderPosts) {
+		gettingOlderPosts = false;
 
-		if (!list.previousPostId.isEmpty()) {
-			qDebug() << "Add posts after" << list.previousPostId;
+		firstPost = ui->listWidget->item(0);
+
+		if (firstPost->data(Qt::UserRole) != ItemType::post) {
+			firstPost = ui->listWidget->item(1);
+		}
+	}
+
+	for (const ChannelNewPostsChunk& chunk: newPosts.postsToAdd) {
+
+		if (!chunk.previousPostId.isEmpty()) {
+			qDebug() << "Add posts after" << chunk.previousPostId;
 		}
 
-		insertPos = ui->listWidget->findPostByIndex (list.previousPostId, startPos);
+		insertPos = ui->listWidget->findPostByIndex (chunk.previousPostId, startPos);
 		++insertPos;
 		startPos = insertPos;
 
-		for (auto& post: list.postsToAdd) {
+		for (auto& post: chunk.postsToAdd) {
 
-			if (!list.previousPostId.isEmpty()) {
+			if (!chunk.previousPostId.isEmpty()) {
 				qDebug() << "\tAdd post " << post->id;
 			}
 
@@ -205,8 +227,13 @@ void ChatArea::fillChannelPosts (const ChannelMissingPosts& collection)
 		}
 	}
 
-	ui->listWidget->adjustSize();
+	if (firstPost) {
+		ui->listWidget->scrollToItem(firstPost, QAbstractItemView::PositionAtTop);
+	}
+
+	//ui->listWidget->adjustSize();
 	setUnreadMessagesCount (unreadMessagesCount);
+
 }
 
 void ChatArea::appendChannelPost (BackendPost& post)
@@ -247,7 +274,7 @@ void ChatArea::handleUserTyping (const BackendUser& user)
 void ChatArea::onActivate ()
 {
 	ui->listWidget->scrollToUnreadPostsOrBottom ();
-	ui->listWidget->adjustSize();
+	//ui->listWidget->adjustSize();
 
 	backend.markChannelAsViewed (channel);
 

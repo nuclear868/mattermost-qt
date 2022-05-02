@@ -32,14 +32,14 @@ uint32_t BackendChannel::getChannelType (const QJsonObject& jsonObject)
 	}
 }
 
-void ChannelMissingPosts::addSequence (ChannelMissingPostsSequence&& seq)
+void ChannelNewPosts::addChunk (ChannelNewPostsChunk&& chunk)
 {
-	//do not add empty sequence
-	if (seq.postsToAdd.empty()) {
+	//do not add empty chunk
+	if (chunk.postsToAdd.empty()) {
 		return;
 	}
 
-	postsToAdd.emplace (postsToAdd.begin(), std::move (seq));
+	postsToAdd.emplace (postsToAdd.begin(), std::move (chunk));
 }
 
 BackendChannel::BackendChannel (Storage& storage, const QJsonObject& jsonObject)
@@ -77,7 +77,7 @@ BackendPost* BackendChannel::addPost (const QJsonObject& postObject)
 	return newPost;
 }
 
-void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence, bool initialLoad)
+void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad)
 {
 	/*
 	 * Add a post.
@@ -86,19 +86,55 @@ void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPo
 	BackendPost* newPost = &*posts.emplace(position, postObject);
 	newPost->author = storage.getUserById (newPost->user_id);
 
-	currentSequence.postsToAdd.emplace_front (newPost);
+	currentChunk.postsToAdd.emplace_front (newPost);
 
 	if (!initialLoad) {
 		qDebug() << newPost->create_at << " " << newPost->id << " " << newPost->getDisplayAuthorName() << " " << newPost->message;
 	}
 }
 
+
+void BackendChannel::prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject)
+{
+	/*
+	 * A list of (sequential) groups of new posts
+	 */
+	ChannelNewPosts allNewPosts;
+
+	/*
+	 * A sequential group of new posts
+	 */
+	ChannelNewPostsChunk currentNewPostsChunk;
+
+	bool initialLoad = true;
+
+	//add all posts to the beginning of the posts list
+	for (const auto& newPostEl: orderArray) {
+		QString newPostId = newPostEl.toString();
+		addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, initialLoad);
+	}
+
+	//if there are new posts left, add them to allMissingPosts
+	if (!currentNewPostsChunk.postsToAdd.empty()) {
+		allNewPosts.addChunk (std::move (currentNewPostsChunk));
+	}
+
+	emit onNewPosts (allNewPosts);
+}
+
 void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject)
 {
-	ChannelMissingPosts allMissingPosts;
+	/*
+	 * A list of (sequential) groups of new posts
+	 */
+	ChannelNewPosts allNewPosts;
 
-	ChannelMissingPostsSequence currentMissingPostsSeq;
+	/*
+	 * A sequential group of new posts
+	 */
+	ChannelNewPostsChunk currentNewPostsChunk;
 
+	//search local posts from newest to oldest
 	std::list<BackendPost>::reverse_iterator currentLocalPost = posts.rbegin();
 
 #warning "Handle case of deleted post, that is not deleted locally"
@@ -121,36 +157,39 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 		//end of local posts list. Save the current missing post sequence and add all missing posts
 		if (currentLocalPost == posts.rend()) {
-			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentMissingPostsSeq, initialLoad);
+			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, initialLoad);
 			++currentLocalPost;
 			continue;
 		}
 
-
-		//post already exists. No need to be added. Save the current missing post sequence and continue
+		//post already exists. No need to be added. Save the current missing posts chunk and start a new one
 		if (currentLocalPost->id == newPostId) {
 			++currentLocalPost;
 
 			if (lastPostWasSkipped) {
-				currentMissingPostsSeq.previousPostId = newPostId;
-				allMissingPosts.addSequence (std::move (currentMissingPostsSeq));
+				currentNewPostsChunk.previousPostId = newPostId;
+				allNewPosts.addChunk (std::move (currentNewPostsChunk));
 				lastPostWasSkipped = false;
 			}
 			continue;
 		}
 
 		//post not found. Add it to the list of new posts
-		addPost (postsObject.find (newPostId).value().toObject(), currentLocalPost.base(), currentMissingPostsSeq, initialLoad);
+		qDebug () << "Add after currentLocalPost";
+		addPost (postsObject.find (newPostId).value().toObject(), currentLocalPost.base(), currentNewPostsChunk, initialLoad);
 		++currentLocalPost;
 		lastPostWasSkipped = true;
 	}
 
-	//if there are new post left, add them to allMissingPosts
-	if (!currentMissingPostsSeq.postsToAdd.empty()) {
-		allMissingPosts.addSequence (std::move (currentMissingPostsSeq));
+	//if there are new posts left, add them to allMissingPosts
+	if (!currentNewPostsChunk.postsToAdd.empty()) {
+		if (currentLocalPost != posts.rend()) {
+			currentNewPostsChunk.previousPostId = currentLocalPost->id;
+		}
+		allNewPosts.addChunk (std::move (currentNewPostsChunk));
 	}
 
-	emit onNewPosts (allMissingPosts);
+	emit onNewPosts (allNewPosts);
 }
 
 void BackendChannel::editPost (const QString& postID, const QString& postMessage)

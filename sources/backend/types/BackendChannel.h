@@ -19,9 +19,9 @@ namespace Mattermost {
 class Storage;
 
 /**
- * A sequence of missing posts
+ * A sequence of new posts
  */
-struct ChannelMissingPostsSequence {
+struct ChannelNewPostsChunk {
 	QString 									previousPostId;
 	std::list<BackendPost*>						postsToAdd;
 };
@@ -30,11 +30,11 @@ struct ChannelMissingPostsSequence {
  * Collections of missing posts for a channel.
  * Missing posts can happen if a webSocket disconnect occurs and new posts arrive before reconnect
  */
-struct ChannelMissingPosts {
+struct ChannelNewPosts {
 
-	void addSequence (ChannelMissingPostsSequence&& seq);
+	void addChunk (ChannelNewPostsChunk&& chunk);
 
-	std::vector<ChannelMissingPostsSequence>		postsToAdd;
+	std::vector<ChannelNewPostsChunk>		postsToAdd;
 };
 
 
@@ -52,13 +52,17 @@ public:
 public:
 	static uint32_t getChannelType (const QJsonObject& jsonObject);
 
+
 	BackendPost* addPost (const QJsonObject& postObject);
 
-	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelMissingPostsSequence& currentSequence, bool initialLoad);
+	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad);
+
+	void prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 
 	void editPost (const QString& postID, const QString& postMessage);
+
 signals:
 
 	/**
@@ -73,7 +77,7 @@ signals:
 	 *
 	 * @param posts Collection of the missing posts only
 	 */
-	void onNewPosts (const ChannelMissingPosts& collection);
+	void onNewPosts (const ChannelNewPosts& collection);
 
 	/**
 	 * Called when a new post has arrived in the channel
