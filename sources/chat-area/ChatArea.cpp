@@ -26,7 +26,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	ui->setupUi(this);
 	ui->listWidget->backend = &backend;
 
-	ui->title->setText (channel.display_name);
+	ui->titleLabel->setText (channel.display_name);
+	ui->statusLabel->setText (channel.getChannelDescription ());
 
 	setTextEditWidgetHeight (texteditDefaultHeight);
 
@@ -172,18 +173,20 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 	QDate currentDate = QDateTime::currentDateTime().date();
 	int insertPos = 0;
 	int startPos = 0;
-	int lastDaysAgo = INT32_MAX;
+	int currentElapsedDays = INT32_MAX;
 
-	//save the first post (before insertion), so that it is also displayed after the insertion
+	//save the first post (before insertion), so that the list will be scrolled to it after the insertion
 	QListWidgetItem* firstPost = nullptr;
 	if (gettingOlderPosts) {
-		gettingOlderPosts = false;
 
 		firstPost = ui->listWidget->item(0);
 
 		if (firstPost->data(Qt::UserRole) != ItemType::post) {
 			firstPost = ui->listWidget->item(1);
 		}
+
+		PostWidget* firstPostWidget = static_cast<PostWidget*> (ui->listWidget->itemWidget (firstPost));
+		currentElapsedDays = firstPostWidget->post.getCreationTime().date().daysTo(currentDate);
 	}
 
 	for (const ChannelNewPostsChunk& chunk: newPosts.postsToAdd) {
@@ -202,18 +205,15 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 				qDebug() << "\tAdd post " << post->id;
 			}
 
-			QDateTime postTime = QDateTime::fromMSecsSinceEpoch (post->create_at);
-			lastPostDate = postTime.date();
+			lastPostDate = post->getCreationTime ().date();
 
-			int postDaysAgo = (lastPostDate.daysTo (currentDate));
+			int postElapsedDays = (lastPostDate.daysTo (currentDate));
 
-			if (postDaysAgo < lastDaysAgo) {
-				lastDaysAgo = postDaysAgo;
+			if (postElapsedDays != currentElapsedDays) {
+				currentElapsedDays = postElapsedDays;
 
-				if (postDaysAgo < 3) {
-					ui->listWidget->addDaySeparator (postDaysAgo);
-					++insertPos;
-				}
+				ui->listWidget->addDaySeparator (insertPos, postElapsedDays);
+				++insertPos;
 			}
 
 			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this));
@@ -226,6 +226,8 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 			}
 		}
 	}
+
+	gettingOlderPosts = false;
 
 	if (firstPost) {
 		ui->listWidget->scrollToItem(firstPost, QAbstractItemView::PositionAtTop);

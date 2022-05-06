@@ -86,13 +86,6 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 	ui->listWidget->setItemWidget (newItem, label);
     label->setPixmap (QPixmap::fromImage(img));
 
-	/*
-	 * Parent of PostAttachmentList is PostWidget.
-	 * Parent of PostWidget is PostListWidget.
-	 * However, no idea why the last parentWidget() is needed
-	 */
-    //parentWidget()->parentWidget()->parentWidget()->adjustSize();
-
     if (file.contents.isEmpty()) {
     	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, authorName, this] (const QByteArray& fileContents){
 
@@ -111,29 +104,6 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 			adjustSize();
 			widget->adjustSize();
 			emit widget->dimensionsChanged ();
-
-#if 0
-			qDebug () << "label size: " << QSize (label->width(), label->height());
-			qDebug () << "geometry: " << geometry();
-			qDebug () << "parent geometry: " << widget->geometry();
-			qDebug () << "==";
-			qDebug () << "hfw: " << heightForWidth(width());
-			qDebug () << "parent hfw: " << widget->heightForWidth(width());
-			qDebug () << "==";
-			qDebug () << "height: " << height();
-			qDebug () << "parent height: " << widget->height();
-			qDebug () << "==";
-			qDebug () << "sizehint: " << sizeHint();
-			qDebug () << "parent sizehint: " << widget->sizeHint();
-#endif
-
-
-			/*
-			 * Parent of PostAttachmentList is PostWidget.
-			 * Parent of PostWidget is PostListWidget.
-			 * However, no idea why the last parentWidget() is needed
-			 */
-			//parentWidget()->parentWidget()->parentWidget()->adjustSize();
     	});
     }
 }

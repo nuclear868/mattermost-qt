@@ -52,6 +52,7 @@ public:
 public:
 	static uint32_t getChannelType (const QJsonObject& jsonObject);
 
+	QString getChannelDescription () const;
 
 	BackendPost* addPost (const QJsonObject& postObject);
 

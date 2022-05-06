@@ -9,6 +9,7 @@
 
 #include <QJsonObject>
 #include <QVariant>
+#include <QDateTime>
 #include <list>
 #include "BackendUser.h"
 #include "BackendFile.h"
@@ -23,6 +24,7 @@ public:
 public:
 	bool isOwnPost () const;
 	QString getDisplayAuthorName () const;
+	QDateTime getCreationTime () const;
 public:
 	QString						id;
 	uint64_t					create_at;

@@ -138,13 +138,12 @@ static QString getDayString (int daysAgo)
 		return "Today";
 	case 1:
 		return "Yesterday";
-	case 2:
-		return "2 days ago";
+	default:
+		return QDateTime::currentDateTime().date().addDays(-daysAgo).toString("dd MMM yyyy");
 	}
 
 	return "";
 }
-
 
 void PostsListWidget::addDaySeparator (int daysAgo)
 {
@@ -152,6 +151,15 @@ void PostsListWidget::addDaySeparator (int daysAgo)
 	QListWidgetItem* newItem = new QListWidgetItem();
 	newItem->setData(Qt::UserRole, ItemType::separator);
 	addItem (newItem);
+	setItemWidget (newItem, separator);
+}
+
+void PostsListWidget::addDaySeparator (int insertPos, int daysAgo)
+{
+	PostSeparatorWidget* separator = new PostSeparatorWidget (getDayString (daysAgo));
+	QListWidgetItem* newItem = new QListWidgetItem();
+	newItem->setData(Qt::UserRole, ItemType::separator);
+	insertItem (insertPos, newItem);
 	setItemWidget (newItem, separator);
 }
 

@@ -33,6 +33,7 @@ public:
 
 	void scrollToUnreadPostsOrBottom ();
 	void addDaySeparator (int daysAgo);
+	void addDaySeparator (int insertPos, int daysAgo);
 	void addNewMessagesSeparator ();
 	void removeNewMessagesSeparator ();
 	void removeNewMessagesSeparatorAfterTimeout (int timeoutMs);

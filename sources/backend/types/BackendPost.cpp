@@ -59,4 +59,9 @@ QString BackendPost::getDisplayAuthorName () const
 	return user_id;
 }
 
+QDateTime BackendPost::getCreationTime () const
+{
+	return QDateTime::fromMSecsSinceEpoch (create_at);
+}
+
 } /* namespace Mattermost */

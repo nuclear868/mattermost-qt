@@ -32,6 +32,11 @@ uint32_t BackendChannel::getChannelType (const QJsonObject& jsonObject)
 	}
 }
 
+QString BackendChannel::getChannelDescription () const
+{
+	return !header.isEmpty() ? header : purpose;
+}
+
 void ChannelNewPosts::addChunk (ChannelNewPostsChunk&& chunk)
 {
 	//do not add empty chunk
