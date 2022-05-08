@@ -45,6 +45,7 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
 	newItem->setData(Qt::UserRole, ItemType::post);
+	//newItem->setSizeHint (postWidget->sizeHint());
 	newItem->setSizeHint (QSize (viewportSizeHint().width(), postWidget->heightForWidth(width())));
 	insertItem (position, newItem);
 
@@ -62,21 +63,7 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 
 void PostsListWidget::insertPost (PostWidget* postWidget)
 {
-	QListWidgetItem* newItem = new QListWidgetItem();
-	newItem->setData(Qt::UserRole, ItemType::post);
-	newItem->setSizeHint (QSize (viewportSizeHint().width(), postWidget->heightForWidth(width())));
-	addItem (newItem);
-
-	setItemWidget (newItem, postWidget);
-	verticalScrollBar()->setSingleStep (10);
-
-	if (postWidget->post.isOwnPost()) {
-		lastOwnPost = newItem;
-	}
-
-	connect (postWidget, &PostWidget::dimensionsChanged, [this, postWidget, newItem] {
-		newItem->setSizeHint (postWidget->sizeHint());
-	});
+	return insertPost (count (), postWidget);
 }
 
 int PostsListWidget::findPostByIndex (const QString& postId, int startIndex)

@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QListWidgetItem>
 #include "AttachedBinaryFile.h"
+#include "AttachedImageFile.h"
 #include "../PostWidget.h"
 #include "backend/types/BackendFile.h"
 #include "preview-window/FilePreview.h"
@@ -65,47 +66,44 @@ PostAttachmentList::~PostAttachmentList()
 
 void PostAttachmentList::addFile (const BackendFile& file, const QString& authorName)
 {
+	QWidget* fileWidget = nullptr;
+
 	if (file.mini_preview.isEmpty()) {
-		QWidget* fileWidget = new AttachedBinaryFile (backend, file, this);
-	    QListWidgetItem* newItem = new QListWidgetItem();
+		fileWidget = new AttachedBinaryFile (backend, file, this);
+	} else {
+		fileWidget = new AttachedImageFile (file, this);
+	}
 
-		ui->listWidget->addItem (newItem);
-		ui->listWidget->setItemWidget (newItem, fileWidget);
+	QListWidgetItem* newItem = new QListWidgetItem();
 
+	ui->listWidget->addItem (newItem);
+	ui->listWidget->setItemWidget (newItem, fileWidget);
+
+
+	if (file.mini_preview.isEmpty()) {
 		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height()));
 
-		ui->listWidget->updateGeometry();
+		//ui->listWidget->updateGeometry();
 		return;
 	}
 
-    QLabel* label = new QLabel (this);
-	QListWidgetItem* newItem = new QListWidgetItem();
-	QImage img = QImage::fromData (file.mini_preview);
 
-	ui->listWidget->addItem (newItem);
-	ui->listWidget->setItemWidget (newItem, label);
-    label->setPixmap (QPixmap::fromImage(img));
+	connect (&file, &BackendFile::onContentsAvailable, [&file, newItem, fileWidget, authorName, this] (const QByteArray& fileContents){
 
-    if (file.contents.isEmpty()) {
-    	connect (&file, &BackendFile::onContentsAvailable, [&file, label, newItem, authorName, this] (const QByteArray& fileContents){
+		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height()));
 
-			QImage img = QImage::fromData (fileContents);
-			if (img.width() > 500) {
-				img = img.scaledToWidth (500, Qt::SmoothTransformation);
-			}
-			label->setPixmap (QPixmap::fromImage(img));
-			label->adjustSize();
-			newItem->setSizeHint(QSize (label->width(), label->height()));
+		filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, authorName});
+		newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
 
-			filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, authorName});
-			newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));
+		PostWidget* widget = static_cast<PostWidget*> (parent());
+		ui->listWidget->setMinimumSize(ui->listWidget->sizeHint());
+		ui->listWidget->setMaximumSize(ui->listWidget->sizeHint());
+		adjustSize();
+		widget->adjustSize();
+		emit widget->dimensionsChanged ();
+	});
 
-			PostWidget* widget = static_cast<PostWidget*> (parent());
-			adjustSize();
-			widget->adjustSize();
-			emit widget->dimensionsChanged ();
-    	});
-    }
+
 }
 
 } /* namespace Mattermost */

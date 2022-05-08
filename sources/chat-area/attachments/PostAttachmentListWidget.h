@@ -14,8 +14,8 @@ namespace Mattermost {
 class PostAttachmentListWidget: public QListWidget {
 public:
 	using QListWidget::QListWidget;
-private:
 	QSize sizeHint () const	override;
+private:
 };
 
 } /* namespace Mattermost */

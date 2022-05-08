@@ -33,7 +33,7 @@ QSize PostAttachmentListWidget::sizeHint () const
 		}
 	}
 
-	size += QSize (0,6);
+	size += QSize (1,6);
 	return size;
 }
 
