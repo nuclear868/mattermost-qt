@@ -21,6 +21,7 @@ PostAttachmentList::PostAttachmentList (Backend& backend, QWidget *parent)
 ,ui (new Ui::PostAttachmentList)
 {
     ui->setupUi(this);
+    ui->listWidget->viewport()->setAutoFillBackground(false);
 
     connect (ui->listWidget, &QListWidget::itemClicked, [this] (QListWidgetItem *item) {
 
@@ -81,7 +82,7 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 
 
 	if (file.mini_preview.isEmpty()) {
-		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height()));
+		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height() + 10));
 
 		//ui->listWidget->updateGeometry();
 		return;
@@ -90,7 +91,7 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 
 	connect (&file, &BackendFile::onContentsAvailable, [&file, newItem, fileWidget, authorName, this] (const QByteArray& fileContents){
 
-		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height()));
+		newItem->setSizeHint(QSize (fileWidget->width(), fileWidget->height() + 10));
 
 		filesPreviewData.emplace_back (FilePreviewData {fileContents, file.name, authorName});
 		newItem->setData (Qt::UserRole, QVariant::fromValue ((void*)&filesPreviewData.back()));

@@ -24,6 +24,11 @@ AttachedImageFile::AttachedImageFile(const BackendFile& file, QWidget *parent)
 			if (img.width() > 500) {
 				img = img.scaledToWidth (500, Qt::SmoothTransformation);
 			}
+
+			if (img.height() > 500) {
+				img = img.scaledToHeight (500, Qt::SmoothTransformation);
+			}
+
 			ui->imagePreview->setPixmap (QPixmap::fromImage(img));
 			ui->imagePreview->adjustSize();
 

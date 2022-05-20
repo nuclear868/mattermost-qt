@@ -34,11 +34,23 @@
    </property>
    <item>
     <widget class="QLabel" name="imageName">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
        <height>20</height>
       </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">padding-left: 2px</string>
      </property>
      <property name="text">
       <string>imageName</string>
@@ -47,8 +59,11 @@
    </item>
    <item>
     <widget class="QLabel" name="imagePreview">
+     <property name="styleSheet">
+      <string notr="true">border-top: 1px solid black</string>
+     </property>
      <property name="frameShape">
-      <enum>QFrame::Box</enum>
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="text">
       <string>imagePreview</string>

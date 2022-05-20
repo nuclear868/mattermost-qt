@@ -19,7 +19,7 @@ QSize PostAttachmentListWidget::sizeHint () const
 	for (int i = 0; i < count(); ++i) {
 		QListWidgetItem* item = this->item(i);
 		QSize itemSize (item->sizeHint());
-		itemSize += QSize (5, 0);
+		//itemSize += QSize (5, 0);
 
 		if (itemSize.width() > size.width()) {
 			size.setWidth (itemSize.width());
@@ -27,10 +27,10 @@ QSize PostAttachmentListWidget::sizeHint () const
 
 		size.setHeight (size.height() + itemSize.height());
 
-		if (size.height() > ATTACHMENT_LIST_MAX_SIZE) {
-			size.setHeight (ATTACHMENT_LIST_MAX_SIZE);
-			break;
-		}
+//		if (size.height() > ATTACHMENT_LIST_MAX_SIZE) {
+//			size.setHeight (ATTACHMENT_LIST_MAX_SIZE);
+//			break;
+//		}
 	}
 
 	size += QSize (1,6);

@@ -32,6 +32,9 @@
    <property name="topMargin">
     <number>0</number>
    </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
    <property name="bottomMargin">
     <number>0</number>
    </property>
@@ -56,7 +59,14 @@
       <enum>Qt::NoContextMenu</enum>
      </property>
      <property name="styleSheet">
-      <string notr="true">padding: 1px</string>
+      <string notr="true">QListWidget::item {
+	border: 1px solid black;
+	margin-bottom: 10px;
+}
+</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="verticalScrollBarPolicy">
       <enum>Qt::ScrollBarAsNeeded</enum>
