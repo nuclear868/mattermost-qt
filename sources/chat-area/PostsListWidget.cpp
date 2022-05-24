@@ -57,7 +57,9 @@ void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 	}
 
 	connect (postWidget, &PostWidget::dimensionsChanged, [this, postWidget, newItem] {
+		QListWidgetItem* firstPost = itemAt (QPoint(0,10));
 		newItem->setSizeHint (postWidget->sizeHint());
+		scrollToItem(firstPost, QAbstractItemView::PositionAtTop);
 	});
 }
 
