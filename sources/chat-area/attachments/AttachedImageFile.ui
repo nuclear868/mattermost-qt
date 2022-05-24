@@ -43,7 +43,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>20</height>
+       <height>40</height>
       </size>
      </property>
      <property name="autoFillBackground">
@@ -54,6 +54,9 @@
      </property>
      <property name="text">
       <string>imageName</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
