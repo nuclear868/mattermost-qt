@@ -15,9 +15,8 @@
 #include "PostSeparatorWidget.h"
 #include "backend/Backend.h"
 #include "backend/types/BackendPost.h"
-#include "PostWidget.h"
+#include "info-dialogs/UserProfileDialog.h"
 #include "PostsListWidget.h"
-#include "PostWidget.h"
 
 namespace Mattermost {
 
@@ -217,7 +216,7 @@ void PostsListWidget::keyPressEvent (QKeyEvent* event)
 	 * Handle the key sequence for 'Copy' and copy all posts to clipboard (properly formatted)
 	 */
 	if (event->matches (QKeySequence::Copy)) {
-		copySelectedItemsToClipboard ();
+		copySelectedItemsToClipboard (PostWidget::entirePost);
 		return;
 	}
 
@@ -248,14 +247,14 @@ QList<QListWidgetItem*> PostsListWidget::sortedSelectedItems () const
 	return sortedItems;
 }
 
-void PostsListWidget::copySelectedItemsToClipboard ()
+void PostsListWidget::copySelectedItemsToClipboard (PostWidget::FormatType formatType)
 {
 	QString str;
 	for (auto& item: sortedSelectedItems ()) {
 
 		if (item->data(Qt::UserRole) == ItemType::post) {
 			PostWidget* post = static_cast <PostWidget*> (itemWidget (item));
-			str += post->formatForClipboardSelection ();
+			str += post->formatForClipboardSelection (formatType);
 		}
 	}
 
@@ -301,10 +300,23 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		}
 	}
 
-	myMenu.addAction ("Copy to clipboard", [this, post] {
+	myMenu.addAction ("View " + post->post.author->getDisplayName() + "'s profile", [this, post] {
 		//qDebug() << "Copy " << post->post.message;
-		copySelectedItemsToClipboard ();
+		UserProfileDialog* dialog = new UserProfileDialog (*post->post.author, this);
+		dialog->show ();
 	});
+
+	myMenu.addAction ("Copy to clipboard (formatted)", [this, post] {
+		//qDebug() << "Copy " << post->post.message;
+		copySelectedItemsToClipboard (PostWidget::entirePost);
+	});
+
+	if (selectedItemsCount == 1) {
+		myMenu.addAction ("Copy to clipboard (text only)", [this, post] {
+			//qDebug() << "Copy " << post->post.message;
+			copySelectedItemsToClipboard (PostWidget::messageOnly);
+		});
+	}
 
 #if 0
 	if (selectedItemsCount == 1) {

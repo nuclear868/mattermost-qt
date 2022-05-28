@@ -9,6 +9,7 @@
 
 #include <QListWidget>
 #include <QTimer>
+#include "PostWidget.h"
 
 namespace Mattermost {
 
@@ -47,7 +48,7 @@ signals:
 private:
 	QList<QListWidgetItem*> sortedSelectedItems () const;
 
-	void copySelectedItemsToClipboard ();
+	void copySelectedItemsToClipboard (PostWidget::FormatType formatType);
 	void keyPressEvent (QKeyEvent* event)		override;
 	void resizeEvent (QResizeEvent* event)		override;
 	void focusOutEvent (QFocusEvent* event)		override;

@@ -23,6 +23,12 @@ public:
     explicit PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
     ~PostWidget();
 public:
+
+    enum FormatType {
+		messageOnly,
+		entirePost
+    };
+
     void setEdited (const QString& message);
 
     void markAsDeleted ();
@@ -30,7 +36,7 @@ public:
 
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
-    QString formatForClipboardSelection () const;
+    QString formatForClipboardSelection (FormatType formatType) const;
 
     BackendPost&						post;
 signals:
