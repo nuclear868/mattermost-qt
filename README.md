@@ -37,8 +37,12 @@ Mattermost native desktop client, using the QT framework
 The application is developed and tested on Ubuntu linux. I have build and tested it also on Windows 7 and Windows 10. Release 1.1 even includes a standalone build, suitable to be run from windows
 
 ## Required packages (Linux)
+### Ubuntu
 * QT5 libraries (qtbase5-dev)
 * QT5 websockets library (libqt5websockets5-dev)
+### Fedora
+* QT5 libraries (qt5-qtbase-devel)
+* QT5 websockets library (qt5-qtwebsockets-devel)
 
 ## Build instructions (Linux)
 It is recommended to build in a separate directory:
