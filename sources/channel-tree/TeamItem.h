@@ -35,6 +35,8 @@ public:
 public:
 	void addChannel (BackendChannel& channel, QWidget *parent);
 	void showContextMenu (const QPoint& pos) override;
+private:
+	int getChannelIndex (const BackendChannel& channel);
 public:
 	Backend&							backend;
 	QString								teamId;

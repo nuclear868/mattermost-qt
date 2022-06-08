@@ -58,6 +58,7 @@ private:
 	void dropEvent (QDropEvent* event) override;
 
 	void setUserAvatar (const BackendUser& user);
+	void moveOnListTop ();
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
 public:

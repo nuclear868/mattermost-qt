@@ -127,7 +127,7 @@ public:
     QString				header;
     QString				purpose;
     int					type;
-    int					last_post_at;
+    uint64_t			last_post_at;
     int					total_msg_count;
     int					extra_update_at;
     const BackendUser*	creator;

@@ -5,6 +5,7 @@
 #include "ui_ChatArea.h"
 #include "PostWidget.h"
 #include "backend/Backend.h"
+#include "channel-tree/ChannelItemWidget.h"
 #include "log.h"
 
 namespace Mattermost {
@@ -235,7 +236,7 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 
 	//ui->listWidget->adjustSize();
 	setUnreadMessagesCount (unreadMessagesCount);
-
+	//moveOnListTop ();
 }
 
 void ChatArea::appendChannelPost (BackendPost& post)
@@ -258,6 +259,8 @@ void ChatArea::appendChannelPost (BackendPost& post)
 
 	ui->listWidget->adjustSize();
 	ui->listWidget->scrollToBottom();
+
+	moveOnListTop ();
 
 	//do not add unread messages count if the Chat Area is on focus
 	if (chatAreaHasFocus) {
@@ -316,6 +319,33 @@ void ChatArea::addFileToload (BackendFile* file)
 		file->contents = data;
 		emit file->onContentsAvailable (data);
 	});
+}
+
+void ChatArea::moveOnListTop ()
+{
+	QTreeWidgetItem* parent = treeItem->parent();
+	QTreeWidget* tree = treeItem->treeWidget();
+
+	//item already on top, nothing to do
+	if (parent->indexOfChild (treeItem) == 0) {
+		return;
+	}
+
+	//QWidget* widget = tree->itemWidget(treeItem, 0);
+
+	//tree->removeItemWidget(treeItem, 0);
+
+	qDebug() << "Move on top (" << parent->indexOfChild(treeItem) << ") -> 0";
+
+	tree->blockSignals (true);
+	QTreeWidgetItem* child = parent->takeChild (parent->indexOfChild(treeItem));
+	parent->insertChild(0, child);
+	tree->blockSignals (false);
+
+	ChannelItemWidget* itemWidget = new ChannelItemWidget (tree->parentWidget());
+	itemWidget->setLabel (channel.display_name);
+	tree->setItemWidget (child, 0, itemWidget);
+	tree->setCurrentItem (child);
 }
 
 void ChatArea::setUnreadMessagesCount (uint32_t count)

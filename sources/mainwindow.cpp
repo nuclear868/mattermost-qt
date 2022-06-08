@@ -247,6 +247,7 @@ void MainWindow::channelListWidget_itemClicked (QTreeWidgetItem* item, QTreeWidg
 		ui->chatAreaStackedWidget->removeWidget (currentPage);
 	}
 
+	qDebug() << "Item Activated: " << chatArea->channel.display_name;
 	ui->chatAreaStackedWidget->addWidget(chatArea);
 	currentPage = chatArea;
 	currentPage->onActivate ();

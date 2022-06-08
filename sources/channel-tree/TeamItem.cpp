@@ -38,7 +38,8 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 	ChannelItemWidget* itemWidget = new ChannelItemWidget (parent);
 	itemWidget->setLabel (channel.display_name);
 
-	ChannelItem* item = new ChannelItem (backend, this, itemWidget);
+	ChannelItem* item = new ChannelItem (backend, itemWidget);
+	insertChild (getChannelIndex (channel), item);
 
 	chatAreas.emplace_back(std::make_unique<ChatArea> (backend, channel, item, parent));
 	ChatArea* chatArea = chatAreas.back ().get();
@@ -132,6 +133,23 @@ void TeamItem::showContextMenu (const QPoint& pos)
 
 
 	myMenu.exec (pos);
+}
+
+int TeamItem::getChannelIndex (const BackendChannel& channel)
+{
+	int i = 0;
+	for (; i < childCount(); ++i) {
+
+		//item->setData(0, Qt::UserRole, QVariant::fromValue (chatArea));
+
+		ChatArea* area = child(i)->data (0, Qt::UserRole).value<ChatArea*>();
+
+		if (channel.last_post_at > area->channel.last_post_at) {
+			break;
+		}
+	}
+
+	return i;
 }
 
 } /* namespace Mattermost */

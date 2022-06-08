@@ -16,7 +16,7 @@ namespace Mattermost {
 
 class ChannelItem: public ChannelTreeItem {
 public:
-	explicit ChannelItem (Backend& backend, QTreeWidgetItem *parent, ChannelItemWidget* widget);
+	explicit ChannelItem (Backend& backend, ChannelItemWidget* widget);
 	virtual ~ChannelItem ();
 public:
     void setIcon (const QIcon &icon);

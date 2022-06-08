@@ -18,8 +18,8 @@
 
 namespace Mattermost {
 
-ChannelItem::ChannelItem (Backend& backend, QTreeWidgetItem* parent, ChannelItemWidget* widget)
-:ChannelTreeItem (parent)
+ChannelItem::ChannelItem (Backend& backend, ChannelItemWidget* widget)
+:ChannelTreeItem ()
 ,backend (backend)
 ,widget (widget)
 {
