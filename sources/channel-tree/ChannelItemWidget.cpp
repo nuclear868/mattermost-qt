@@ -1,3 +1,4 @@
+
 #include "ChannelItemWidget.h"
 #include "ui_ChannelItemWidget.h"
 
@@ -14,6 +15,11 @@ ChannelItemWidget::~ChannelItemWidget()
     delete ui;
 }
 
+const QPixmap* ChannelItemWidget::getPixmap () const
+{
+	return ui->icon->pixmap();
+}
+
 void ChannelItemWidget::setIcon (const QIcon& icon)
 {
 	ui->icon->setPixmap (icon.pixmap(24, 24));
@@ -24,3 +30,4 @@ void ChannelItemWidget::setLabel (const QString& label)
 {
 	ui->label->setText (label);
 }
+

@@ -331,21 +331,37 @@ void ChatArea::moveOnListTop ()
 		return;
 	}
 
-	//QWidget* widget = tree->itemWidget(treeItem, 0);
+	bool isCurrent = (tree->currentItem() == treeItem);
 
-	//tree->removeItemWidget(treeItem, 0);
+	ChannelItemWidget* itemWidget = static_cast<ChannelItemWidget*> (tree->itemWidget(treeItem, 0));
+
+
+	ChannelItemWidget* newItemWidget = new ChannelItemWidget (itemWidget->parentWidget());
+	newItemWidget->setLabel (channel.display_name);
+
+	if (itemWidget->getPixmap()) {
+		newItemWidget->setIcon (QIcon(*itemWidget->getPixmap()));
+	}
 
 	qDebug() << "Move on top (" << parent->indexOfChild(treeItem) << ") -> 0";
 
+	//block signals, so that itemActivated is not called
 	tree->blockSignals (true);
 	QTreeWidgetItem* child = parent->takeChild (parent->indexOfChild(treeItem));
 	parent->insertChild(0, child);
 	tree->blockSignals (false);
 
-	ChannelItemWidget* itemWidget = new ChannelItemWidget (tree->parentWidget());
-	itemWidget->setLabel (channel.display_name);
-	tree->setItemWidget (child, 0, itemWidget);
-	tree->setCurrentItem (child);
+	if (child != treeItem) {
+		exit (1);
+	}
+
+	tree->setItemWidget (child, 0, newItemWidget);
+
+	if (isCurrent) {
+		tree->setCurrentItem (child);
+	}
+
+	qDebug() << "Move on top done";
 }
 
 void ChatArea::setUnreadMessagesCount (uint32_t count)

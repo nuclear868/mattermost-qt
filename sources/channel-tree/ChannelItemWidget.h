@@ -16,6 +16,7 @@ public:
     explicit ChannelItemWidget(QWidget *parent = nullptr);
     ~ChannelItemWidget();
 
+    const QPixmap* getPixmap () const;
     void setIcon (const QIcon &icon);
     void setLabel (const QString& label);
 
