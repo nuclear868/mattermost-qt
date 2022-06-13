@@ -99,7 +99,7 @@
          </property>
         </widget>
        </item>
-       <item alignment="Qt::AlignLeft">
+       <item alignment="Qt::AlignLeft|Qt::AlignTop">
         <widget class="QLabel" name="statusLabel">
          <property name="styleSheet">
           <string notr="true">padding-left:1px</string>

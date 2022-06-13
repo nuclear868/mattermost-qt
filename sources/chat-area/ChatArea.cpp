@@ -43,6 +43,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		if (!user->avatar.isEmpty()) {
 			setUserAvatar (*user);
 		}
+
+		if (ui->statusLabel->text().isEmpty()) {
+			ui->statusLabel->setText (user->status);
+		}
 	} else {
 		ui->userAvatar->clear();
 		ui->userAvatar->hide();
