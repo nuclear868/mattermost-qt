@@ -56,6 +56,7 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 		delete (item);
 	});
 
+	backend.retrieveChannelMembers (channel);
 }
 
 void TeamItem::showContextMenu (const QPoint& pos)
@@ -104,7 +105,7 @@ void TeamItem::showContextMenu (const QPoint& pos)
 				return;
 			}
 
-			std::vector<BackendUser*> teamUsers;
+			std::vector<BackendUser*> teamMembers;
 
 			for (auto& it: team->members) {
 
@@ -113,11 +114,11 @@ void TeamItem::showContextMenu (const QPoint& pos)
 					continue;
 				}
 
-				teamUsers.push_back (it.user);
+				teamMembers.push_back (it.user);
 			}
 			qDebug() << "View Team members " << team->members.size();
 
-			UserListDialogForTeam* dialog = new UserListDialogForTeam (team->display_name, teamUsers, treeWidget());
+			UserListDialogForTeam* dialog = new UserListDialogForTeam (team->display_name, teamMembers, treeWidget());
 			dialog->show ();
 		});
 

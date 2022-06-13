@@ -9,18 +9,12 @@
 
 namespace Mattermost {
 
-BackendTeamMember::BackendTeamMember ()
+BackendTeamMember::BackendTeamMember (const QJsonObject& jsonObject)
 :delete_at (0)
 ,scheme_admin (0)
 ,scheme_guest (0)
 ,scheme_user (0)
 ,user (nullptr)
-{
-}
-
-BackendTeamMember::~BackendTeamMember () = default;
-
-void BackendTeamMember::deserialize (const QJsonObject& jsonObject)
 {
 	delete_at = jsonObject.value("delete_at").toVariant().toULongLong();
 	explicit_roles = jsonObject.value("explicit_roles").toString();;
@@ -31,6 +25,8 @@ void BackendTeamMember::deserialize (const QJsonObject& jsonObject)
 	team_id = jsonObject.value("team_id").toString();
 	user_id = jsonObject.value("user_id").toString();
 }
+
+BackendTeamMember::~BackendTeamMember () = default;
 
 } /* namespace Mattermost */
 

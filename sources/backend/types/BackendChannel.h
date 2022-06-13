@@ -10,6 +10,7 @@
 #include <QVariant>
 #include <list>
 #include "BackendPost.h"
+#include "BackendChannelMember.h"
 #include "fwd.h"
 
 class QJsonObject;
@@ -57,11 +58,8 @@ public:
 	BackendPost* addPost (const QJsonObject& postObject);
 
 	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad);
-
 	void prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
-
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
-
 	void editPost (const QString& postID, const QString& postMessage);
 
 signals:
@@ -131,9 +129,10 @@ public:
     int					total_msg_count;
     int					extra_update_at;
     const BackendUser*	creator;
-    QVariant			scheme_id;
-    QVariant			props;
-    uint32_t			referenceCount;
+    QList<BackendChannelMember> 	members;
+    QVariant						scheme_id;
+    QVariant						props;
+    uint32_t						referenceCount;
 
     std::list<BackendPost>	posts;
 };

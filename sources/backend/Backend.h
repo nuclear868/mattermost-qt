@@ -84,6 +84,9 @@ public:
 	//get first unread post in a channel (/users/{user_id}/channels/{channel_id}/posts/unread)
 	void retrieveChannelUnreadPost (BackendChannel& channel, std::function<void(const QString&)> responseHandler);
 
+	//get channel members (/channels/{channel_id}/members)
+	void retrieveChannelMembers (BackendChannel& channel);
+
 	//mark the channel as viewed (/channels/members/me/view), so that the server knows that the channel is viewed
 	void markChannelAsViewed (BackendChannel& channel);
 

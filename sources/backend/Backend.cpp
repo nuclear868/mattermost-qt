@@ -501,7 +501,7 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
 		}
 
 #if 0
-		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		QString jsonString = QJsonDocument::fromJson(data).toJson(QJsonDocument::Indented);
 		std::cout << "get team channels reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 		callback (team->allPublicChannels);
@@ -567,19 +567,18 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 
 	httpConnector.get(request, [this, &team](QVariant, QByteArray data) {
 
-		LOG_DEBUG ("getTeamMembers reply");
+		//LOG_DEBUG ("retrieveTeamMembers reply");
 
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		auto root = doc.array();
 		for(const auto &itemRef: qAsConst(root)) {
-			BackendTeamMember member;
-			member.deserialize (itemRef.toObject());
+			BackendTeamMember member (itemRef.toObject());
 			member.user = storage.getUserById(member.user_id);
 			team.members.append (std::move (member));
 		}
 
-		LOG_DEBUG ("Team Members Count: " << team.members.size());
+		//LOG_DEBUG ("Team Members Count: " << team.members.size());
 #if 0
 		for (auto& it: team.members) {
 			if (!it.user) {
@@ -683,6 +682,36 @@ void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<
     });
 }
 
+void Backend::retrieveChannelMembers (BackendChannel& channel)
+{
+	NetworkRequest request ("channels/" + channel.id + "/members");
+
+	httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
+
+		//LOG_DEBUG ("retrieveChannelMembers reply");
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		auto root = doc.array();
+		for(const auto &itemRef: qAsConst(root)) {
+			BackendChannelMember member (itemRef.toObject());
+			member.user = storage.getUserById(member.user_id);
+			channel.members.append (std::move (member));
+		}
+
+		//LOG_DEBUG ("Channel Members Count: " << channel.members.size());
+#if 0
+		for (auto& it: team.members) {
+			if (!it.user) {
+				std::cout << "\t" << it.user_id.toStdString() << " (no user) " << std::endl;
+			} else {
+				std::cout << "\t" << it.user_id.toStdString() << " " << it.user->username.toStdString() << std::endl;
+			}
+		}
+#endif
+	});
+}
+
 void Backend::markChannelAsViewed (BackendChannel& channel)
 {
 	QJsonObject  json;
@@ -736,7 +765,7 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 	NetworkRequest request ("posts");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
+	httpConnector.post(request, data, [this](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);

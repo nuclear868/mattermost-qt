@@ -15,10 +15,8 @@ namespace Mattermost {
 
 class BackendTeamMember {
 public:
-	BackendTeamMember ();
+	BackendTeamMember (const QJsonObject& jsonObject);
 	virtual ~BackendTeamMember ();
-public:
-	void deserialize (const QJsonObject& jsonObject);
 public:
 	uint64_t		delete_at;
 	QString			explicit_roles;

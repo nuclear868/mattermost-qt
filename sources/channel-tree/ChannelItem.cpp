@@ -15,6 +15,7 @@
 #include "chat-area/ChatArea.h"
 #include "info-dialogs/ChannelInfoDialog.h"
 #include "info-dialogs/UserProfileDialog.h"
+#include "channel-tree-dialogs/UserListDialogForTeam.h"
 
 namespace Mattermost {
 
@@ -68,6 +69,30 @@ void ChannelItem::showContextMenu (const QPoint& pos)
 		myMenu.addAction ("View Channel details", [this, &channel] {
 			ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
 			dialog->show ();
+		});
+
+		myMenu.addAction ("View Channel members", [this, &channel] {
+			qDebug() << "View Channel members ";
+
+			std::vector<BackendUser*> channelMembers;
+
+			for (auto& it: channel.members) {
+
+				if (!it.user) {
+					qDebug () << "user " << it.user_id << " is nullptr";
+					continue;
+				}
+
+				channelMembers.push_back (it.user);
+			}
+
+			UserListDialogForTeam* dialog = new UserListDialogForTeam (channel.display_name, channelMembers, treeWidget());
+			dialog->show ();
+		});
+
+		myMenu.addAction ("Add users to channel", [this, &channel] {
+			//ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
+			//dialog->show ();
 		});
 
 		myMenu.addAction ("Leave Channel", [this, &channel] {

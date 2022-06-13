@@ -178,7 +178,6 @@ void WebSocketEventHandler::handleEvent (const UserRemovedFromChannelEvent& even
 	}
 
 	storage.eraseChannel (*channel);
-#warning "TODO: Get channel's team and remove the channel"
 }
 
 void WebSocketEventHandler::handleEvent (const ChannelCreatedEvent& event)
