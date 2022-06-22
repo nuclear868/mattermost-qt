@@ -9,12 +9,13 @@
 
 #include <list>
 #include <memory>
-#include "ChannelTreeItem.h"
+#include "channel-tree/ChannelTreeItem.h"
 #include <QObject>
 
 class QListWidget;
 class QTreeWidgetItem;
 class QTreeWidget;
+class ChannelItemWidget;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,6 +27,7 @@ class Backend;
 class BackendTeam;
 class BackendChannel;
 class ChatArea;
+class ChannelItem;
 
 class TeamItem: public QObject, public ChannelTreeItem {
 	Q_OBJECT
@@ -34,7 +36,7 @@ public:
 	virtual ~TeamItem ();
 public:
 	void addChannel (BackendChannel& channel, QWidget *parent);
-	void showContextMenu (const QPoint& pos) override;
+	virtual ChannelItem* createChannelItem (Backend& backend, ChannelItemWidget* itemWidget) = 0;
 private:
 	int getChannelIndex (const BackendChannel& channel);
 public:

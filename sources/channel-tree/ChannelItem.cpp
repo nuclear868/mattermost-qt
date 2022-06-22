@@ -7,15 +7,7 @@
 
 #include "ChannelItem.h"
 
-#include <QDebug>
-#include <QMenu>
-#include <QMessageBox>
 #include "ChannelItemWidget.h"
-#include "backend/Backend.h"
-#include "chat-area/ChatArea.h"
-#include "info-dialogs/ChannelInfoDialog.h"
-#include "info-dialogs/UserProfileDialog.h"
-#include "channel-tree-dialogs/UserListDialogForTeam.h"
 
 namespace Mattermost {
 
@@ -44,66 +36,6 @@ void ChannelItem::setLabel (const QString& label)
 	if (widget) {
 		widget->setLabel (label);
 	}
-}
-
-void ChannelItem::showContextMenu (const QPoint& pos)
-{
-	ChatArea *chatArea = data(0, Qt::UserRole).value<ChatArea*>();
-
-	BackendChannel& channel = chatArea->getChannel();
-
-	// Create menu and insert some actions
-	QMenu myMenu;
-
-	if (channel.type == BackendChannel::directChannel) {
-
-		BackendUser* user = chatArea->backend.getStorage().getUserById (channel.name);
-
-		if (user) {
-			myMenu.addAction ("View Profile", [this, user] {
-				UserProfileDialog* dialog = new UserProfileDialog (*user, treeWidget());
-				dialog->show ();
-			});
-		}
-	} else {
-		myMenu.addAction ("View Channel details", [this, &channel] {
-			ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
-			dialog->show ();
-		});
-
-		myMenu.addAction ("View Channel members", [this, &channel] {
-			qDebug() << "View Channel members ";
-
-			std::vector<BackendUser*> channelMembers;
-
-			for (auto& it: channel.members) {
-
-				if (!it.user) {
-					qDebug () << "user " << it.user_id << " is nullptr";
-					continue;
-				}
-
-				channelMembers.push_back (it.user);
-			}
-
-			UserListDialogForTeam* dialog = new UserListDialogForTeam (channel.display_name, channelMembers, treeWidget());
-			dialog->show ();
-		});
-
-		myMenu.addAction ("Add users to channel", [this, &channel] {
-			//ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
-			//dialog->show ();
-		});
-
-		myMenu.addAction ("Leave Channel", [this, &channel] {
-
-			if (QMessageBox::question (treeWidget(), "Are you sure?", "Are you sure that you want to leave the '" + channel.display_name + "' channel?") == QMessageBox::Yes) {
-				backend.leaveChannel (channel);
-			}
-		});
-	}
-
-	myMenu.exec (pos);
 }
 
 } /* namespace Mattermost */

@@ -21,8 +21,7 @@ public:
 public:
     void setIcon (const QIcon &icon);
     void setLabel (const QString& label);
-    void showContextMenu (const QPoint& pos) override;
-private:
+protected:
     Backend& 			backend;
     ChannelItemWidget* 	widget;
 };

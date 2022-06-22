@@ -29,6 +29,7 @@ signals:
 	void onReconnect ();
 private:
 	void onNewPacket (const QString& string);
+	void doReconnect ();
 public:
 	WebSocketEventHandler	&eventHandler;
 private:

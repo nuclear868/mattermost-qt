@@ -7,7 +7,8 @@
 
 #include "ChannelTree.h"
 #include <QHeaderView>
-#include "TeamItem.h"
+#include "team-item/DirectTeamItem.h"
+#include "team-item/GroupTeamItem.h"
 #include "backend/types/BackendTeam.h"
 #include "backend/Backend.h"
 #include "log.h"
@@ -34,7 +35,13 @@ ChannelTree::~ChannelTree () = default;
  */
 TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 {
-	TeamItem* teamList = new TeamItem (*this, backend, team.display_name, team.id);
+	TeamItem* teamList;
+
+	if (team.id == DIRECT_TEAM_ID) {
+		teamList = new DirectTeamItem (*this, backend, team.display_name, team.id);
+	} else {
+		teamList = new GroupTeamItem (*this, backend, team.display_name, team.id);
+	}
 
 	addTopLevelItem (teamList);
 	//header()->resizeSection (0, 200);

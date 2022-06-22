@@ -97,7 +97,11 @@ void LoginDialog::onNetworkError (uint32_t errorNumber, const QString& errorText
 
 void LoginDialog::onHttpError (uint32_t errorNumber, const QString& errorText)
 {
-	setError ("HTTP Error " + QString::number(errorNumber) + ": "  + errorText);
+	if (errorText.isEmpty() && !ui->error_label->text().isEmpty()) {
+		return;
+	} else {
+		setError ("HTTP Error " + QString::number(errorNumber) + ": "  + errorText);
+	}
 }
 
 void LoginDialog::setError (const QString& errorStr)

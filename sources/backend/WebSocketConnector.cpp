@@ -79,7 +79,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 {
 	connect (&webSocket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), [this] (QAbstractSocket::SocketError error){
 		qDebug() << "WebSocket error " << error << " " << webSocket.errorString();
-
+		doReconnect ();
 	});
 
 	connect(&webSocket, &QWebSocket::connected, [this] {
@@ -101,18 +101,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 
 	connect(&webSocket, &QWebSocket::disconnected, [this]{
 		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
-		pingTimer.stop();
-		pongTimer.stop();
-		QTimer::singleShot (2000, [this] {
-
-			if (token.isEmpty()) {
-				return;
-			}
-
-			LOG_DEBUG ("WebSocket Reconnecting");
-			hasReconnect = true;
-			webSocket.open (webSocket.requestUrl());
-		});
+		doReconnect ();
 	});
 
     connect(&webSocket, &QWebSocket::textMessageReceived, this, &WebSocketConnector::onNewPacket);
@@ -147,6 +136,22 @@ void WebSocketConnector::close ()
 {
 	token = "";
 	reset ();
+}
+
+void WebSocketConnector::doReconnect ()
+{
+	pingTimer.stop();
+	pongTimer.stop();
+	QTimer::singleShot (2000, [this] {
+
+		if (token.isEmpty()) {
+			return;
+		}
+
+		LOG_DEBUG ("WebSocket Reconnecting");
+		hasReconnect = true;
+		webSocket.open (webSocket.requestUrl());
+	});
 }
 
 void WebSocketConnector::doHandshake ()
