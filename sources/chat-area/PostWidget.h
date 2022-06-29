@@ -39,6 +39,7 @@ public:
     QString formatForClipboardSelection (FormatType formatType) const;
 
     BackendPost&						post;
+    QString								hoveredLink;
 signals:
 	void dimensionsChanged ();
 private:

@@ -281,6 +281,8 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		return;
 	}
 
+	//post->create
+
 	// Create menu and insert some actions
 	QMenu myMenu;
 
@@ -305,6 +307,13 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		UserProfileDialog* dialog = new UserProfileDialog (*post->post.author, this);
 		dialog->show ();
 	});
+
+	if (!post->hoveredLink.isEmpty() && selectedItemsCount == 1) {
+		myMenu.addAction ("Copy link to clipboard", [this, post] {
+			//qDebug() << "Copy " << post->post.message;
+			QApplication::clipboard()->setText (post->hoveredLink);
+		});
+	}
 
 	myMenu.addAction ("Copy to clipboard (formatted)", [this, post] {
 		//qDebug() << "Copy " << post->post.message;

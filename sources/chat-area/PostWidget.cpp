@@ -49,6 +49,11 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		}
 		ui->verticalLayout->addWidget (attachments.get(), 0, Qt::AlignLeft);
 	}
+
+	connect (ui->message, &QLabel::linkHovered, [this] (const QString& link) {
+		qDebug() << "Link hovered: " << link;
+		hoveredLink = link;
+	});
 }
 
 PostWidget::~PostWidget()
