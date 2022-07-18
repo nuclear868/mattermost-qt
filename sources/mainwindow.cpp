@@ -151,9 +151,20 @@ static QString infoText (QString ("Version " PROJECT_VER "<br/>"
 "An unofficial Mattermost Client, using the QT framework<br/>") +
 R"(
 <br/>
-<br/>
 More information:<br/> 
-<a href='https://github.com/nuclear868/mattermost-qt'>https://github.com/nuclear868/mattermost-qt</a>)");
+<a href='https://github.com/nuclear868/mattermost-qt'>https://github.com/nuclear868/mattermost-qt</a>
+<br/>
+<br/>
+Mattermost QT Copyright 2021, 2022 Lyubomir Filipov<br/>
+<br/>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.<br/>
+<br/>
+You should have received a copy of the GNU Lesser General Public License
+along with Mattermost-QT; if not, see <a href='https://www.gnu.org/licenses/'>https://www.gnu.org/licenses/</a>.<br/>
+)");
 
 void MainWindow::createMenu ()
 {
