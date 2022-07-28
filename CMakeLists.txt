@@ -62,4 +62,6 @@ else()
   )
 endif()
 
+add_subdirectory (tools)
+
 target_link_libraries(qmattermost PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets)

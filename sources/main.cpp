@@ -148,11 +148,11 @@ inline void MattermostApplication::reopen ()
 
 int main( int argc, char *argv[])
 {
-    QCoreApplication::setOrganizationName("mattermost-native");
-    QCoreApplication::setApplicationName("Mattermost");
+	QCoreApplication::setOrganizationName("mattermost-native");
+	QCoreApplication::setApplicationName("Mattermost");
 
-    Mattermost::MattermostApplication app (argc, argv);
-    app.openLoginWindow ();
-    return app.exec();
+	Mattermost::MattermostApplication app (argc, argv);
+	app.openLoginWindow ();
+	return app.exec();
 }
 
