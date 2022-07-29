@@ -28,6 +28,14 @@
 
 namespace Mattermost {
 
+class EmojiMap {
+public:
+	EmojiMap () = delete;
+	~EmojiMap () = delete;
+public:
+	static const QString& getEmojiById (uint32_t id);
+	static const QString& getEmojiByName (const QString& name);
+};
 extern const QMap<QString, QString> EmojiMap;
 
 } /* namespace Mattermost */

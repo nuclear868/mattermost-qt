@@ -58,17 +58,39 @@ R"(/**
 
 namespace Mattermost {
 
-const QMap<QString, QString> EmojiMap {
 )";
 
 
 static const QString emojiSourceFileEnd =
 R"(};
 
+const QString& EmojiMap::getEmojiById (uint32_t id)
+{
+	return emojiStrings[id];
+}
+
+const QString& EmojiMap::getEmojiByName (const QString& name)
+{
+	int value = emojiMap.value (name);
+	return getEmojiById (value);
+}
+
 } /* namespace Mattermost */
 
 )";
 
+uint32_t emojiId = 0;
+QMap<QString, QString> emojiNameToIdMap;
+QVector<QString> emojiNames;
+QVector<QString> emojiValues;
+
+static void addEmoji (const QString& name, const QString& value)
+{
+	emojiNames.push_back (name);
+	emojiValues.push_back (value);
+	emojiNameToIdMap [name] = value;
+	++emojiId;
+}
 
 int main (int argc, char** argv)
 {
@@ -94,6 +116,10 @@ int main (int argc, char** argv)
 	QTextStream outStream (&outFile);
 	outStream << emojiSourceFileStart;
 
+
+	addEmoji ("", "");
+
+
 	for (auto it: doc.array()) {
 		const QJsonObject& jsonObject = it.toObject();
 
@@ -103,16 +129,49 @@ int main (int argc, char** argv)
 		QVector<uint32_t> vec;
 
 		for (QString& it: unicode.split("-")) {
-
-			//arr += QByteArray::fromHex(it.toLatin1());
 			vec += it.toInt(0, 16);
-			//arr+= i;
-			//result += QChar::uc
 		}
+
 		QString result = QString::fromUcs4 (&vec[0], vec.size());
 
+		if (result.size() > 0 && result[0] == '\0') {
+			result = "";
+		}
 
-		outStream << "\t{\"" << name << "\",\"" << result << "\"}," << "\n";
+		addEmoji (name, result);
+
+		for (auto shortName: jsonObject.value("short_names").toArray()) {
+			if (shortName.toString() != name) {
+				addEmoji (shortName.toString(), result);
+			}
+		}
+	}
+
+	outStream << "static const QString emojiStrings[] {\n";
+
+	for (int i = 0; i < emojiValues.size(); ++i) {
+		outStream << "\t\"" << emojiValues[i];
+
+		if (emojiValues[i].size() <= 1) {
+			outStream << "\"\t\t//";
+		} else {
+			outStream << "\"\t//";
+		}
+
+		if (i == 0) {
+			outStream << "(placeholder for not found emoji)" << "\n";
+		} else {
+			outStream << emojiNames[i] << "\n";
+		}
+	}
+
+	outStream << R"(};
+
+static const QMap<QString, uint32_t> emojiMap {
+)";
+
+	for (int i = 0; i < emojiValues.size(); ++i) {
+		outStream << "\t{\"" << emojiNames[i] << "\"," << i << "}," << "\n";
 	}
 
 	outStream << emojiSourceFileEnd;
