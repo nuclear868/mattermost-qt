@@ -64,15 +64,20 @@ namespace Mattermost {
 static const QString emojiSourceFileEnd =
 R"(};
 
-const QString& EmojiMap::getEmojiById (uint32_t id)
+const QString& EmojiMap::idToString (uint32_t id)
 {
 	return emojiStrings[id];
 }
 
-const QString& EmojiMap::getEmojiByName (const QString& name)
+const QString& EmojiMap::nameToString (const QString& name)
 {
-	int value = emojiMap.value (name);
-	return getEmojiById (value);
+	int id = emojiMap.value (name);
+	return idToString (id);
+}
+
+uint32_t EmojiMap::nameToId (const QString& emojiName)
+{
+	return emojiMap.value (emojiName);
 }
 
 } /* namespace Mattermost */
@@ -153,9 +158,9 @@ int main (int argc, char** argv)
 		outStream << "\t\"" << emojiValues[i];
 
 		if (emojiValues[i].size() <= 1) {
-			outStream << "\"\t\t//";
+			outStream << "\",\t\t//";
 		} else {
-			outStream << "\"\t//";
+			outStream << "\",\t//";
 		}
 
 		if (i == 0) {

@@ -31,6 +31,7 @@ namespace Mattermost {
 class Backend;
 class BackendPost;
 class PostAttachmentList;
+class PostReactionList;
 class ChatArea;
 
 class PostWidget: public QWidget
@@ -63,6 +64,7 @@ signals:
 private:
     Ui::PostWidget*						ui;
     std::unique_ptr<PostAttachmentList>	attachments;
+    std::unique_ptr<PostReactionList>	reactions;
 };
 
 } /* namespace Mattermost */

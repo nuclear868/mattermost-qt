@@ -24,6 +24,7 @@
 #include "PostWidget.h"
 #include "ChatArea.h"
 #include "attachments/PostAttachmentList.h"
+#include "reactions/PostReactionList.h"
 #include "ui_PostWidget.h"
 #include "backend/types/BackendPost.h"
 
@@ -68,6 +69,17 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		ui->verticalLayout->addWidget (attachments.get(), 0, Qt::AlignLeft);
 	}
 
+	//Add reactions, if any
+	if (!post.reactions.empty()) {
+		reactions = std::make_unique<PostReactionList> (this);
+
+		for (int it: post.reactions) {
+			reactions->addReaction (it);
+		}
+
+		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
+	}
+
 	connect (ui->message, &QLabel::linkHovered, [this] (const QString& link) {
 		qDebug() << "Link hovered: " << link;
 		hoveredLink = link;
@@ -94,7 +106,6 @@ void PostWidget::markAsDeleted ()
 QString PostWidget::formatMessageText (const QString& str)
 {
 	QString ret (str.toHtmlEscaped ());
-
 	ret.replace("\n", "<br>");
 
 	int linkStart = 0;

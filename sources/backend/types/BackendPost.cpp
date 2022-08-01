@@ -25,6 +25,7 @@
 #include "BackendPost.h"
 
 #include <QJsonArray>
+#include "backend/EmojiMap.h"
 
 namespace Mattermost {
 
@@ -53,6 +54,11 @@ BackendPost::BackendPost (const QJsonObject& jsonObject)
 
 	for (const auto &fileElement: metadata.value("files").toArray()) {
 		files.emplace_back (fileElement.toObject());
+	}
+
+	for (const auto &reactionElement: metadata.value("reactions").toArray()) {
+		QString emoji = reactionElement.toObject().value ("emoji_name").toString();
+		reactions.emplace_back (EmojiMap::nameToId (emoji));
 	}
 }
 

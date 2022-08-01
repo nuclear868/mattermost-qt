@@ -60,6 +60,7 @@ public:
 	QString						hashtags;
 	QString						pending_post_id;
 	std::list<BackendFile>		files;
+	std::vector<int>			reactions;
 
 	bool						isDeleted;
 

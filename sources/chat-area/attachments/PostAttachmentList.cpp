@@ -121,8 +121,6 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 		widget->adjustSize();
 		emit widget->dimensionsChanged ();
 	});
-
-
 }
 
 } /* namespace Mattermost */

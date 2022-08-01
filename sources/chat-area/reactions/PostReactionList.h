@@ -1,9 +1,4 @@
 /**
- * @file EmojiMap.h
- * @brief Auto-generated file, containing emoji-name to emoji-string map
- * @author Lyubomir Filipov
- * @date Jul 28, 2022
- *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -22,21 +17,30 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#pragma once
+#ifndef POSTREACTIONLIST_H
+#define POSTREACTIONLIST_H
 
-#include <QMap>
+#include <QWidget>
+
+namespace Ui {
+class PostReactionList;
+}
 
 namespace Mattermost {
 
-class EmojiMap {
+class PostReactionList: public QWidget
+{
+    Q_OBJECT
 public:
-	EmojiMap () = delete;
-	~EmojiMap () = delete;
+    explicit PostReactionList(QWidget *parent = nullptr);
+    ~PostReactionList();
 public:
-	static const QString& idToString (uint32_t id);
-	static const QString& nameToString (const QString& emojiName);
-	static uint32_t nameToId (const QString& emojiName);
+    void addReaction (uint32_t reactionID);
+
+private:
+    Ui::PostReactionList *ui;
 };
-extern const QMap<QString, QString> EmojiMap;
+
+#endif // POSTREACTIONLIST_H
 
 } /* namespace Mattermost */
