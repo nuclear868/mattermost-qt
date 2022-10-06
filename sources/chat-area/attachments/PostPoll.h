@@ -17,42 +17,29 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef MESSAGEATTACHMENTLIST_H
-#define MESSAGEATTACHMENTLIST_H
+#ifndef POSTPOLL_H
+#define POSTPOLL_H
 
 #include <QWidget>
-#include <map>
 
 namespace Ui {
-class PostAttachmentList;
+class PostPoll;
 }
-
-class QListWidgetItem;
 
 namespace Mattermost {
 
-struct FilePreviewData;
-class Backend;
-class BackendFile;
-class FilePreview;
+class BackendPoll;
 
-class PostAttachmentList: public QWidget
-{
+class PostPoll: public QWidget {
     Q_OBJECT
 public:
-    explicit PostAttachmentList (Backend& backend, QWidget *parent = nullptr);
-    ~PostAttachmentList();
-public:
-    void addFile (const BackendFile& file, const QString& authorName);
+    explicit PostPoll (BackendPoll& poll, QWidget *parent = nullptr);
+    ~PostPoll();
+
 private:
-    std::list<FilePreviewData>								filesPreviewData;
-    static std::map <const FilePreviewData*, FilePreview*>	currentlyOpenFiles;
-    Backend& 												backend;
-    Ui::PostAttachmentList*								ui;
+    Ui::PostPoll *ui;
 };
 
 } /* namespace Mattermost */
 
-#endif // MESSAGEATTACHMENTLIST_H
-
-
+#endif // POSTPOLL_H

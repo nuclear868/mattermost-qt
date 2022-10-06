@@ -1,4 +1,9 @@
 /**
+ * @file BackendPoll.h
+ * @brief Holds all data for a poll for a post.
+ * @author Lyubomir Filipov
+ * @date Oct 6, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,42 +22,31 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef MESSAGEATTACHMENTLIST_H
-#define MESSAGEATTACHMENTLIST_H
+#pragma once
 
-#include <QWidget>
-#include <map>
-
-namespace Ui {
-class PostAttachmentList;
-}
-
-class QListWidgetItem;
+#include <QJsonObject>
+#include <QVector>
 
 namespace Mattermost {
 
-struct FilePreviewData;
-class Backend;
-class BackendFile;
-class FilePreview;
+struct BackendPollOption {
+	QString name;
+	QString voters;
+	QString	actionID;
+};
 
-class PostAttachmentList: public QWidget
-{
-    Q_OBJECT
+class BackendPoll {
 public:
-    explicit PostAttachmentList (Backend& backend, QWidget *parent = nullptr);
-    ~PostAttachmentList();
-public:
-    void addFile (const BackendFile& file, const QString& authorName);
+	BackendPoll (const QJsonObject& jsonObject);
+	~BackendPoll ();
 private:
-    std::list<FilePreviewData>								filesPreviewData;
-    static std::map <const FilePreviewData*, FilePreview*>	currentlyOpenFiles;
-    Backend& 												backend;
-    Ui::PostAttachmentList*								ui;
+	void fillChoiceOptions (const QJsonArray& optionsJson);
+	void fillPreviewOptions (const QJsonArray& optionsJson);
+public:
+	QString						title;
+	QString						text;
+	QVector<BackendPollOption>	options;
+	bool						hasEnded;
 };
 
 } /* namespace Mattermost */
-
-#endif // MESSAGEATTACHMENTLIST_H
-
-

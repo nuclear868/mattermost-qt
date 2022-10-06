@@ -26,6 +26,7 @@
 
 #include <QJsonArray>
 #include "backend/EmojiMap.h"
+#include "BackendPoll.h"
 
 namespace Mattermost {
 
@@ -46,7 +47,7 @@ BackendPost::BackendPost (const QJsonObject& jsonObject)
 	original_id = jsonObject.value("original_id").toString();
 	message = jsonObject.value("message").toString();
 	type = jsonObject.value("type").toString();
-	props = jsonObject.value("props").toVariant();
+	props = jsonObject.value("props");
 	hashtags = jsonObject.value("hashtags").toString();
 	pending_post_id = jsonObject.value("pending_post_id").toString();
 
@@ -59,6 +60,15 @@ BackendPost::BackendPost (const QJsonObject& jsonObject)
 	for (const auto &reactionElement: metadata.value("reactions").toArray()) {
 		QString emoji = reactionElement.toObject().value ("emoji_name").toString();
 		reactions.emplace_back (EmojiMap::nameToId (emoji));
+	}
+
+	/**
+	 * If there are attachments to the post, try to handle them as a poll
+	 */
+	QJsonValue attachments (props.toObject().value("attachments"));
+	if (attachments.isArray()) {
+		//qDebug() << "Add poll " << message;
+		poll = std::make_unique<BackendPoll> (attachments.toArray()[0].toObject());
 	}
 }
 

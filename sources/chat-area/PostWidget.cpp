@@ -24,6 +24,7 @@
 #include "PostWidget.h"
 #include "ChatArea.h"
 #include "attachments/PostAttachmentList.h"
+#include "attachments/PostPoll.h"
 #include "reactions/PostReactionList.h"
 #include "ui_PostWidget.h"
 #include "backend/types/BackendPost.h"
@@ -78,6 +79,11 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		}
 
 		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
+	}
+
+	if (post.poll) {
+		poll = std::make_unique<PostPoll> (*post.poll, this);
+		ui->verticalLayout->addWidget (poll.get(), 0, Qt::AlignLeft);
 	}
 
 	connect (ui->message, &QLabel::linkHovered, [this] (const QString& link) {

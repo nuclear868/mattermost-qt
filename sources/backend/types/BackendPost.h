@@ -28,10 +28,13 @@
 #include <QVariant>
 #include <QDateTime>
 #include <list>
+#include <memory>
 #include "BackendUser.h"
 #include "BackendFile.h"
 
 namespace Mattermost {
+
+class BackendPoll;
 
 class BackendPost {
 public:
@@ -56,15 +59,16 @@ public:
 	QString						original_id;
 	QString						message;
 	QString						type;
-	QVariant					props;
+	QJsonValue					props;
 	QString						hashtags;
 	QString						pending_post_id;
 	std::list<BackendFile>		files;
 	std::vector<int>			reactions;
 
-	bool						isDeleted;
 
+	std::unique_ptr<BackendPoll> poll;
 	const BackendUser*			author;
+	bool						isDeleted;
 };
 
 } /* namespace Mattermost */
