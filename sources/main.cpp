@@ -153,6 +153,7 @@ int main( int argc, char *argv[])
 
 	Mattermost::MattermostApplication app (argc, argv);
 	app.openLoginWindow ();
+
 	return app.exec();
 }
 

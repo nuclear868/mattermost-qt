@@ -33,6 +33,7 @@
 #include "backend/WebSocketConnector.h"
 #include "backend/WebSocketEventHandler.h"
 #include "backend/Storage.h"
+#include "backend/calls/CallsConnector.h"
 
 namespace Mattermost {
 
@@ -131,6 +132,8 @@ public:
 	//leave a channel (/channels/{channel_id}/members/{user_id})
 	void leaveChannel (const BackendChannel& channel);
 
+	void retrieveCallsConfig ();
+
 	const BackendUser& getLoginUser () const;
 
 	Storage& getStorage ();
@@ -173,12 +176,13 @@ signals:
     void onHttpError (uint32_t errorNumber, const QString& errorText);
 private:
     void loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
-private:
+public:
     Storage							storage;
 
     HTTPConnector 					httpConnector;
     WebSocketEventHandler			webSocketEventHandler;
     WebSocketConnector				webSocketConnector;
+    std::unique_ptr<CallsConnector>	callsConnector;
     BackendLoginData				loginData;
     bool							isLoggedIn;
     uint32_t						nonFilledTeams;

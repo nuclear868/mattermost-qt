@@ -217,21 +217,31 @@ void WebSocketConnector::onNewPacket (const QString& string)
 
 	//event from server
 	QJsonValue event = jsonObject.value("event");
+	const QString eventString = event.toString();
 
-	auto it = eventHandlers.find(event.toString());
+	/**
+	 * skip events which come from a Mattermost server plugin.
+	 * There may be a separate handler for them in the client
+	 */
+	if (eventString.startsWith("custom_com")) {
+		//qDebug() << "WebSocketConnector: skipping event " << eventString;
+		return;
+	}
+
+	auto it = eventHandlers.find (eventString);
 
 
 	if (it == eventHandlers.end()) {
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString();
 
-		LOG_DEBUG ("Unhandled WebSocket event '" << event.toString() << "'\n");
+		LOG_DEBUG ("Unhandled WebSocket event '" << eventString << "'\n");
 		qDebug() << "========" << '\n';
 		return;
 	}
 
 	if (printEvent (it.key())) {
-	qDebug() << "========" << '\n';
+		qDebug() << "========" << '\n';
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString();
 	}

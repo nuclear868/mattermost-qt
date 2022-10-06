@@ -1,8 +1,8 @@
 /**
- * @file WebSocketConnector.h
- * @brief
+ * @file CallsConnector.h
+ * @brief Manages Mattermost calls
  * @author Lyubomir Filipov
- * @date Dec 28, 2021
+ * @date Aug 3, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -25,22 +25,29 @@
 #pragma once
 
 #include <QObject>
+#include <QString>
 #include <QTimer>
 #include <QtWebSockets/QWebSocket>
 
+namespace rtc {
+	class PeerConnection;
+};
+
 namespace Mattermost {
 
-class WebSocketEventHandler;
-
-class WebSocketConnector: public QObject {
+class CallsConnector: public QObject {
 	Q_OBJECT
 public:
-	WebSocketConnector (WebSocketEventHandler& eventHandler);
-	virtual ~WebSocketConnector ();
+	CallsConnector (QString ICEServer, const QString& urlString, const QString& token);
+	virtual ~CallsConnector ();
 public:
-	void open (const QString& urlString, const QString& token);
-	void close ();
-	void reset ();
+	void openWebSocket (const QString& channelID);
+	int64_t sendTextMessage(const QString& message);
+	int64_t sendBinaryMessage(const QByteArray& message);
+	std::shared_ptr<rtc::PeerConnection> createPeerConnection ();
+
+	void onRemoteCandidate (const QString& candidateString);
+	void onRemoteAnswer (const QString& answerSdp);
 signals:
 	void onReconnect ();
 private:
@@ -48,14 +55,16 @@ private:
 	void onNewPacket (const QString& string);
 	void doReconnect ();
 public:
-	WebSocketEventHandler	&eventHandler;
-private:
-	QWebSocket 				webSocket;
-	QString					token;
-	QTimer					pingTimer;
-	QTimer					pongTimer;
-	bool					hasReconnect;
+	QString 		ICEServer;
+	QString			channelID;
+	uint32_t		seq;
+	const QString&	urlString;
+	const QString&	token;
+	QWebSocket 		webSocket;
+	QTimer			pingTimer;
+	QTimer			pongTimer;
+	QTimer			bindTimer;
+	bool			hasReconnect;
 };
 
 } /* namespace Mattermost */
-

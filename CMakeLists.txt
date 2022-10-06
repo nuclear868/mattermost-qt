@@ -10,7 +10,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -ggdb")
@@ -33,6 +33,7 @@ find_package(Qt5 COMPONENTS Network REQUIRED)
 find_package(Qt5 COMPONENTS WebSockets REQUIRED)
 
 include_directories(${Qt5Network_INCLUDE_DIRS} sources/)
+link_directories (${CMAKE_SOURCE_DIR}/libdatachannel/build/)
 
 if(ANDROID)
   add_library(mattermost-client SHARED
@@ -64,4 +65,4 @@ endif()
 
 add_subdirectory (tools)
 
-target_link_libraries(qmattermost PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets)
+target_link_libraries(qmattermost PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets datachannel)

@@ -213,6 +213,28 @@ void Backend::loginRetry ()
 #endif
 }
 
+void Backend::retrieveCallsConfig ()
+{
+	LOG_DEBUG ("retrieveCallsConfig request");
+	NetworkRequest request ("../../plugins/com.mattermost.calls/config");
+
+	httpConnector.get(request, [this] (QVariant, QByteArray data) {
+
+		LOG_DEBUG ("retrieveCallsConfig reply");
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+		QJsonArray arr = doc.object().value("ICEServers").toArray();
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		LOG_DEBUG (jsonString);
+#endif
+
+		callsConnector = std::make_unique<CallsConnector> (arr[0].toString(), NetworkRequest::host(), NetworkRequest::getToken());
+		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
+	});
+}
+
 void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void (const QString&)> callback)
 {
 	QJsonDocument doc = QJsonDocument::fromJson (data);
@@ -232,6 +254,7 @@ void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, 
 		qCritical() << "Login Token is empty. WebSocket communication may not work";
 	}
 
+	retrieveCallsConfig ();
 	webSocketConnector.open (NetworkRequest::host(), NetworkRequest::getToken());
 	isLoggedIn = true;
 	callback (NetworkRequest::getToken());

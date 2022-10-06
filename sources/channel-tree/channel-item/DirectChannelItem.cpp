@@ -45,6 +45,13 @@ void DirectChannelItem::showContextMenu (const QPoint& pos)
 			UserProfileDialog* dialog = new UserProfileDialog (*user, treeWidget());
 			dialog->show ();
 		});
+
+		myMenu.addAction ("Start a call", [this, user, &channel] {
+			backend.callsConnector->openWebSocket (channel.id);
+			//static WebSocketConnector conn (backend.webSocketEventHandler);
+		//	conn.call = true;
+			//conn.open ("wss://mattermost.egtmgs.com/api/v4/", backend.loginData.token);
+		});
 	}
 
 	myMenu.exec (pos);
