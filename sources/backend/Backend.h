@@ -104,6 +104,9 @@ public:
 	//get channel members (/channels/{channel_id}/members)
 	void retrieveChannelMembers (BackendChannel& channel);
 
+	//get poll metadata (/plugins/com.github.matterpoll.matterpoll/api/v1/polls/{poll_id}/metadata)
+	void retrievePollMetadata (BackendPoll& poll);
+
 	//mark the channel as viewed (/channels/members/me/view), so that the server knows that the channel is viewed
 	void markChannelAsViewed (BackendChannel& channel);
 
@@ -118,6 +121,9 @@ public:
 
 	//pin a post (/posts/{post_id}/pin)
 	void pinPost (const QString postID);
+
+	//send a post action (/posts/{post_id}/actions/{action})
+	void sendPostAction (const QString postID, const QString& action);
 
 	//upload a file, to be added to a post (/files)
 	void uploadFile (BackendChannel& channel, const QString& filePath, std::function<void(QString)> responseHandler);

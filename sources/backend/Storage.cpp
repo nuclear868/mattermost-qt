@@ -30,6 +30,8 @@ namespace Mattermost {
 Storage::Storage ()
 :directChannels (DIRECT_TEAM_ID)
 ,totalUsersCount (0)
+,loginUser (nullptr)
+,matterpollUser (nullptr)
 {
 	directChannels.display_name = "Direct Messages";
 }
@@ -220,6 +222,10 @@ BackendUser* Storage::addUser (const QJsonObject& json, bool isLoggedInUser)
 
 	if (isLoggedInUser) {
 		loginUser = user;
+	}
+
+	if (user->username == "matterpoll") {
+		matterpollUser = user;
 	}
 
 	return user;

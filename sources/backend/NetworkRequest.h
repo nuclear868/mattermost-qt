@@ -33,6 +33,7 @@ class NetworkRequest: public QNetworkRequest {
 public:
 	NetworkRequest ();
 	NetworkRequest (const QString& url, bool useCache = false);
+	NetworkRequest (const QString& urlRoot, const QString& url, bool useCache = false);
 	virtual ~NetworkRequest ();
 public:
 	static void setHost (const QString& host);

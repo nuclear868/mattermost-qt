@@ -70,6 +70,7 @@ public:
 	QMap<QString, BackendChannel*> 					directChannelsByUser;
 	std::map<QString, BackendUser>					users;
 	BackendUser*									loginUser;
+	BackendUser*									matterpollUser;
 	uint32_t										totalUsersCount;
 };
 

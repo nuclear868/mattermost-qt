@@ -21,18 +21,43 @@
 #include "ui_PostPoll.h"
 
 #include <QPushButton>
+#include "backend/Backend.h"
 #include "backend/types/BackendPoll.h"
 
 namespace Mattermost {
 
-PostPoll::PostPoll(BackendPoll& poll, QWidget *parent)
-:QWidget(parent)
+PostPoll::PostPoll (Backend& backend, const QString& postID, BackendPoll& poll, QWidget *parent)
+:QFrame(parent)
 ,ui(new Ui::PostPoll)
+,backend (backend)
+,postID (postID)
 {
 	ui->setupUi(this);
 
+	if (!poll.id.isEmpty()) {
+		backend.retrievePollMetadata (poll);
+	}
+
 	ui->titleLabel->setText (poll.title);
-	ui->textLabel->setText (poll.text);
+
+	QString text (poll.text.toHtmlEscaped ());
+	text.replace("---\n", "");
+	text.replace("\n", "<br>");
+
+	//replace stars with bold tags
+	QString replacements[2] = { "<b>", "</b>" };
+	int replacementIdx = 0;
+
+	int start = 0;
+	int pos = text.indexOf("**", start);
+
+	while (pos != -1) {
+		text.replace (pos, 2, replacements[(replacementIdx++) % 2]);
+		start = pos + 2;
+		pos = text.indexOf("**", start);
+	}
+
+	ui->textLabel->setText (text);
 
 	for (auto& option: poll.options) {
 
@@ -45,6 +70,10 @@ PostPoll::PostPoll(BackendPoll& poll, QWidget *parent)
 		if (poll.hasEnded) {
 			optionButton->setDisabled (true);
 		}
+
+		connect (optionButton, &QPushButton::released, [this, &option] {
+			this->backend.sendPostAction (this->postID, option.actionID);
+		});
 
 		ui->verticalLayout->addWidget (optionButton, 0, Qt::AlignLeft|Qt::AlignTop);
 	}

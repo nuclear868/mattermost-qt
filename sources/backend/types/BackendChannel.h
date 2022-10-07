@@ -77,7 +77,7 @@ public:
 	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad);
 	void prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
-	void editPost (const QString& postID, const QString& postMessage);
+	void editPost (BackendPost& newPost);
 
 signals:
 

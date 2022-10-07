@@ -34,8 +34,13 @@ QString NetworkRequest::httpToken;
 NetworkRequest::NetworkRequest () = default;
 
 NetworkRequest::NetworkRequest (const QString& url, bool useCache)
+:NetworkRequest (API_V4, url, useCache)
 {
-	setUrl (httpHost + url);
+}
+
+NetworkRequest::NetworkRequest (const QString& urlRoot, const QString& url, bool useCache)
+{
+	setUrl (httpHost + urlRoot + url);
 
 	setRawHeader("User-Agent", "QT");
 	setRawHeader("X-Requested-With", "XMLHttpRequest");
@@ -56,8 +61,6 @@ void NetworkRequest::setHost (const QString& host)
 	if (!httpHost.endsWith('/')) {
 		httpHost.append('/');
 	}
-
-	httpHost += API_V4;
 }
 
 void NetworkRequest::clearToken ()
@@ -79,6 +82,5 @@ const QString& NetworkRequest::host ()
 {
 	return httpHost;
 }
-
 
 } /* namespace Mattermost */

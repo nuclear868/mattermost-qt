@@ -28,7 +28,9 @@
 
 namespace Mattermost {
 
-BackendPoll::BackendPoll (const QJsonObject& jsonObject)
+BackendPoll::BackendPoll (const QString& pollID, const QJsonObject& jsonObject)
+:id (pollID)
+,hasAdminPermissions (false)
 {
 	title = jsonObject.value("title").toString();
 	text = jsonObject.value("text").toString();

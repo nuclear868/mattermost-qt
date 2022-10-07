@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QJsonArray>
 #include "BackendChannel.h"
+#include "BackendPoll.h"
 #include "backend/Storage.h"
 #include "log.h"
 
@@ -215,12 +216,14 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 	emit onNewPosts (allNewPosts);
 }
 
-void BackendChannel::editPost (const QString& postID, const QString& postMessage)
+void BackendChannel::editPost (BackendPost& newPost)
 {
 	for (auto& post: posts) {
-		if (post.id == postID) {
-			post.message = postMessage;
+		if (post.id == newPost.id) {
+			post.message = newPost.message;
+			post.poll = std::move (newPost.poll);
 			emit onPostEdited (post);
+			break;
 		}
 	}
 }

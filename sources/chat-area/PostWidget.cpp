@@ -82,7 +82,8 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	}
 
 	if (post.poll) {
-		poll = std::make_unique<PostPoll> (*post.poll, this);
+		ui->message->setMaximumHeight (0);
+		poll = std::make_unique<PostPoll> (backend, post.id, *post.poll, this);
 		ui->verticalLayout->addWidget (poll.get(), 0, Qt::AlignLeft);
 	}
 
@@ -97,9 +98,19 @@ PostWidget::~PostWidget()
     delete ui;
 }
 
-void Mattermost::PostWidget::setEdited (const QString& message)
+void PostWidget::setEdited (const QString& message)
 {
 	ui->message->setText (message);
+
+	/**
+	 * if (there is a poll in the post, just recreate the poll instance
+	 */
+	if (post.poll) {
+		ui->message->setMaximumHeight (0);
+		std::unique_ptr<PostPoll> newPoll = std::make_unique<PostPoll> (poll->backend, post.id, *post.poll, this);
+		ui->verticalLayout->replaceWidget (poll.get(), newPoll.get());
+		poll = std::move (newPoll);
+	}
 }
 
 void PostWidget::markAsDeleted ()

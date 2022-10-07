@@ -20,7 +20,8 @@
 #ifndef POSTPOLL_H
 #define POSTPOLL_H
 
-#include <QWidget>
+#include <QFrame>
+#include "fwd.h"
 
 namespace Ui {
 class PostPoll;
@@ -30,14 +31,16 @@ namespace Mattermost {
 
 class BackendPoll;
 
-class PostPoll: public QWidget {
+class PostPoll: public QFrame {
     Q_OBJECT
 public:
-    explicit PostPoll (BackendPoll& poll, QWidget *parent = nullptr);
+    explicit PostPoll (Backend& backend, const QString& postID, BackendPoll& poll, QWidget *parent = nullptr);
     ~PostPoll();
-
 private:
-    Ui::PostPoll *ui;
+    Ui::PostPoll 	*ui;
+public:
+    Backend& 		backend;
+    const QString&	postID;
 };
 
 } /* namespace Mattermost */

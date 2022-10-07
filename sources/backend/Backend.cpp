@@ -38,6 +38,7 @@
 #include <QList>
 
 #include "NetworkRequest.h"
+#include "types/BackendPoll.h"
 #include "log.h"
 
 /**
@@ -157,7 +158,7 @@ void Backend::loginRetry ()
 		debugRequest (request);
 
 		httpConnector.get (request, [this](QVariant, QByteArray, const QNetworkReply&) {
-			webSocketConnector.open (NetworkRequest::host(), loginData.token);
+			webSocketConnector.open (NetworkRequest::host() + "api/v4/", loginData.token);
 			isLoggedIn = true;
 			//loginSuccess (data, reply, [this] (const QString& token) {
 		//	});
@@ -232,7 +233,7 @@ void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, 
 		qCritical() << "Login Token is empty. WebSocket communication may not work";
 	}
 
-	webSocketConnector.open (NetworkRequest::host(), NetworkRequest::getToken());
+	webSocketConnector.open (NetworkRequest::host() + "api/v4/", NetworkRequest::getToken());
 	isLoggedIn = true;
 	callback (NetworkRequest::getToken());
 }
@@ -729,6 +730,23 @@ void Backend::retrieveChannelMembers (BackendChannel& channel)
 	});
 }
 
+void Backend::retrievePollMetadata (BackendPoll& poll)
+{
+	NetworkRequest request ("plugins/com.github.matterpoll.matterpoll/api/v1/", "polls/" + poll.id + "/metadata");
+
+	LOG_DEBUG ("retrievePollMetadata request");
+
+	httpConnector.get(request, [this, &poll](QVariant, QByteArray data) {
+
+		LOG_DEBUG ("retrievePollMetadata reply");
+
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+	});
+}
+
 void Backend::markChannelAsViewed (BackendChannel& channel)
 {
 	QJsonObject  json;
@@ -837,6 +855,13 @@ void Backend::deletePost (const QString postID)
 
 void Backend::pinPost (const QString postID)
 {
+}
+
+void Backend::sendPostAction (const QString postID, const QString& action)
+{
+	NetworkRequest request ("posts/" + postID + "/actions/" + action);
+
+	httpConnector.post (request, QByteArray(), [this](QVariant, QByteArray) {});
 }
 
 void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std::function<void (QString)> responseHandler)

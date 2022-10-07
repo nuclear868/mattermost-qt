@@ -63,12 +63,20 @@ BackendPost::BackendPost (const QJsonObject& jsonObject)
 	}
 
 	/**
-	 * If there are attachments to the post, try to handle them as a poll
+	 * If there are attachments to the post, it is either a poll or a call
 	 */
 	QJsonValue attachments (props.toObject().value("attachments"));
 	if (attachments.isArray()) {
-		//qDebug() << "Add poll " << message;
-		poll = std::make_unique<BackendPoll> (attachments.toArray()[0].toObject());
+		auto pollObject = attachments.toArray()[0].toObject();
+
+		/**
+		 * If there is no actions array and no fields array, this is not a poll
+		 */
+		if (pollObject.value("actions").toArray().isEmpty() && pollObject.value("fields").toArray().isEmpty()) {
+			return;
+		}
+
+		poll = std::make_unique<BackendPoll> (props.toObject().value("poll_id").toString(), pollObject);
 	}
 }
 

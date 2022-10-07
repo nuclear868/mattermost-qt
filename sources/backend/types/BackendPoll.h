@@ -37,16 +37,19 @@ struct BackendPollOption {
 
 class BackendPoll {
 public:
-	BackendPoll (const QJsonObject& jsonObject);
+	BackendPoll (const QString& pollID, const QJsonObject& jsonObject);
 	~BackendPoll ();
 private:
 	void fillChoiceOptions (const QJsonArray& optionsJson);
 	void fillPreviewOptions (const QJsonArray& optionsJson);
 public:
+	QString						id;
 	QString						title;
 	QString						text;
 	QVector<BackendPollOption>	options;
 	bool						hasEnded;
+
+	bool						hasAdminPermissions;
 };
 
 } /* namespace Mattermost */
