@@ -30,10 +30,11 @@ namespace Mattermost {
 
 BackendPoll::BackendPoll (const QString& pollID, const QJsonObject& jsonObject)
 :id (pollID)
-,hasAdminPermissions (false)
 {
+	authorName = jsonObject.value("author_name").toString();
 	title = jsonObject.value("title").toString();
 	text = jsonObject.value("text").toString();
+	metadata.hasAdminPermissions = false;
 
 	/**
 	 * If the poll is open, there is 'actions' array.
@@ -53,6 +54,27 @@ BackendPoll::BackendPoll (const QString& pollID, const QJsonObject& jsonObject)
 }
 
 BackendPoll::~BackendPoll () = default;
+
+void Mattermost::BackendPoll::fillMetadata (const QJsonObject& jsonObject)
+{
+	metadata.ownVoteOptions.clear();
+	metadata.hasAdminPermissions = jsonObject.value("admin_permission").toBool (false);
+
+	for (const auto& val: jsonObject.value("voted_answers").toArray()) {
+		QString answerStr = val.toString();
+
+		int optionIdx = 0;
+		for (auto& option: options) {
+			if (option.name == answerStr) {
+				metadata.ownVoteOptions.push_back(optionIdx);
+			}
+
+			++optionIdx;
+		}
+	}
+
+	emit onMetadataUpdated ();
+}
 
 void BackendPoll::fillChoiceOptions (const QJsonArray& optionsJson)
 {

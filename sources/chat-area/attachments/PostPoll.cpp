@@ -61,22 +61,48 @@ PostPoll::PostPoll (Backend& backend, const QString& postID, BackendPoll& poll, 
 
 	for (auto& option: poll.options) {
 
-		QPushButton* optionButton = new QPushButton (option.name, this);
-		optionButton->setMinimumSize (QSize(200, 30));
-		optionButton->setMaximumSize (QSize(200, 30));
+		QPushButton* pushButton = new QPushButton (option.name, this);
+		pushButton->setMinimumSize (QSize(200, 30));
+		pushButton->setMaximumSize (QSize(200, 30));
 
-		optionButton->setToolTip (option.voters);
+		pushButton->setToolTip (option.voters);
 
 		if (poll.hasEnded) {
-			optionButton->setDisabled (true);
+			pushButton->setDisabled (true);
 		}
 
-		connect (optionButton, &QPushButton::released, [this, &option] {
+		connect (pushButton, &QPushButton::released, [this, &option] {
 			this->backend.sendPostAction (this->postID, option.actionID);
 		});
 
-		ui->verticalLayout->addWidget (optionButton, 0, Qt::AlignLeft|Qt::AlignTop);
+		ui->verticalLayout->addWidget (pushButton, 0, Qt::AlignLeft|Qt::AlignTop);
+
+		if (option.actionID.isEmpty() || option.actionID.startsWith ("vote")) {
+			optionButtons.push_back (pushButton);
+		} else {
+			adminButtons.push_back (pushButton);
+
+			QPalette pal = pushButton->palette();
+			pal.setColor (QPalette::Button, QColor(Qt::darkGray));
+			pushButton->setPalette (pal);
+
+			pushButton->setVisible (poll.metadata.hasAdminPermissions);
+		}
 	}
+
+	connect (&poll, &BackendPoll::onMetadataUpdated, [this, &poll] {
+		for (auto& adminButton: adminButtons) {
+			if (!adminButton->isVisible()) {
+				adminButton->setVisible (poll.metadata.hasAdminPermissions);
+			}
+		}
+
+		for (auto& idx: poll.metadata.ownVoteOptions) {
+			QFont font (optionButtons[idx]->font());
+			font.setBold (true);
+			optionButtons[idx]->setFont (font);
+		}
+	});
 }
 
 PostPoll::~PostPoll()

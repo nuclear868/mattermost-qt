@@ -744,6 +744,8 @@ void Backend::retrievePollMetadata (BackendPoll& poll)
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
+
+		poll.fillMetadata (doc.object());
 	});
 }
 

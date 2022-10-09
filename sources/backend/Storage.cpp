@@ -29,9 +29,9 @@ namespace Mattermost {
 
 Storage::Storage ()
 :directChannels (DIRECT_TEAM_ID)
-,totalUsersCount (0)
 ,loginUser (nullptr)
 ,matterpollUser (nullptr)
+,totalUsersCount (0)
 {
 	directChannels.display_name = "Direct Messages";
 }

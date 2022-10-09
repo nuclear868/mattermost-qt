@@ -91,7 +91,25 @@ bool BackendPost::isOwnPost () const
 	return author->isLoginUser;
 }
 
+/**
+ * Get the author name to be displayed in chat windows, dialogs, etc.
+ * This differs from author name, in cases like polls - where the post author is a bot
+ * @return
+ */
 QString BackendPost::getDisplayAuthorName () const
+{
+	if (poll) {
+		return poll->authorName + " (" + getAuthorName() + ")";
+	}
+
+	return getAuthorName();
+}
+
+/**
+ * Get the author name. This is the name of the user, set as a post author
+ * @return
+ */
+QString BackendPost::getAuthorName () const
 {
 	if (author) {
 		return author->getDisplayName ();
@@ -104,5 +122,18 @@ QDateTime BackendPost::getCreationTime () const
 {
 	return QDateTime::fromMSecsSinceEpoch (create_at);
 }
+
+void BackendPost::updatePostEdits (BackendPost& editedPost)
+{
+	message = editedPost.message;
+
+	if (poll && editedPost.poll) {
+
+		editedPost.poll->metadata = poll->metadata;
+		poll = std::move (editedPost.poll);
+	}
+
+}
+
 
 } /* namespace Mattermost */

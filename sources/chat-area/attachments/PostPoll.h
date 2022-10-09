@@ -23,6 +23,8 @@
 #include <QFrame>
 #include "fwd.h"
 
+class QPushButton;
+
 namespace Ui {
 class PostPoll;
 }
@@ -37,10 +39,12 @@ public:
     explicit PostPoll (Backend& backend, const QString& postID, BackendPoll& poll, QWidget *parent = nullptr);
     ~PostPoll();
 private:
-    Ui::PostPoll 	*ui;
+    Ui::PostPoll*			ui;
 public:
-    Backend& 		backend;
-    const QString&	postID;
+    Backend& 				backend;
+    const QString&			postID;
+    QVector<QPushButton*> 	optionButtons;
+    QVector<QPushButton*> 	adminButtons;
 };
 
 } /* namespace Mattermost */

@@ -45,6 +45,9 @@ public:
 	bool isOwnPost () const;
 	QString getDisplayAuthorName () const;
 	QDateTime getCreationTime () const;
+	void updatePostEdits (BackendPost& editedPost);
+private:
+	QString getAuthorName () const;
 public:
 	QString						id;
 	uint64_t					create_at;

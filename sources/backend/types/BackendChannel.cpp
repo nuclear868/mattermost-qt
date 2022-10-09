@@ -220,8 +220,7 @@ void BackendChannel::editPost (BackendPost& newPost)
 {
 	for (auto& post: posts) {
 		if (post.id == newPost.id) {
-			post.message = newPost.message;
-			post.poll = std::move (newPost.poll);
+			post.updatePostEdits (newPost);
 			emit onPostEdited (post);
 			break;
 		}

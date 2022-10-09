@@ -26,6 +26,7 @@
 
 #include <QJsonObject>
 #include <QVector>
+#include <QObject>
 
 namespace Mattermost {
 
@@ -35,21 +36,34 @@ struct BackendPollOption {
 	QString	actionID;
 };
 
-class BackendPoll {
+/*
+ * Poll metadata. It is received separately - only when requested, or when a vote is made
+ */
+struct BackendPollMetadata {
+	bool						hasAdminPermissions;
+	QVector<uint32_t>			ownVoteOptions;
+};
+
+class BackendPoll: public QObject {
+	Q_OBJECT
 public:
 	BackendPoll (const QString& pollID, const QJsonObject& jsonObject);
 	~BackendPoll ();
+public:
+	void fillMetadata (const QJsonObject& jsonObject);
+signals:
+	void onMetadataUpdated ();
 private:
 	void fillChoiceOptions (const QJsonArray& optionsJson);
 	void fillPreviewOptions (const QJsonArray& optionsJson);
 public:
 	QString						id;
+	QString						authorName;
 	QString						title;
 	QString						text;
 	QVector<BackendPollOption>	options;
 	bool						hasEnded;
-
-	bool						hasAdminPermissions;
+	BackendPollMetadata			metadata;
 };
 
 } /* namespace Mattermost */
