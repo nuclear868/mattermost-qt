@@ -1,8 +1,8 @@
 /**
- * @file PostEditedEvent.cpp
+ * @file ChannelUpdatedEvent.cpp
  * @brief
  * @author Lyubomir Filipov
- * @date Mar 16, 2022
+ * @date Oct 10, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -22,20 +22,24 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "PostEditedEvent.h"
+#include "ChannelUpdatedEvent.h"
 
 #include <QJsonDocument>
 
 namespace Mattermost {
 
-PostEditedEvent::PostEditedEvent (const QJsonObject& data, const QJsonObject& broadcast)
-:teamId (data.value("team_id").toString())
-,channelId (broadcast.value ("channel_id").toString())
-//the post object is a JSON string inside the data object, with escaped json elements
-,postObject (QJsonDocument::fromJson (data.value ("post").toString().toUtf8()).object())
+ChannelUpdatedEvent::ChannelUpdatedEvent (const QJsonObject& data)
 {
+	//the channel object is a JSON string inside the channel object, with escaped json elements
+	QJsonObject channelObject = QJsonDocument::fromJson (data.value ("channel").toString().toUtf8()).object();
+
+	channelID = channelObject.value("id").toString();
+	displayName = channelObject.value("display_name").toString();
+	name = channelObject.value("name").toString();
+	header = channelObject.value("header").toString();
+	purpose = channelObject.value("purpose").toString();
 }
 
-PostEditedEvent::~PostEditedEvent () = default;
+ChannelUpdatedEvent::~ChannelUpdatedEvent () = default;
 
 } /* namespace Mattermost */

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "events/ChannelCreatedEvent.h"
+#include "events/ChannelUpdatedEvent.h"
 #include "events/ChannelViewedEvent.h"
 #include "events/PostEvent.h"
 #include "events/PostEditedEvent.h"
@@ -56,6 +57,7 @@ public:
 	void handleEvent (const UserLeaveTeamEvent& event);
 	void handleEvent (const UserRemovedFromChannelEvent& event);
 	void handleEvent (const ChannelCreatedEvent& event);
+	void handleEvent (const ChannelUpdatedEvent& event);
 private:
 	Backend& backend;
 	Storage& storage;

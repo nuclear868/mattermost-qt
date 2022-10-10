@@ -88,6 +88,11 @@ signals:
 	void onViewed ();
 
 	/**
+	 * Called when a channel is being updated. For example, changing the channel title or image
+	 */
+	void onUpdated ();
+
+	/**
 	 * Called when new posts are received.
 	 * Either after init or after WebSocket disconnect.
 	 *

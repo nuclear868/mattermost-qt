@@ -89,6 +89,13 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		ui->listWidget->removeNewMessagesSeparatorAfterTimeout (1000);
 	});
 
+	connect (&channel, &BackendChannel::onUpdated, [this] {
+		LOG_DEBUG ("Channel updated: " << this->channel.name);
+		ui->titleLabel->setText (this->channel.display_name);
+		ui->statusLabel->setText (this->channel.getChannelDescription ());
+	});
+
+
 	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
 
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);

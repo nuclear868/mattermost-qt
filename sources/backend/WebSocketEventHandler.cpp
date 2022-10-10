@@ -211,4 +211,22 @@ void WebSocketEventHandler::handleEvent (const ChannelCreatedEvent& event)
 	backend.retrieveChannel (*team, event.channelId);
 }
 
+void WebSocketEventHandler::handleEvent (const ChannelUpdatedEvent& event)
+{
+	BackendChannel* channel = storage.getChannelById (event.channelID);
+
+	if (!channel) {
+		return;
+	}
+
+	LOG_DEBUG ("Channel updated: " << channel->display_name);
+
+	channel->display_name = event.displayName;
+	channel->name = event.name;
+	channel->header = event.header;
+	channel->purpose = event.purpose;
+
+	emit channel->onUpdated();
+}
+
 } /* namespace Mattermost */
