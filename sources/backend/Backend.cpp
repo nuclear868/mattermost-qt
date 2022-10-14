@@ -776,6 +776,35 @@ void Backend::markChannelAsViewed (BackendChannel& channel)
 	});
 }
 
+void Backend::editChannelProperties (BackendChannel& channel, const BackendChannelProperties& newProperties)
+{
+	QJsonObject  json {
+		{"id", channel.id},
+		{"name", channel.name},
+		{"display_name", newProperties.displayName},
+		{"purpose", newProperties.purpose},
+		{"header", newProperties.header},
+	};
+
+
+	QString jsonString = QJsonDocument(json).toJson(QJsonDocument::Indented);
+	std::cout << jsonString.toStdString() << std::endl;
+
+	QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
+
+	NetworkRequest request ("channels/" + channel.id);
+	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	httpConnector.put (request, data, [this](QVariant, QByteArray data) {
+#if 0
+	QJsonDocument doc = QJsonDocument::fromJson(data);
+	QString jsonString = doc.toJson(QJsonDocument::Indented);
+	std::cout << "editChannelProperties" << jsonString.toStdString() << std::endl;
+#endif
+
+	});
+}
+
 void Backend::addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments, const QString& rootID)
 {
 	QJsonArray files;

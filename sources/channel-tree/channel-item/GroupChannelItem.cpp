@@ -30,6 +30,7 @@
 #include "backend/Backend.h"
 #include "info-dialogs/ChannelInfoDialog.h"
 #include "channel-tree-dialogs/UserListDialogForTeam.h"
+#include "channel-tree-dialogs/EditChannelPropertiesDialog.h"
 
 namespace Mattermost {
 
@@ -66,8 +67,17 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 	});
 
 	myMenu.addAction ("Add users to channel", [this, &channel] {
-		//ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
-		//dialog->show ();
+		ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
+		dialog->show ();
+	});
+
+	myMenu.addAction ("Edit channel propeties", [this, &channel] {
+		EditChannelPropertiesDialog* dialog = new EditChannelPropertiesDialog (channel);
+		dialog->show ();
+
+		QObject::connect (dialog, &EditChannelPropertiesDialog::accepted, [this, &channel, dialog] {
+			backend.editChannelProperties (channel, dialog->getNewProperties ());
+		});
 	});
 
 	myMenu.addAction ("Leave Channel", [this, &channel] {

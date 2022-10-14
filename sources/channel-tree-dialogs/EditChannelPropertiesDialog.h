@@ -1,9 +1,4 @@
 /**
- * @file ChannelItem.h
- * @brief
- * @author Lyubomir Filipov
- * @date Mar 30, 2022
- *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -22,26 +17,33 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#pragma once
+#ifndef EDITCHANNELPROPERTIESDIALOG_H
+#define EDITCHANNELPROPERTIESDIALOG_H
 
-#include "ChannelTreeItem.h"
+#include <QDialog>
+#include "backend/types/BackendChannelProperties.h"
 #include "fwd.h"
 
-class ChannelItemWidget;
+namespace Ui {
+class EditChannelPropertiesDialog;
+}
 
 namespace Mattermost {
 
-class ChannelItem: public ChannelTreeItem {
+class EditChannelPropertiesDialog : public QDialog
+{
+    Q_OBJECT
+
 public:
-	explicit ChannelItem (Backend& backend, ChannelItemWidget* widget);
-	virtual ~ChannelItem ();
+    explicit EditChannelPropertiesDialog (const BackendChannel& channel, QWidget *parent = nullptr);
+    ~EditChannelPropertiesDialog();
 public:
-    void setIcon (const QIcon &icon);
-    void setLabel (const QString& label);
-    void setWidget (ChannelItemWidget* widget);
-protected:
-    Backend& 			backend;
-    ChannelItemWidget* 	widget;
+    BackendChannelProperties getNewProperties ();
+
+private:
+    Ui::EditChannelPropertiesDialog *ui;
 };
 
 } /* namespace Mattermost */
+
+#endif // EDITCHANNELPROPERTIESDIALOG_H

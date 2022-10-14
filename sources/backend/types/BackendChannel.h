@@ -28,6 +28,7 @@
 #include <list>
 #include "BackendPost.h"
 #include "BackendChannelMember.h"
+#include "BackendChannelProperties.h"
 #include "fwd.h"
 
 class QJsonObject;

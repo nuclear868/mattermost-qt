@@ -1,8 +1,8 @@
 /**
- * @file ChannelItem.h
- * @brief
+ * @file BackendChannelProperties.h
+ * @brief Backend Channel editable properties
  * @author Lyubomir Filipov
- * @date Mar 30, 2022
+ * @date Oct 13, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -24,24 +24,11 @@
 
 #pragma once
 
-#include "ChannelTreeItem.h"
-#include "fwd.h"
+#include <QString>
 
-class ChannelItemWidget;
-
-namespace Mattermost {
-
-class ChannelItem: public ChannelTreeItem {
-public:
-	explicit ChannelItem (Backend& backend, ChannelItemWidget* widget);
-	virtual ~ChannelItem ();
-public:
-    void setIcon (const QIcon &icon);
-    void setLabel (const QString& label);
-    void setWidget (ChannelItemWidget* widget);
-protected:
-    Backend& 			backend;
-    ChannelItemWidget* 	widget;
+struct BackendChannelProperties {
+	QString displayName;
+	QString header;
+	QString purpose;
 };
 
-} /* namespace Mattermost */

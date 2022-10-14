@@ -175,7 +175,7 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 		QString newPostId = newPostEl.toString();
 
 		//if a post is deleted, it will exist locally, but will not exist in the list of received post
-		while (currentLocalPost->isDeleted && currentLocalPost != posts.rend()) {
+		while (currentLocalPost != posts.rend() && currentLocalPost->isDeleted) {
 			++currentLocalPost;
 		}
 

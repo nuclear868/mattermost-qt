@@ -55,4 +55,9 @@ void ChannelItem::setLabel (const QString& label)
 	}
 }
 
+void ChannelItem::setWidget (ChannelItemWidget* widget)
+{
+	this->widget = widget;
+}
+
 } /* namespace Mattermost */

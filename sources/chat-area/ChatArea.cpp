@@ -90,7 +90,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	});
 
 	connect (&channel, &BackendChannel::onUpdated, [this] {
-		LOG_DEBUG ("Channel updated: " << this->channel.name);
 		ui->titleLabel->setText (this->channel.display_name);
 		this->treeItem->setLabel (this->channel.display_name);
 		ui->statusLabel->setText (this->channel.getChannelDescription ());
@@ -363,19 +362,24 @@ void ChatArea::moveOnListTop ()
 
 	bool isCurrent = (tree->currentItem() == treeItem);
 
-	ChannelItemWidget* itemWidget = static_cast<ChannelItemWidget*> (tree->itemWidget(treeItem, 0));
+	ChannelItemWidget* thisItemWidget = static_cast<ChannelItemWidget*> (tree->itemWidget(treeItem, 0));
 
 
-	ChannelItemWidget* newItemWidget = new ChannelItemWidget (itemWidget->parentWidget());
+	/**
+	 * takeChild will delete the widget because the tree owns the widget.
+	 * Therefore, create a new widget and set it as ItemWidget
+	 */
+	ChannelItemWidget* newItemWidget = new ChannelItemWidget (thisItemWidget->parentWidget());
 	newItemWidget->setLabel (channel.display_name);
 
-	if (itemWidget->getPixmap()) {
-		newItemWidget->setIcon (QIcon(*itemWidget->getPixmap()));
+	if (thisItemWidget->getPixmap()) {
+		newItemWidget->setIcon (QIcon(*thisItemWidget->getPixmap()));
 	}
 
 	qDebug() << "Move on top (" << parent->indexOfChild(treeItem) << ") -> 0";
 
 	//block signals, so that itemActivated is not called
+
 	tree->blockSignals (true);
 	QTreeWidgetItem* child = parent->takeChild (parent->indexOfChild(treeItem));
 	parent->insertChild(0, child);
@@ -386,6 +390,7 @@ void ChatArea::moveOnListTop ()
 	}
 
 	tree->setItemWidget (child, 0, newItemWidget);
+	treeItem->setWidget (newItemWidget);
 
 	if (isCurrent) {
 		tree->setCurrentItem (child);

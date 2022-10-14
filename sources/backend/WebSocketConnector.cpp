@@ -199,7 +199,7 @@ void WebSocketConnector::reset ()
 
 static bool printEvent (const QString& name)
 {
-	if (name == "channel_viewed") {
+	if (name == "channel_viewed" || name == "channel_updated") {
 		return false;
 	}
 

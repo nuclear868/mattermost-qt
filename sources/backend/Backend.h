@@ -110,6 +110,9 @@ public:
 	//mark the channel as viewed (/channels/members/me/view), so that the server knows that the channel is viewed
 	void markChannelAsViewed (BackendChannel& channel);
 
+	//edit channel properties (PUT /channels/{channel_id})
+	void editChannelProperties (BackendChannel& channel, const BackendChannelProperties& newProperties);
+
 	//add new post in a channel (/posts)
 	void addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments = QList<QString> (), const QString& rootID = "");
 
