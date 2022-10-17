@@ -26,15 +26,16 @@
 
 namespace Mattermost {
 
-#define API_V4 "api/v4/"
-
 QString NetworkRequest::httpHost;
 QString NetworkRequest::httpToken;
+
+const QString NetworkRequest::mattermostMain = "api/v4/";
+const QString NetworkRequest::matterpoll = "plugins/com.github.matterpoll.matterpoll/api/v1/";
 
 NetworkRequest::NetworkRequest () = default;
 
 NetworkRequest::NetworkRequest (const QString& url, bool useCache)
-:NetworkRequest (API_V4, url, useCache)
+:NetworkRequest (mattermostMain, url, useCache)
 {
 }
 

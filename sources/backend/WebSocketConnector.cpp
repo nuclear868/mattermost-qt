@@ -93,6 +93,11 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	{"channel_updated", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
 		conn.eventHandler.handleEvent (ChannelUpdatedEvent (data));
 	}},
+
+	//a server-side dialog
+	{"open_dialog", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
+		conn.eventHandler.handleEvent (OpenDialogEvent (data));
+	}},
 };
 
 WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)

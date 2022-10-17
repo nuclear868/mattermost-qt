@@ -1,4 +1,9 @@
 /**
+ * @file OpenDialogEvent.h
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Oct 15, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,35 +22,22 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef POSTPOLL_H
-#define POSTPOLL_H
 
-#include <QFrame>
-#include "fwd.h"
+#pragma once
 
-class QPushButton;
-
-namespace Ui {
-class PostPoll;
-}
+#include <QJsonObject>
 
 namespace Mattermost {
 
-class BackendPoll;
-
-class PostPoll: public QFrame {
-    Q_OBJECT
+class OpenDialogEvent {
 public:
-    explicit PostPoll (Backend& backend, const BackendPost& post, BackendPoll& poll, QWidget *parent = nullptr);
-    ~PostPoll();
-private:
-    Ui::PostPoll*			ui;
+	OpenDialogEvent (const QJsonObject& data);
+	explicit OpenDialogEvent (const QString& triggerID);
+	~OpenDialogEvent ();
 public:
-    Backend& 				backend;
-    QVector<QPushButton*> 	optionButtons;
-    QVector<QPushButton*> 	adminButtons;
+	QString url;
+	QString triggerID;
+	QString callbackID;
 };
 
 } /* namespace Mattermost */
-
-#endif // POSTPOLL_H

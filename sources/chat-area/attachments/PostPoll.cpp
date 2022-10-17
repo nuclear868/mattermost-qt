@@ -21,16 +21,16 @@
 #include "ui_PostPoll.h"
 
 #include <QPushButton>
+#include <QMessageBox>
 #include "backend/Backend.h"
 #include "backend/types/BackendPoll.h"
 
 namespace Mattermost {
 
-PostPoll::PostPoll (Backend& backend, const QString& postID, BackendPoll& poll, QWidget *parent)
+PostPoll::PostPoll (Backend& backend, const BackendPost& post, BackendPoll& poll, QWidget *parent)
 :QFrame(parent)
 ,ui(new Ui::PostPoll)
 ,backend (backend)
-,postID (postID)
 {
 	ui->setupUi(this);
 
@@ -71,16 +71,23 @@ PostPoll::PostPoll (Backend& backend, const QString& postID, BackendPoll& poll, 
 			pushButton->setDisabled (true);
 		}
 
-		connect (pushButton, &QPushButton::released, [this, &option] {
-			this->backend.sendPostAction (this->postID, option.actionID);
-		});
 
 		ui->verticalLayout->addWidget (pushButton, 0, Qt::AlignLeft|Qt::AlignTop);
 
 		if (option.actionID.isEmpty() || option.actionID.startsWith ("vote")) {
 			optionButtons.push_back (pushButton);
+			connect (pushButton, &QPushButton::released, [this, &post, &option] {
+				this->backend.sendPostAction (post, option.actionID);
+			});
 		} else {
 			adminButtons.push_back (pushButton);
+			connect (pushButton, &QPushButton::released, [this, &post, &option, pushButton] {
+
+				if (QMessageBox::question (this, "Are you sure?", "Are you sure that you want to " + pushButton->text() + "?") == QMessageBox::Yes) {
+					this->backend.sendPostAction (post, option.actionID);
+				}
+
+			});
 
 			QPalette pal = pushButton->palette();
 			pal.setColor (QPalette::Button, QColor(Qt::darkGray));

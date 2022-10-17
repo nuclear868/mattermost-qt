@@ -35,6 +35,10 @@ public:
 	NetworkRequest (const QString& url, bool useCache = false);
 	NetworkRequest (const QString& urlRoot, const QString& url, bool useCache = false);
 	virtual ~NetworkRequest ();
+
+	//urls used
+	static const QString mattermostMain;
+	static const QString matterpoll;
 public:
 	static void setHost (const QString& host);
 	static void clearToken ();

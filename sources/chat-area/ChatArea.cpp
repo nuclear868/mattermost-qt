@@ -310,6 +310,7 @@ void ChatArea::onActivate ()
 	ui->listWidget->scrollToUnreadPostsOrBottom ();
 	//ui->listWidget->adjustSize();
 
+	backend.setCurrentChannel (channel);
 	backend.markChannelAsViewed (channel);
 
 	for (BackendFile* file: filesToLoad) {

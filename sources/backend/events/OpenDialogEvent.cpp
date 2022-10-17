@@ -1,4 +1,9 @@
 /**
+ * @file OpenDialogEvent.cpp
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Oct 15, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,35 +22,27 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef POSTPOLL_H
-#define POSTPOLL_H
+#include "OpenDialogEvent.h"
 
-#include <QFrame>
-#include "fwd.h"
-
-class QPushButton;
-
-namespace Ui {
-class PostPoll;
-}
+#include <QJsonDocument>
 
 namespace Mattermost {
 
-class BackendPoll;
+OpenDialogEvent::OpenDialogEvent (const QJsonObject& data)
+{
+	//the dialog object is a JSON string inside the data object, with escaped json elements
+	QJsonObject dialogObject = QJsonDocument::fromJson (data.value ("dialog").toString().toUtf8()).object();
 
-class PostPoll: public QFrame {
-    Q_OBJECT
-public:
-    explicit PostPoll (Backend& backend, const BackendPost& post, BackendPoll& poll, QWidget *parent = nullptr);
-    ~PostPoll();
-private:
-    Ui::PostPoll*			ui;
-public:
-    Backend& 				backend;
-    QVector<QPushButton*> 	optionButtons;
-    QVector<QPushButton*> 	adminButtons;
-};
+	url = dialogObject.value ("url").toString();
+	triggerID = dialogObject.value ("trigger_id").toString();
+	callbackID = dialogObject.value ("dialog").toObject().value ("callback_id").toString();
+}
+
+OpenDialogEvent::OpenDialogEvent (const QString& triggerID)
+:triggerID(triggerID)
+{
+}
+
+OpenDialogEvent::~OpenDialogEvent () = default;
 
 } /* namespace Mattermost */
-
-#endif // POSTPOLL_H

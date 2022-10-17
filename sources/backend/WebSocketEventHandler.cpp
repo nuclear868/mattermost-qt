@@ -23,6 +23,8 @@
  */
 
 #include "WebSocketEventHandler.h"
+
+#include <QJsonDocument>
 #include "Backend.h"
 #include "Storage.h"
 #include "log.h"
@@ -227,6 +229,11 @@ void WebSocketEventHandler::handleEvent (const ChannelUpdatedEvent& event)
 	channel->purpose = event.purpose;
 
 	emit channel->onUpdated();
+}
+
+void WebSocketEventHandler::handleEvent (const OpenDialogEvent& event)
+{
+	backend.getServerDialogsMap().addEvent (event);
 }
 
 } /* namespace Mattermost */

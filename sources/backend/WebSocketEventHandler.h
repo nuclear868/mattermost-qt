@@ -35,6 +35,7 @@
 #include "events/UserTeamEvent.h"
 #include "events/UserAddedToChannelEvent.h"
 #include "events/UserRemovedFromChannelEvent.h"
+#include "events/OpenDialogEvent.h"
 
 namespace Mattermost {
 
@@ -58,6 +59,7 @@ public:
 	void handleEvent (const UserRemovedFromChannelEvent& event);
 	void handleEvent (const ChannelCreatedEvent& event);
 	void handleEvent (const ChannelUpdatedEvent& event);
+	void handleEvent (const OpenDialogEvent& event);
 private:
 	Backend& backend;
 	Storage& storage;

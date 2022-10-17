@@ -33,6 +33,7 @@
 #include "backend/WebSocketConnector.h"
 #include "backend/WebSocketEventHandler.h"
 #include "backend/Storage.h"
+#include "backend/ServerDialogsMap.h"
 
 namespace Mattermost {
 
@@ -126,7 +127,7 @@ public:
 	void pinPost (const QString postID);
 
 	//send a post action (/posts/{post_id}/actions/{action})
-	void sendPostAction (const QString postID, const QString& action);
+	void sendPostAction (const BackendPost& post, const QString& action);
 
 	//upload a file, to be added to a post (/files)
 	void uploadFile (BackendChannel& channel, const QString& filePath, std::function<void(QString)> responseHandler);
@@ -140,9 +141,18 @@ public:
 	//leave a channel (/channels/{channel_id}/members/{user_id})
 	void leaveChannel (const BackendChannel& channel);
 
+	//send a submit dialog response. In most cases, dialogs are handled by the UI
+	void sendSubmitDialog (const QJsonDocument& doc);
+
 	const BackendUser& getLoginUser () const;
 
+	void setCurrentChannel (BackendChannel& channel);
+
+	BackendChannel* getCurrentChannel () const;
+
 	Storage& getStorage ();
+
+	ServerDialogsMap& getServerDialogsMap ();
 signals:
 
 	/**
@@ -184,11 +194,13 @@ private:
     void loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
 private:
     Storage							storage;
+    ServerDialogsMap				serverDialogsMap;
 
     HTTPConnector 					httpConnector;
     WebSocketEventHandler			webSocketEventHandler;
     WebSocketConnector				webSocketConnector;
     BackendLoginData				loginData;
+    BackendChannel*					currentChannel;
     bool							isLoggedIn;
     uint32_t						nonFilledTeams;
 };

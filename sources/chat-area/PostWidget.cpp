@@ -82,8 +82,9 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	}
 
 	if (post.poll) {
+		//set message height 0, because poll messages do not contain free text (outside the poll itself)
 		ui->message->setMaximumHeight (0);
-		poll = std::make_unique<PostPoll> (backend, post.id, *post.poll, this);
+		poll = std::make_unique<PostPoll> (backend, post, *post.poll, this);
 		ui->verticalLayout->addWidget (poll.get(), 0, Qt::AlignLeft);
 	}
 
@@ -106,8 +107,9 @@ void PostWidget::setEdited (const QString& message)
 	 * if (there is a poll in the post, just recreate the poll instance
 	 */
 	if (post.poll) {
+		//set message height 0, because poll messages do not contain free text (outside the poll itself)
 		ui->message->setMaximumHeight (0);
-		std::unique_ptr<PostPoll> newPoll = std::make_unique<PostPoll> (poll->backend, post.id, *post.poll, this);
+		std::unique_ptr<PostPoll> newPoll = std::make_unique<PostPoll> (poll->backend, post, *post.poll, this);
 		ui->verticalLayout->replaceWidget (poll.get(), newPoll.get());
 		poll = std::move (newPoll);
 	}
@@ -115,9 +117,17 @@ void PostWidget::setEdited (const QString& message)
 
 void PostWidget::markAsDeleted ()
 {
-	ui->message->setText ("(Message deleted)");
 	attachments.reset (nullptr);
 	post.isDeleted = true;
+	if (poll) {
+		ui->verticalLayout->removeWidget (poll.get());
+		poll.reset (nullptr);
+
+		ui->message->setText ("(Poll deleted)");
+		ui->message->setMaximumHeight (100);
+	} else {
+		ui->message->setText ("(Message deleted)");
+	}
 }
 
 QString PostWidget::formatMessageText (const QString& str)

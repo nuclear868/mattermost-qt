@@ -51,8 +51,10 @@ namespace Mattermost {
 
 Backend::Backend(QObject *parent)
 :QObject (parent)
+,serverDialogsMap (*this)
 ,webSocketEventHandler (*this)
 ,webSocketConnector (webSocketEventHandler)
+,currentChannel (nullptr)
 ,isLoggedIn (false)
 ,nonFilledTeams (0)
 {
@@ -168,50 +170,16 @@ void Backend::loginRetry ()
 	}
 
 	LOG_DEBUG ("Login retry - no token");
-#if 0
-	QJsonDocument  json;
-	QJsonObject  jsonRoot;
+}
 
+void Backend::setCurrentChannel (BackendChannel& channel)
+{
+	currentChannel = &channel;
+}
 
-	jsonRoot.insert("login_id", loginData.username);
-	jsonRoot.insert("password", loginData.password);
-	jsonRoot.insert("device_id", "QT Client");
-#if 0
-	if (!token.isEmpty())
-		jsonRoot.insert("token", token);
-#endif
-	json.setObject(jsonRoot);
-	QByteArray data = json.toJson(QJsonDocument::Compact);
-
-	NetworkRequest request ("users/login");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-	//debugRequest (request, data);
-
-	httpConnector.post(request, data, [this](QVariant, QByteArray data, const QNetworkReply& reply) {
-		QJsonDocument doc = QJsonDocument::fromJson(data);
-
-		LOG_DEBUG ("Login retry successful");
-
-#if 0
-		QString jsonString = doc.toJson(QJsonDocument::Indented);
-		std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
-#endif
-		//storage.loginUser = BackendUser (doc.object());
-
-		//callback ();
-
-		QString loginToken = reply.rawHeader ("Token");
-		NetworkRequest::setToken (loginToken);
-
-		if (loginToken.isEmpty()) {
-			qCritical() << "Login Token is empty. WebSocket communication may not work";
-		}
-
-		webSocketConnector.open (NetworkRequest::host(), loginToken);
-		isLoggedIn = true;
-	});
-#endif
+BackendChannel* Backend::getCurrentChannel () const
+{
+	return currentChannel;
 }
 
 void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void (const QString&)> callback)
@@ -732,7 +700,7 @@ void Backend::retrieveChannelMembers (BackendChannel& channel)
 
 void Backend::retrievePollMetadata (BackendPoll& poll)
 {
-	NetworkRequest request ("plugins/com.github.matterpoll.matterpoll/api/v1/", "polls/" + poll.id + "/metadata");
+	NetworkRequest request (NetworkRequest::matterpoll, "polls/" + poll.id + "/metadata");
 
 	LOG_DEBUG ("retrievePollMetadata request");
 
@@ -795,7 +763,7 @@ void Backend::editChannelProperties (BackendChannel& channel, const BackendChann
 	NetworkRequest request ("channels/" + channel.id);
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.put (request, data, [this](QVariant, QByteArray data) {
+	httpConnector.put (request, data, [this](QVariant, QByteArray) {
 #if 0
 	QJsonDocument doc = QJsonDocument::fromJson(data);
 	QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -831,7 +799,7 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 	NetworkRequest request ("posts");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray) {
+	httpConnector.post (request, data, [this](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -888,11 +856,25 @@ void Backend::pinPost (const QString postID)
 {
 }
 
-void Backend::sendPostAction (const QString postID, const QString& action)
+void Backend::sendPostAction (const BackendPost& post, const QString& action)
 {
-	NetworkRequest request ("posts/" + postID + "/actions/" + action);
+	NetworkRequest request  ("posts/" + post.id + "/actions/" + action);
 
-	httpConnector.post (request, QByteArray(), [this](QVariant, QByteArray) {});
+	httpConnector.post (request, QByteArray(), [this](QVariant, QByteArray data) {
+
+#if 1
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "sendPostAction reply: " << jsonString.toStdString() << std::endl;
+
+		const QJsonObject& obj = doc.object();
+		if (obj.value("status").toString() == "OK") {
+			serverDialogsMap.addEvent (obj.value ("trigger_id").toString());
+		}
+#endif
+
+
+	});
 }
 
 void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std::function<void (QString)> responseHandler)
@@ -980,6 +962,23 @@ void Backend::leaveChannel (const BackendChannel& channel)
 	httpConnector.del (request);
 }
 
+void Backend::sendSubmitDialog (const QJsonDocument& doc)
+{
+	QString jsonString = doc.toJson(QJsonDocument::Indented);
+	qDebug() << "SendSubmitDialog request: " << jsonString.toStdString().c_str();
+
+	QByteArray data (doc.toJson(QJsonDocument::Compact));
+
+	NetworkRequest request ("actions/dialogs/submit");
+	httpConnector.post (request, data, [] (QVariant, QByteArray) {
+#if 0
+		QJsonDocument doc2 = QJsonDocument::fromJson(data);
+		QString jsonString = doc2.toJson(QJsonDocument::Indented);
+		qDebug() << "SendSubmitDialog reply: " << jsonString.toStdString().c_str();
+#endif
+	});
+}
+
 const BackendUser& Backend::getLoginUser () const
 {
 	return *storage.loginUser;
@@ -988,6 +987,11 @@ const BackendUser& Backend::getLoginUser () const
 Storage& Backend::getStorage ()
 {
 	return storage;
+}
+
+ServerDialogsMap& Backend::getServerDialogsMap ()
+{
+	return serverDialogsMap;
 }
 
 } /* namespace Mattermost */
