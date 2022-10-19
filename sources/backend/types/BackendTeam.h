@@ -37,12 +37,10 @@ namespace Mattermost {
 class BackendTeam: public QObject {
 	Q_OBJECT
 public:
-	BackendTeam (QString id);
 	BackendTeam (const QJsonObject& jsonObject);
 	virtual ~BackendTeam ();
 public:
-	bool isDirectChannelsCollection () const;
-
+	QSet<const BackendUser*> getAllMembers () const;
 signals:
 	void onLeave ();
 	void onNewChannel (BackendChannel& channel);

@@ -28,7 +28,7 @@
 #include "channel-tree/channel-item/DirectChannelItem.h"
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
-#include "channel-tree-dialogs/UserListDialogForNewDirect.h"
+#include "channel-tree-dialogs/AddNewDirectChannelDialog.h"
 
 namespace Mattermost {
 
@@ -44,10 +44,11 @@ void DirectTeamItem::showContextMenu (const QPoint& pos)
 
 	myMenu.addAction ("Add direct channel", [this] {
 		qDebug() << "Add direct channel ";
-		UserListDialogForNewDirect* dialog = new UserListDialogForNewDirect (backend.getStorage().getAllUsers(), treeWidget());
+		QSet<const BackendUser*> allDirectChannelUsers = backend.getStorage().directChannels.getAllMembers();
+		UserListDialog* dialog = new AddNewDirectChannelDialog (backend.getStorage().getAllUsers(), &allDirectChannelUsers, treeWidget());
 		dialog->show ();
 
-		connect (dialog, &UserListDialogForNewDirect::accepted, [this, dialog] {
+		connect (dialog, &UserListDialog::accepted, [this, dialog] {
 			const BackendUser* user = dialog->getSelectedUser();
 
 			if (!user) {

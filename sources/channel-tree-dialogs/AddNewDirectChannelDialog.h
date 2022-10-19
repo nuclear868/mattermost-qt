@@ -1,5 +1,5 @@
 /**
- * @file UserListDialogForNewDirect.cpp
+ * @file AddNewDirectChannelDialog.h
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 10, 2022
@@ -22,15 +22,17 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "UserListDialogForNewDirect.h"
+#pragma once
+
+#include "UserListDialog.h"
+#include "ui_FilterListDialog.h"
 
 namespace Mattermost {
 
-UserListDialogForNewDirect::UserListDialogForNewDirect (const std::map<QString, BackendUser>& users, QWidget* parent)
-:UserListDialog (users, parent)
-{
-	setWindowTitle("New Direct Channel - Mattermost");
-	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", "Select a user to start direct message with:", nullptr));
-}
+class AddNewDirectChannelDialog: public UserListDialog {
+public:
+	AddNewDirectChannelDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
+private:
+};
 
 } /* namespace Mattermost */

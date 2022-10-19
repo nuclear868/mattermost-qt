@@ -30,6 +30,7 @@
 #include "backend/Backend.h"
 #include "info-dialogs/ChannelInfoDialog.h"
 #include "channel-tree-dialogs/UserListDialogForTeam.h"
+#include "channel-tree-dialogs/AddUserToChannelDialog.h"
 #include "channel-tree-dialogs/EditChannelPropertiesDialog.h"
 
 namespace Mattermost {
@@ -67,8 +68,32 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 	});
 
 	myMenu.addAction ("Add users to channel", [this, &channel] {
-		ChannelInfoDialog* dialog = new ChannelInfoDialog (channel, treeWidget());
+
+		std::vector<BackendUser*> users;
+
+		for (auto& member: channel.team->members) {
+
+			if (!member.user) {
+				qDebug() << "null user with id " << member.user_id;
+				continue;
+			}
+
+			users.emplace_back (member.user);
+		}
+
+		QSet<const BackendUser*> channelMembers = channel.getAllMembers();
+		UserListDialog* dialog = new AddUserToChannelDialog (users, &channelMembers, channel.display_name, treeWidget());
 		dialog->show ();
+
+		QObject::connect (dialog, &UserListDialog::accepted, [this, &channel, dialog] {
+			const BackendUser* user = dialog->getSelectedUser();
+
+			if (!user) {
+				qDebug() << "dialog->getSelectedUser() returned nullptr";
+				return;
+			}
+		});
+
 	});
 
 	myMenu.addAction ("Edit channel propeties", [this, &channel] {

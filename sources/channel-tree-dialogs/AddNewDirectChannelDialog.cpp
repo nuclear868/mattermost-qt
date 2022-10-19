@@ -1,5 +1,5 @@
 /**
- * @file UserListDialogForTeam.cpp
+ * @file AddNewDirectChannelDialog.cpp
  * @brief
  * @author Lyubomir Filipov
  * @date Apr 10, 2022
@@ -22,19 +22,15 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "UserListDialogForTeam.h"
-#include "ui_FilterListDialog.h"
+#include "AddNewDirectChannelDialog.h"
 
 namespace Mattermost {
 
-UserListDialogForTeam::UserListDialogForTeam (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent)
-:UserListDialog (users, nullptr, parent)
+AddNewDirectChannelDialog::AddNewDirectChannelDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
+:UserListDialog (allUsers, alreadyExistingUsers, parent)
 {
-	setWindowTitle("Team Members - Mattermost");
-	ui->selectUserLabel->setText ("Members of team '" + teamName + "':");
-	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+	setWindowTitle("New Direct Channel - Mattermost");
+	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", "Select a user to start direct message with:", nullptr));
 }
-
-UserListDialogForTeam::~UserListDialogForTeam () = default;
 
 } /* namespace Mattermost */

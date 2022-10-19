@@ -414,11 +414,9 @@ void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
 
     std::cout << "get teams" << std::endl;
 
-    httpConnector.get(request, [this, callback](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, callback](QVariant, const QJsonDocument& doc) {
     	LOG_DEBUG ("getOwnTeams reply");
 		storage.teams.clear ();
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -445,10 +443,8 @@ void Backend::retrieveTeam (QString teamID)
     std::cout << "get team " << teamID.toStdString() << std::endl;
 
 
-    httpConnector.get(request, [this](QVariant, QByteArray data) {
+    httpConnector.get(request, [this](QVariant, const QJsonDocument& doc) {
     	LOG_DEBUG ("getTeam reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -471,7 +467,7 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
 
     std::cout << "get team channels " << teamID.toStdString() << std::endl;
 
-    httpConnector.get(request, [this, callback, teamID](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, callback, teamID](QVariant, const QJsonDocument& doc) {
     	LOG_DEBUG ("getTeamChannels reply");
 
 		BackendTeam* team = storage.getTeamById (teamID);
@@ -482,7 +478,7 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
 
 		team->allPublicChannels.clear();
 
-		for (const auto &item: QJsonDocument::fromJson(data).array()) {
+		for (const auto &item: doc.array()) {
 			team->allPublicChannels.emplace_back (storage, item.toObject());
 		}
 
@@ -498,19 +494,28 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 {
     NetworkRequest request ("users/me/teams/" + team.id + "/channels");
 
-    httpConnector.get(request, [this, &team, callback](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, &team, callback](QVariant, const QJsonDocument& doc) {
     	team.channels.clear ();
 
-    	QJsonDocument doc = QJsonDocument::fromJson(data);
-
-#if 0
+#if 1
     	QString jsonString = doc.toJson(QJsonDocument::Indented);
     	std::cout << "getOwnChannelMemberships reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 
     	LOG_DEBUG ("Team " << team.display_name << ":");
 		for (const auto &itemRef: doc.array()) {
-			BackendChannel* channel =  storage.addChannel (team, itemRef.toObject());
+
+			const QJsonObject& channelObject = itemRef.toObject();
+			uint32_t channelType = BackendChannel::getChannelType (channelObject);
+
+			BackendChannel* channel;
+
+			if (channelType == BackendChannel::directChannel) {
+				channel = storage.addDirectChannel (channelObject);
+			} else {
+				channel = storage.addNonDirectChannel (team, channelObject);
+			}
+
 			LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
 		}
 
@@ -521,7 +526,7 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 		--nonFilledTeams;
 
 		if (nonFilledTeams == 0) {
-			emit onAllTeamChannelsPopulated (storage.directChannels);
+			emit onAllTeamChannelsPopulated ();
 		}
     });
 }
@@ -551,11 +556,7 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 {
 	NetworkRequest request ("teams/" + team.id + "/members");
 
-	httpConnector.get(request, [this, &team](QVariant, QByteArray data) {
-
-		//LOG_DEBUG ("retrieveTeamMembers reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
+	httpConnector.get(request, [this, &team](QVariant, const QJsonDocument& doc) {
 
 		auto root = doc.array();
 		for(const auto &itemRef: qAsConst(root)) {
@@ -583,20 +584,39 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 
 	LOG_DEBUG ("retrieveChannel " << channelID);
 
-	httpConnector.get(request, [this, &team](QVariant, QByteArray data) {
+	httpConnector.get(request, [this, &team](QVariant, const QJsonDocument& doc) {
 		LOG_DEBUG ("retrieveChannel reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 
-		BackendChannel* channel =  storage.addChannel (team, doc.object());
+		BackendChannel* channel =  storage.addNonDirectChannel (team, doc.object());
 		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit team.onNewChannel (*channel);
+    });
+}
+
+void Backend::retrieveDirectChannel (QString channelID)
+{
+	NetworkRequest request ("channels/" + channelID);
+
+	LOG_DEBUG ("retrieveChannel " << channelID);
+
+	httpConnector.get(request, [this](QVariant, const QJsonDocument& doc) {
+		LOG_DEBUG ("retrieveChannel reply");
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
+#endif
+
+		BackendChannel* channel =  storage.addDirectChannel (doc.object());
+		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
+
+		emit storage.directChannels.onNewChannel (*channel);
     });
 }
 
@@ -604,11 +624,9 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(page) + "&per_page=" + QString::number(perPage));
 
-    httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, &channel](QVariant, const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrieveChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -624,11 +642,9 @@ void Backend::retrieveChannelOlderPosts (BackendChannel& channel, int perPage)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(0) + "&per_page=" + QString::number(perPage) + "&before=" + channel.posts.front().id);
 
-    httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, &channel](QVariant, const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrieveChannelOlderPosts reply for " << channel.display_name << " (" << channel.id << ") - since " << channel.posts.front().id);
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -644,11 +660,9 @@ void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<
 {
 	NetworkRequest request ("users/me/channels/" + channel.id + "/posts/unread?limit_before=0&limit_after=1");
 
-    httpConnector.get(request, [this, &channel, responseHandler](QVariant, QByteArray data) {
+    httpConnector.get(request, [this, &channel, responseHandler](QVariant, const QJsonDocument& doc) {
 
     	//LOG_DEBUG ("getChannelUnreadPost reply for " << channel.display_name << " (" << channel.id << ")");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -672,11 +686,9 @@ void Backend::retrieveChannelMembers (BackendChannel& channel)
 {
 	NetworkRequest request ("channels/" + channel.id + "/members");
 
-	httpConnector.get(request, [this, &channel](QVariant, QByteArray data) {
+	httpConnector.get(request, [this, &channel](QVariant, const QJsonDocument& doc) {
 
 		//LOG_DEBUG ("retrieveChannelMembers reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		auto root = doc.array();
 		for(const auto &itemRef: qAsConst(root)) {
@@ -704,11 +716,9 @@ void Backend::retrievePollMetadata (BackendPoll& poll)
 
 	LOG_DEBUG ("retrievePollMetadata request");
 
-	httpConnector.get(request, [this, &poll](QVariant, QByteArray data) {
+	httpConnector.get(request, [this, &poll](QVariant, const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrievePollMetadata reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
@@ -732,11 +742,11 @@ void Backend::markChannelAsViewed (BackendChannel& channel)
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		//no callbacks are required. the server will send a WebSocket packet 'channel_viewed'
 
 #if 0
+		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
@@ -860,10 +870,9 @@ void Backend::sendPostAction (const BackendPost& post, const QString& action)
 {
 	NetworkRequest request  ("posts/" + post.id + "/actions/" + action);
 
-	httpConnector.post (request, QByteArray(), [this](QVariant, QByteArray data) {
+	httpConnector.post (request, QByteArray(), [this](QVariant, const QJsonDocument& doc) {
 
 #if 1
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "sendPostAction reply: " << jsonString.toStdString() << std::endl;
 
@@ -872,7 +881,6 @@ void Backend::sendPostAction (const BackendPost& post, const QString& action)
 			serverDialogsMap.addEvent (obj.value ("trigger_id").toString());
 		}
 #endif
-
 
 	});
 }
@@ -894,8 +902,7 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 	QByteArray data = file.readAll();
 	qDebug() << data.size();
 
-	httpConnector.post(request, data, [this, responseHandler](QVariant, QByteArray data) {
-		QJsonDocument doc = QJsonDocument::fromJson(data);
+	httpConnector.post(request, data, [this, responseHandler](QVariant, const QJsonDocument& doc) {
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -933,11 +940,11 @@ void Backend::createDirectChannel (const BackendUser& user)
 	});
 }
 
-void Backend::joinChannel (const BackendChannel& channel)
+void Backend::addUserToChannel (const BackendChannel& channel, const QString& userID)
 {
 	QJsonObject json;
 
-	json.insert("user_id", getLoginUser().id);
+	json.insert("user_id", userID);
 
     QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
 
@@ -953,6 +960,11 @@ void Backend::joinChannel (const BackendChannel& channel)
 #endif
 
 	});
+}
+
+void Backend::joinChannel (const BackendChannel& channel)
+{
+	return addUserToChannel (channel, getLoginUser().id);
 }
 
 void Backend::leaveChannel (const BackendChannel& channel)

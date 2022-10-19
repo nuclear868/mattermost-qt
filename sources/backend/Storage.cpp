@@ -28,12 +28,10 @@
 namespace Mattermost {
 
 Storage::Storage ()
-:directChannels (DIRECT_TEAM_ID)
-,loginUser (nullptr)
+:loginUser (nullptr)
 ,matterpollUser (nullptr)
 ,totalUsersCount (0)
 {
-	directChannels.display_name = "Direct Messages";
 }
 
 Storage::~Storage () = default;
@@ -139,11 +137,8 @@ BackendTeam* Storage::addTeam (const QJsonObject& json)
 	}
 }
 
-BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
+BackendChannel* Storage::addNonDirectChannel (BackendTeam& team, const QJsonObject& json)
 {
-	//team to add channel to. If it is a private channel, it will be changed
-	BackendTeam* useTeam = &team;
-
 	//get channel ID and channel type in order to check if a channel has to be created
 	uint32_t channelType = BackendChannel::getChannelType (json);
 	QString channelId = json.value("id").toString();
@@ -151,57 +146,77 @@ BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
 	BackendChannel* newChannel;
 
 	if (channelType == BackendChannel::directChannel) {
-		BackendChannel* existingChannel = getChannelById (channelId);
-
-		if (existingChannel) {
-			++existingChannel->referenceCount;
-			return existingChannel;
-		}
-
-		newChannel = new BackendChannel (*this, json);
-
-		/*
-		 * get pointer to the other participant in the direct channel
-		 */
-
-		//the channel name contains the userIDs of it's participants
-		QStringList allUserIds = newChannel->name.split("__");
-
-		//allUserIds the logged-in user from this list
-		allUserIds.removeAll (loginUser->id);
-
-		QString userID;
-
-		//if the list is empty, the user has a chat with himself
-		if (allUserIds.isEmpty()) {
-			userID = loginUser->id;
-		} else {
-		//the remote user ID is the remaining id
-			userID = allUserIds.first();
-		}
-
-		//set the user ID as a channel name in order to be able to access it
-		newChannel->name = userID;
-
-		//get pointer to the user
-		BackendUser* user = getUserById (userID);
-
-		//set user's name as the channel display name
-		if (user) {
-			newChannel->display_name = user->getDisplayName();
-		} else {
-			LOG_DEBUG ("Channel used not found for " << newChannel->id);
-			newChannel->display_name = userID;
-		}
-
-		useTeam = &directChannels;
-		directChannelsByUser[userID] = newChannel;
-	} else {
-		newChannel = new BackendChannel (*this, json);
+		LOG_DEBUG ("Storage::addNonDirectChannel called for direct channel " << newChannel->id << " " << newChannel->display_name);
+		return nullptr;
 	}
 
-	useTeam->channels.emplace_back (newChannel);
-	channels[newChannel->id] = useTeam->channels.back().get();
+	newChannel = new BackendChannel (*this, json);
+
+	team.channels.emplace_back (newChannel);
+	channels[newChannel->id] = team.channels.back().get();
+	return newChannel;
+}
+
+BackendChannel* Storage::addDirectChannel (const QJsonObject& json)
+{
+	/**
+	 * The Mattermost server adds all direct channels to all teams (wtf?), so
+	 * a direct channel may appear multiple times. We create only one channel
+	 * instance for such duplicate channels and they are displayed only once
+	 */
+	QString channelId = json.value("id").toString();
+
+	BackendChannel* existingChannel = getChannelById (channelId);
+
+	/**
+	 * Check if the channel is already added
+	 */
+	if (existingChannel) {
+		++existingChannel->referenceCount;
+		return existingChannel;
+	}
+
+	BackendChannel* newChannel = new BackendChannel (*this, json);
+
+	/*
+	 * get pointer to the other participant in the direct channel
+	 */
+
+	//the channel name contains the userIDs of it's participants
+	QStringList allUserIds = newChannel->name.split("__");
+
+	//allUserIds the logged-in user from this list
+	allUserIds.removeAll (loginUser->id);
+
+	QString userID;
+
+	//if the list is empty, the user has a chat with himself
+	if (allUserIds.isEmpty()) {
+		userID = loginUser->id;
+	} else {
+	//the remote user ID is the remaining id
+		userID = allUserIds.first();
+	}
+
+	//set the user ID as a channel name in order to be able to access it
+	newChannel->name = userID;
+
+	//get pointer to the user
+	BackendUser* user = getUserById (userID);
+
+	//set user's name as the channel display name
+	if (user) {
+		newChannel->display_name = user->getDisplayName();
+		directChannels.members.push_back (user);
+	} else {
+		LOG_DEBUG ("Channel " << newChannel->id) << ": user name not found";
+		newChannel->display_name = userID;
+	}
+
+	directChannelsByUser[userID] = newChannel;
+
+	directChannels.channels.emplace_back (newChannel);
+	channels[newChannel->id] = directChannels.channels.back().get();
 	return newChannel;
 }
 

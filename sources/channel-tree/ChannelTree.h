@@ -48,6 +48,7 @@ public:
 	virtual ~ChannelTree ();
 public:
 	TeamItem* addTeam (Backend& backend, BackendTeam& team);
+	TeamItem* addDirectChannelsList (Backend& backend);
 	void removeTeam (BackendTeam& team);
 private:
 	void showContextMenu (const QPoint& pos);

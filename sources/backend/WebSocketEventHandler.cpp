@@ -126,14 +126,8 @@ void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 
 void WebSocketEventHandler::handleEvent (const NewDirectChannelEvent& event)
 {
-	BackendTeam* team = &storage.directChannels;
-
 	LOG_DEBUG ("New Direct channel " << event.channelId << " created by: " << event.userId);
-	if (!team) {
-		return;
-	}
-
-	backend.retrieveChannel (*team, event.channelId);
+	backend.retrieveDirectChannel (event.channelId);
 }
 
 void WebSocketEventHandler::handleEvent (const UserAddedToChannelEvent& event)

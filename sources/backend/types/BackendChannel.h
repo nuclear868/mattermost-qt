@@ -73,6 +73,8 @@ public:
 
 	QString getChannelDescription () const;
 
+	QSet<const BackendUser*> getAllMembers () const;
+
 	BackendPost* addPost (const QJsonObject& postObject);
 
 	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad);

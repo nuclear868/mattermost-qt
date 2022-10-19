@@ -1,8 +1,8 @@
 /**
- * @file UserListDialogForNewDirect.h
+ * @file AddUserToChannelDialog.h
  * @brief
  * @author Lyubomir Filipov
- * @date Apr 10, 2022
+ * @date Oct 18, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -25,14 +25,12 @@
 #pragma once
 
 #include "UserListDialog.h"
-#include "ui_FilterListDialog.h"
 
 namespace Mattermost {
 
-class UserListDialogForNewDirect: public UserListDialog {
+class AddUserToChannelDialog: public UserListDialog {
 public:
-	UserListDialogForNewDirect (const std::map<QString, BackendUser>& users, QWidget *parent);
-private:
+	AddUserToChannelDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, const QString& channelName, QWidget *parent);
 };
 
 } /* namespace Mattermost */

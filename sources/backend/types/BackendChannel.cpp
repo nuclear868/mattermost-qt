@@ -227,5 +227,16 @@ void BackendChannel::editPost (BackendPost& newPost)
 	}
 }
 
+QSet<const BackendUser*> BackendChannel::getAllMembers () const
+{
+	QSet<const BackendUser*> ret;
+
+	for (auto& member: members) {
+		ret.insert (member.user);
+	}
+
+	return ret;
+}
+
 } /* namespace Mattermost */
 

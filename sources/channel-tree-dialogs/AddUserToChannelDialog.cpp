@@ -1,8 +1,8 @@
 /**
- * @file UserListDialogForTeam.cpp
+ * @file AddUserToChannelDialog.cpp
  * @brief
  * @author Lyubomir Filipov
- * @date Apr 10, 2022
+ * @date Oct 18, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -22,19 +22,17 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "UserListDialogForTeam.h"
+#include "AddUserToChannelDialog.h"
 #include "ui_FilterListDialog.h"
 
 namespace Mattermost {
 
-UserListDialogForTeam::UserListDialogForTeam (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent)
-:UserListDialog (users, nullptr, parent)
+AddUserToChannelDialog::AddUserToChannelDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, const QString& channelName, QWidget* parent)
+:UserListDialog (allUsers, alreadyExistingUsers, parent)
 {
-	setWindowTitle("Team Members - Mattermost");
-	ui->selectUserLabel->setText ("Members of team '" + teamName + "':");
-	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+	setWindowTitle("Add user to channel - Mattermost");
+	QString str ("Select a user to add to the " + channelName + " channel:");
+	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", str.toStdString().c_str(), nullptr));
 }
-
-UserListDialogForTeam::~UserListDialogForTeam () = default;
 
 } /* namespace Mattermost */

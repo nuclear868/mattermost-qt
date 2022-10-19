@@ -24,18 +24,31 @@
 
 #pragma once
 
+#include <set>
 #include "FilterListDialog.h"
 
 namespace Mattermost {
 
+class UserListDialogEntry {
+	BackendUser* 	user;
+	bool			isAvailableForChoose;
+};
+
 class UserListDialog: public FilterListDialog {
 public:
-	UserListDialog (const std::map<QString, BackendUser>& users, QWidget *parent);
-	UserListDialog (const std::vector<BackendUser*>& users, QWidget *parent);
+	UserListDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
+	UserListDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
 	virtual ~UserListDialog ();
 public:
     const BackendUser* getSelectedUser ();
     void showContextMenu (const QPoint& pos)	override;
+private:
+
+    struct NameComparator {
+    	bool operator () (const BackendUser* const& lhs, const BackendUser* const& rhs);
+    };
+    void create (const std::set<const BackendUser*, NameComparator>& users, const QSet<const BackendUser*>* alreadyExistingUsers);
+
 };
 
 } /* namespace Mattermost */

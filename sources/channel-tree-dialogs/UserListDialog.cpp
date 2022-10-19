@@ -33,73 +33,34 @@
 
 namespace Mattermost {
 
-namespace {
-
-auto nameComparator = [] (const BackendUser* const& lhs, const BackendUser* const& rhs)
+bool UserListDialog::NameComparator::operator () (const BackendUser*const& lhs, const BackendUser*const& rhs)
 {
 	return lhs->username < rhs->username;
-};
-
 }
 
-UserListDialog::UserListDialog (const std::map<QString, BackendUser>& users, QWidget* parent)
+UserListDialog::UserListDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
 :FilterListDialog (parent)
 {
-	std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
+	std::set<const BackendUser*, NameComparator> set;
 
-	for (auto& it: users) {
+	for (auto& it: allUsers) {
 		set.insert (&it.second);
 	}
 
-	uint32_t usersCount = 0;
-	for (auto& user: set) {
-		QString displayName (user->getDisplayName());
 
-		if (!user->nickname.isEmpty()) {
-			displayName += " (" + user->nickname + ")";
-		}
-
-		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
-		QImage img = QImage::fromData (user->avatar);
-		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
-		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
-		ui->treeWidget->addTopLevelItem (item);
-		++usersCount;
-	}
-
-	ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
-	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
-	ui->usersCountLabel->setText(QString::number(usersCount) + " users");
+	create (set, alreadyExistingUsers);
 }
 
-UserListDialog::UserListDialog (const std::vector<BackendUser*>& users, QWidget* parent)
+UserListDialog::UserListDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
 :FilterListDialog (parent)
 {
-    std::set<const BackendUser*, decltype (nameComparator)> set (nameComparator);
+    std::set<const BackendUser*, NameComparator> set;
 
-    for (auto& it: users) {
+    for (auto& it: allUsers) {
     	set.insert (it);
     }
 
-    uint32_t usersCount = 0;
-    for (auto& user: set) {
-    	QString displayName (user->getDisplayName());
-
-    	if (!user->nickname.isEmpty()) {
-    		displayName += " (" + user->nickname + ")";
-    	}
-
-    	QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
-    	QImage img = QImage::fromData (user->avatar);
-    	item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
-    	item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
-    	ui->treeWidget->addTopLevelItem (item);
-    	++usersCount;
-    }
-
-    ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
-    ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
-    ui->usersCountLabel->setText(QString::number(usersCount) + " users");
+    create (set, alreadyExistingUsers);
 }
 
 UserListDialog::~UserListDialog () = default;
@@ -141,4 +102,39 @@ void UserListDialog::showContextMenu (const QPoint& pos)
 	myMenu.exec (globalPos + QPoint (15, 35));
 }
 
+void UserListDialog::create (const std::set<const BackendUser*, UserListDialog::NameComparator>& users, const QSet<const BackendUser*>* alreadyExistingUsers)
+{
+	uint32_t usersCount = 0;
+	for (const BackendUser* user: users) {
+		QString displayName (user->getDisplayName());
+
+		if (!user->nickname.isEmpty()) {
+			displayName += " (" + user->nickname + ")";
+		}
+
+		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
+		QImage img = QImage::fromData (user->avatar);
+		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
+		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
+
+		/**
+		 * Mark already existing users in italic
+		 */
+		if (alreadyExistingUsers && alreadyExistingUsers->find (user) != alreadyExistingUsers->end()) {
+
+			QFont font (item->font(0));
+			font.setItalic (true);
+			item->setFont (0, font);
+		}
+
+		ui->treeWidget->addTopLevelItem (item);
+		++usersCount;
+	}
+
+	ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
+	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
+	ui->usersCountLabel->setText(QString::number(usersCount) + " users");
+}
+
 } /* namespace Mattermost */
+

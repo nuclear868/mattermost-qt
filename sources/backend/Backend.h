@@ -92,6 +92,7 @@ public:
 
 	//get a channel (/channels/channelID)
 	void retrieveChannel (BackendTeam& team, QString channelID);
+	void retrieveDirectChannel (QString channelID);
 
 	//get posts in a channel (/channels/ID/posts)
 	void retrieveChannelPosts (BackendChannel& channel, int page, int perPage);
@@ -136,6 +137,7 @@ public:
 	void createDirectChannel (const BackendUser& user);
 
 	//join a channel (/channels/{channel_id}/members)
+	void addUserToChannel (const BackendChannel& channel, const QString& userID);
 	void joinChannel (const BackendChannel& channel);
 
 	//leave a channel (/channels/{channel_id}/members/{user_id})
@@ -179,7 +181,7 @@ signals:
     /**
      * Called when all public and direct channels for all teams are received and filled in storage
      */
-    void onAllTeamChannelsPopulated (BackendTeam& directChannels);
+    void onAllTeamChannelsPopulated ();
 
     /**
      * Called when the logged-in user was added to a team.

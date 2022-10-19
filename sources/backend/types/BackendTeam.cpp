@@ -23,17 +23,9 @@
  */
 
 #include "BackendTeam.h"
+#include <QSet>
 
 namespace Mattermost {
-
-BackendTeam::BackendTeam (QString id)
-:id (id)
-,create_at (0)
-,update_at (0)
-,delete_at (0)
-,allow_open_invite (false)
-{
-}
 
 BackendTeam::BackendTeam (const QJsonObject& jsonObject)
 :create_at (0)
@@ -60,9 +52,15 @@ BackendTeam::BackendTeam (const QJsonObject& jsonObject)
 
 BackendTeam::~BackendTeam () = default;
 
-bool BackendTeam::isDirectChannelsCollection () const
+QSet<const BackendUser*> BackendTeam::getAllMembers () const
 {
-	return id == "0";
+	QSet<const BackendUser*> ret;
+
+	for (auto& member: members) {
+		ret.insert (member.user);
+	}
+
+	return ret;
 }
 
 } /* namespace Mattermost */

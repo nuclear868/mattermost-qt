@@ -1,8 +1,8 @@
 /**
- * @file UserListDialogForTeam.cpp
+ * @file BackendDirectChannelsTeam.cpp
  * @brief
  * @author Lyubomir Filipov
- * @date Apr 10, 2022
+ * @date Oct 19, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -22,19 +22,26 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "UserListDialogForTeam.h"
-#include "ui_FilterListDialog.h"
+#include "BackendDirectChannelsTeam.h"
+#include <QSet>
 
 namespace Mattermost {
 
-UserListDialogForTeam::UserListDialogForTeam (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent)
-:UserListDialog (users, nullptr, parent)
+BackendDirectChannelsTeam::BackendDirectChannelsTeam ()
 {
-	setWindowTitle("Team Members - Mattermost");
-	ui->selectUserLabel->setText ("Members of team '" + teamName + "':");
-	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
 }
 
-UserListDialogForTeam::~UserListDialogForTeam () = default;
+BackendDirectChannelsTeam::~BackendDirectChannelsTeam () = default;
+
+QSet<const BackendUser*> BackendDirectChannelsTeam::getAllMembers () const
+{
+	QSet<const BackendUser*> ret;
+
+	for (auto& member: members) {
+		ret.insert (member);
+	}
+
+	return ret;
+}
 
 } /* namespace Mattermost */

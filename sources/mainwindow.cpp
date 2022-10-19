@@ -97,8 +97,8 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	 * The list of users needs to be obtained too, because direct channels' names consist of user IDs,
 	 * which need to be displayer ad user names
 	 */
-	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this] (BackendTeam& directChannelsTeam) {
-		ui->channelList->addTeam (backend, directChannelsTeam);
+	connect (&backend, &Backend::onAllTeamChannelsPopulated, [this] {
+		ui->channelList->addDirectChannelsList (backend);
 
 //		QSettings settings;
 //		QString currentTeam (settings.value ("current_team", 0).toString());

@@ -99,6 +99,29 @@ TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 	return teamList;
 }
 
+TeamItem* ChannelTree::addDirectChannelsList (Backend& backend)
+{
+	TeamItem* teamList = new DirectTeamItem (*this, backend, "Direct Channels", "0");
+
+	auto& team = backend.getStorage().directChannels;
+
+	addTopLevelItem (teamList);
+	//header()->resizeSection (0, 200);
+	header()->setSectionResizeMode(0, QHeaderView::Stretch);
+	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+	//header()->resizeSection (1, 30);
+
+	connect (&team, &BackendDirectChannelsTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
+		teamList->addChannel (channel, parentWidget());
+	});
+
+	for (auto &channel: team.channels) {
+		teamList->addChannel (*channel, parentWidget());
+	}
+
+	return teamList;
+}
+
 void ChannelTree::showContextMenu (const QPoint& pos)
 {
 	// Handle global position

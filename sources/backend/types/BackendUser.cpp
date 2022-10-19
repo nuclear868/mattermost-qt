@@ -63,6 +63,10 @@ BackendUser::~BackendUser () = default;
 QString BackendUser::getDisplayName () const
 {
 	if (!first_name.isEmpty()) {
+		if (last_name.isEmpty()) {
+			return first_name;
+		}
+
 		return first_name + " " + last_name;
 	}
 
