@@ -30,7 +30,7 @@ namespace Mattermost {
 
 class UserListDialogForTeam: public UserListDialog {
 public:
-	UserListDialogForTeam (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent = nullptr);
+	UserListDialogForTeam (const UserListDialogConfig& cfg, const std::vector<const BackendUser*>& users, QWidget *parent = nullptr);
 	virtual ~UserListDialogForTeam ();
 };
 

@@ -31,6 +31,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include "QByteArrayCreator.h"
 #include <QFile>
 #include <QFileInfo>
 #include <QSettings>
@@ -497,7 +498,7 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
     httpConnector.get(request, [this, &team, callback](QVariant, const QJsonDocument& doc) {
     	team.channels.clear ();
 
-#if 1
+#if 0
     	QString jsonString = doc.toJson(QJsonDocument::Indented);
     	std::cout << "getOwnChannelMemberships reply: " <<  jsonString.toStdString() << std::endl;
 #endif
@@ -516,11 +517,11 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 				channel = storage.addNonDirectChannel (team, channelObject);
 			}
 
-			LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
 		}
 
 		for (auto& channel: team.channels) {
 			callback (*channel.get());
+			LOG_DEBUG ("\tChannel added: " << channel->id << " " << channel->display_name);
 		}
 
 		--nonFilledTeams;
@@ -587,7 +588,7 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 	httpConnector.get(request, [this, &team](QVariant, const QJsonDocument& doc) {
 		LOG_DEBUG ("retrieveChannel reply");
 
-#if 1
+#if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
 #endif
@@ -942,9 +943,9 @@ void Backend::createDirectChannel (const BackendUser& user)
 
 void Backend::addUserToChannel (const BackendChannel& channel, const QString& userID)
 {
-	QJsonObject json;
-
-	json.insert("user_id", userID);
+	QJsonObject json {
+		{"user_id", userID}
+	};
 
     QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
 
@@ -972,6 +973,26 @@ void Backend::leaveChannel (const BackendChannel& channel)
 	NetworkRequest request ("channels/" + channel.id + "/members/" + getLoginUser().id);
 
 	httpConnector.del (request);
+}
+
+void Backend::addUserToTeam (const BackendTeam& team, const QString& userID)
+{
+	QJsonObject json {
+		{"user_id", userID},
+		{"team_id", team.id}
+	};
+
+	NetworkRequest request ("teams/" + team.id + "/members");
+
+	httpConnector.post (request, json, [this](QVariant, QByteArray) {
+#if 0
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+
+	});
 }
 
 void Backend::sendSubmitDialog (const QJsonDocument& doc)

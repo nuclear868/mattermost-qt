@@ -38,9 +38,12 @@ bool UserListDialog::NameComparator::operator () (const BackendUser*const& lhs, 
 	return lhs->username < rhs->username;
 }
 
-UserListDialog::UserListDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
+UserListDialog::UserListDialog (const UserListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
 :FilterListDialog (parent)
 {
+	setWindowTitle (cfg.title);
+	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", cfg.description.toStdString().c_str(), nullptr));
+
 	std::set<const BackendUser*, NameComparator> set;
 
 	for (auto& it: allUsers) {
@@ -51,9 +54,12 @@ UserListDialog::UserListDialog (const std::map<QString, BackendUser>& allUsers, 
 	create (set, alreadyExistingUsers);
 }
 
-UserListDialog::UserListDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
+UserListDialog::UserListDialog (const UserListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
 :FilterListDialog (parent)
 {
+	setWindowTitle (cfg.title);
+	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", cfg.description.toStdString().c_str(), nullptr));
+
     std::set<const BackendUser*, NameComparator> set;
 
     for (auto& it: allUsers) {
@@ -114,7 +120,7 @@ void UserListDialog::create (const std::set<const BackendUser*, UserListDialog::
 
 		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
 		QImage img = QImage::fromData (user->avatar);
-		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
+		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar))));
 		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
 
 		/**
@@ -131,6 +137,7 @@ void UserListDialog::create (const std::set<const BackendUser*, UserListDialog::
 		++usersCount;
 	}
 
+	ui->treeWidget->setIconSize(QSize (24,24));
 	ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
 	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
 	ui->usersCountLabel->setText(QString::number(usersCount) + " users");

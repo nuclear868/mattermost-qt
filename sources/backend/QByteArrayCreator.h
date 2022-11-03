@@ -1,8 +1,8 @@
 /**
- * @file AddUserToChannelDialog.h
- * @brief
+ * @file QByteArrayCreator.h
+ * @brief Creates a byte array from byte array or JSON
  * @author Lyubomir Filipov
- * @date Oct 18, 2022
+ * @date Nov 3, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -24,13 +24,20 @@
 
 #pragma once
 
-#include "UserListDialog.h"
+#include <QByteArray>
+#include <QJsonObject>
 
 namespace Mattermost {
 
-class AddUserToChannelDialog: public UserListDialog {
+class QByteArrayCreator: public QByteArray {
 public:
-	AddUserToChannelDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, const QString& channelName, QWidget *parent);
+	using QByteArray::QByteArray;
+	QByteArrayCreator (QByteArray arr);
+	QByteArrayCreator (QJsonObject json);
+public:
+	bool isJson () const;
+private:
+	bool bisJson;
 };
 
 } /* namespace Mattermost */

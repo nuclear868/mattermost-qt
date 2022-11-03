@@ -52,13 +52,7 @@ ChannelTree::~ChannelTree () = default;
  */
 TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 {
-	TeamItem* teamList;
-
-	if (team.id == DIRECT_TEAM_ID) {
-		teamList = new DirectTeamItem (*this, backend, team.display_name, team.id);
-	} else {
-		teamList = new GroupTeamItem (*this, backend, team.display_name, team.id);
-	}
+	TeamItem* teamList = new GroupTeamItem (*this, backend, team.display_name, team.id);
 
 	addTopLevelItem (teamList);
 	//header()->resizeSection (0, 200);
@@ -66,7 +60,7 @@ TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 	//header()->resizeSection (1, 30);
 
-	connect (&team, &BackendTeam::onNewChannel, [this, &team, teamList] (BackendChannel& channel) {
+	connect (&team, &BackendTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
 		teamList->addChannel (channel, parentWidget());
 	});
 
@@ -84,17 +78,11 @@ TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 		delete (item);
 	});
 
-	if (team.id == DIRECT_TEAM_ID) {
-		for (auto &channel: team.channels) {
-			teamList->addChannel (*channel, parentWidget());
-		}
-	} else {
-		backend.retrieveOwnChannelMemberships (team, [this, teamList] (BackendChannel& channel) {
-			teamList->addChannel (channel, parentWidget());
-		});
+	backend.retrieveOwnChannelMemberships (team, [this, teamList] (BackendChannel& channel) {
+		teamList->addChannel (channel, parentWidget());
+	});
 
-		backend.retrieveTeamMembers (team);
-	}
+	backend.retrieveTeamMembers (team);
 
 	return teamList;
 }

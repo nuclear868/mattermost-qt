@@ -136,12 +136,17 @@ public:
 	//create a direct channel with given user (/channels/direct)
 	void createDirectChannel (const BackendUser& user);
 
-	//join a channel (/channels/{channel_id}/members)
+	//add a user to a channel (/channels/{channel_id}/members)
 	void addUserToChannel (const BackendChannel& channel, const QString& userID);
+
+	//join a channel (addUserToChannel for loginUser)
 	void joinChannel (const BackendChannel& channel);
 
 	//leave a channel (/channels/{channel_id}/members/{user_id})
 	void leaveChannel (const BackendChannel& channel);
+
+	//add a user to a channel (/teams/{team_id}/members)
+	void addUserToTeam (const BackendTeam& team, const QString& userID);
 
 	//send a submit dialog response. In most cases, dialogs are handled by the UI
 	void sendSubmitDialog (const QJsonDocument& doc);

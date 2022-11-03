@@ -33,8 +33,6 @@
 
 namespace Mattermost {
 
-const QString DIRECT_TEAM_ID = "0";
-
 class Storage {
 public:
 	Storage ();

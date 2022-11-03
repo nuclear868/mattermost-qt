@@ -34,10 +34,15 @@ class UserListDialogEntry {
 	bool			isAvailableForChoose;
 };
 
+struct UserListDialogConfig {
+	QString title;
+	QString description;
+};
+
 class UserListDialog: public FilterListDialog {
 public:
-	UserListDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
-	UserListDialog (const std::vector<BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
+	UserListDialog (const UserListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
+	UserListDialog (const UserListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
 	virtual ~UserListDialog ();
 public:
     const BackendUser* getSelectedUser ();

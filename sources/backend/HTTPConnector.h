@@ -33,6 +33,8 @@ class QNetworkDiskCache;
 
 namespace Mattermost {
 
+class QByteArrayCreator;
+
 class HTTPConnector: public QObject {
 	Q_OBJECT
 public:
@@ -45,9 +47,9 @@ public:
 	void get (const QNetworkRequest &request, std::function<void(QVariant, const QJsonDocument&)> responseHandler);
 	void get (const QNetworkRequest &request, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 
-	void post (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray)> responseHandler);
-	void post (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,const QJsonDocument&)> responseHandler);
-	void post (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
+	void post (QNetworkRequest &request, const QByteArrayCreator &data, std::function<void(QVariant,QByteArray)> responseHandler);
+	void post (QNetworkRequest &request, const QByteArrayCreator &data, std::function<void(QVariant,const QJsonDocument&)> responseHandler);
+	void post (QNetworkRequest &request, const QByteArrayCreator &data, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 
 	void put (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray)> responseHandler);
 	void put (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);

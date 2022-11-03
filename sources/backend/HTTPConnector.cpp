@@ -30,6 +30,7 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include "QByteArrayCreator.h"
 #include <QNetworkReply>
 
 namespace Mattermost {
@@ -72,23 +73,27 @@ void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVa
 	setProcessReply (reply, std::move (responseHandler));
 }
 
-void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data, std::function<void (QVariant, QByteArray)> responseHandler)
+void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data, std::function<void (QVariant, QByteArray)> responseHandler)
 {
 	return post (request, data, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
 		responseHandler (status, result);
 	});
 }
 
-void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data, std::function<void (QVariant, const QJsonDocument&)> responseHandler)
+void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data, std::function<void (QVariant, const QJsonDocument&)> responseHandler)
 {
 	return post (request, data, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
 		responseHandler (status, QJsonDocument::fromJson(result));
 	});
 }
 
-void HTTPConnector::post (const QNetworkRequest& request, const QByteArray& data,
+void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data,
 		std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
 {
+	if (data.isJson()) {
+		request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+	}
+
 	QNetworkReply* reply = qnetworkManager->post (request, data);
 	setProcessReply (reply, std::move (responseHandler));
 }

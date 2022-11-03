@@ -50,7 +50,7 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 			return;
 		}
 
-		std::vector<BackendUser*> teamMembers;
+		std::vector<const BackendUser*> teamMembers;
 
 		for (auto& it: team->members) {
 
@@ -63,8 +63,46 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 		}
 		qDebug() << "View Team members " << team->members.size();
 
-		UserListDialogForTeam* dialog = new UserListDialogForTeam (team->display_name, teamMembers, treeWidget());
+		UserListDialogConfig dialogCfg {
+			"Team Members - Mattermost",
+			"Members of team '" + team->display_name + "':"
+		};
+
+		UserListDialogForTeam* dialog = new UserListDialogForTeam (dialogCfg, teamMembers, treeWidget());
 		dialog->show ();
+	});
+
+	myMenu.addAction ("Add new members to the team", [this] {
+
+		BackendTeam* team = backend.getStorage().getTeamById(teamId);
+
+		std::vector<const BackendUser*> availableUsers;
+
+		for (auto& user: backend.getStorage().getAllUsers()) {
+
+			availableUsers.emplace_back (&user.second);
+		}
+
+		QSet<const BackendUser*> teamMembers = team->getAllMembers();
+
+		UserListDialogConfig dialogCfg {
+			"Add user to team - Mattermost",
+			"Select a user to add to the '" + team->display_name + "' team:"
+		};
+
+		UserListDialog* dialog = new UserListDialog (dialogCfg, availableUsers, &teamMembers, treeWidget());
+		dialog->show ();
+
+		QObject::connect (dialog, &UserListDialog::accepted, [this, team, dialog] {
+			const BackendUser* user = dialog->getSelectedUser();
+
+			if (!user) {
+				qDebug() << "dialog->getSelectedUser() returned nullptr";
+				return;
+			}
+
+			backend.addUserToTeam (*team, user->id);
+		});
 	});
 
 	myMenu.addAction ("View Public Channels", [this] {

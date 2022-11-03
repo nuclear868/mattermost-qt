@@ -1,8 +1,8 @@
 /**
- * @file AddNewDirectChannelDialog.h
- * @brief
+ * @file QByteArrayCreator.cpp
+ * @brief Creates a byte array from byte array or JSON
  * @author Lyubomir Filipov
- * @date Apr 10, 2022
+ * @date Nov 3, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -22,17 +22,24 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#pragma once
+#include "QByteArrayCreator.h"
 
-#include "UserListDialog.h"
-#include "ui_FilterListDialog.h"
+#include <QJsonDocument>
 
 namespace Mattermost {
 
-class AddNewDirectChannelDialog: public UserListDialog {
-public:
-	AddNewDirectChannelDialog (const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
-private:
-};
+QByteArrayCreator::QByteArrayCreator (QByteArray arr)
+:QByteArray (std::move (arr))
+,bisJson(false) {}
+
+QByteArrayCreator::QByteArrayCreator (QJsonObject json)
+:QByteArray (QJsonDocument (json).toJson(QJsonDocument::Compact))
+,bisJson(true)
+{}
+
+bool QByteArrayCreator::isJson () const
+{
+	return bisJson;
+}
 
 } /* namespace Mattermost */

@@ -30,7 +30,6 @@
 #include "backend/Backend.h"
 #include "info-dialogs/ChannelInfoDialog.h"
 #include "channel-tree-dialogs/UserListDialogForTeam.h"
-#include "channel-tree-dialogs/AddUserToChannelDialog.h"
 #include "channel-tree-dialogs/EditChannelPropertiesDialog.h"
 
 namespace Mattermost {
@@ -51,7 +50,7 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 	myMenu.addAction ("View Channel members", [this, &channel] {
 		qDebug() << "View Channel members ";
 
-		std::vector<BackendUser*> channelMembers;
+		std::vector<const BackendUser*> channelMembers;
 
 		for (auto& it: channel.members) {
 
@@ -63,13 +62,18 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 			channelMembers.push_back (it.user);
 		}
 
-		UserListDialogForTeam* dialog = new UserListDialogForTeam (channel.display_name, channelMembers, treeWidget());
+		UserListDialogConfig dialogCfg {
+			"Team Members - Mattermost",
+			"Members of channel '" + channel.display_name + "':"
+		};
+
+		UserListDialogForTeam* dialog = new UserListDialogForTeam (dialogCfg, channelMembers, treeWidget());
 		dialog->show ();
 	});
 
-	myMenu.addAction ("Add users to channel", [this, &channel] {
+	myMenu.addAction ("Add new members to the channel", [this, &channel] {
 
-		std::vector<BackendUser*> users;
+		std::vector<const BackendUser*> availableUsers;
 
 		for (auto& member: channel.team->members) {
 
@@ -78,11 +82,17 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 				continue;
 			}
 
-			users.emplace_back (member.user);
+			availableUsers.emplace_back (member.user);
 		}
 
 		QSet<const BackendUser*> channelMembers = channel.getAllMembers();
-		UserListDialog* dialog = new AddUserToChannelDialog (users, &channelMembers, channel.display_name, treeWidget());
+
+		UserListDialogConfig dialogCfg {
+			"Add user to channel - Mattermost",
+			"Select a user to add to the '" + channel.display_name + "' channel:"
+		};
+
+		UserListDialog* dialog = new UserListDialog (dialogCfg, availableUsers, &channelMembers, treeWidget());
 		dialog->show ();
 
 		QObject::connect (dialog, &UserListDialog::accepted, [this, &channel, dialog] {
@@ -92,8 +102,9 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 				qDebug() << "dialog->getSelectedUser() returned nullptr";
 				return;
 			}
-		});
 
+			backend.addUserToChannel (channel, user->id);
+		});
 	});
 
 	myMenu.addAction ("Edit channel propeties", [this, &channel] {

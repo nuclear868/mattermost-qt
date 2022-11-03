@@ -27,11 +27,9 @@
 
 namespace Mattermost {
 
-UserListDialogForTeam::UserListDialogForTeam (const QString& teamName, const std::vector<BackendUser*>& users, QWidget *parent)
-:UserListDialog (users, nullptr, parent)
+UserListDialogForTeam::UserListDialogForTeam (const UserListDialogConfig& cfg, const std::vector<const BackendUser*>& users, QWidget *parent)
+:UserListDialog (cfg, users, nullptr, parent)
 {
-	setWindowTitle("Team Members - Mattermost");
-	ui->selectUserLabel->setText ("Members of team '" + teamName + "':");
 	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
 }
 

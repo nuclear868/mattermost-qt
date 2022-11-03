@@ -156,10 +156,20 @@ void WebSocketEventHandler::handleEvent (const UserAddedToTeamEvent& event)
 	QString teamName = team ? team->name : event.team_id;
 	LOG_DEBUG ("User " << event.user_id << " added to team: " << teamName);
 
-	//Adds the new team. It's channels and messages in channels will be obtained too
 	if (!team) {
+		LOG_DEBUG ("UserAddedToTeamEvent: No team " << teamName << " found. The team will be retrieved");
 		backend.retrieveTeam (event.team_id);
+		return;
 	}
+
+	//if the logged-in user is being added, retrieve team information
+	if (event.user_id == storage.loginUser->id) {
+		//Adds the new team. It's channels and messages in channels will be obtained too
+		backend.retrieveTeam (event.team_id);
+	} else {
+#warning "TODO: Add the new user (memeber) to the team"
+	}
+
 }
 
 void WebSocketEventHandler::handleEvent (const UserLeaveTeamEvent& event)
