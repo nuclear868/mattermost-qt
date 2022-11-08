@@ -1,6 +1,6 @@
 /**
  * @file QByteArrayCreator.cpp
- * @brief Creates a byte array from byte array or JSON
+ * @brief Creates a QByteArray from byte array or JSON
  * @author Lyubomir Filipov
  * @date Nov 3, 2022
  *
@@ -32,10 +32,23 @@ QByteArrayCreator::QByteArrayCreator (QByteArray arr)
 :QByteArray (std::move (arr))
 ,bisJson(false) {}
 
+QByteArrayCreator::QByteArrayCreator (QJsonDocument doc)
+:QByteArray (doc.toJson(QJsonDocument::Compact))
+,bisJson(true)
+{
+}
+
 QByteArrayCreator::QByteArrayCreator (QJsonObject json)
 :QByteArray (QJsonDocument (json).toJson(QJsonDocument::Compact))
 ,bisJson(true)
 {}
+
+QByteArrayCreator::QByteArrayCreator (QJsonArray json)
+:QByteArray (QJsonDocument (json).toJson(QJsonDocument::Compact))
+,bisJson(true)
+{
+}
+
 
 bool QByteArrayCreator::isJson () const
 {

@@ -107,11 +107,9 @@ void Backend::login (const BackendLoginData& loginData, std::function<void(const
 		NetworkRequest::setToken (loginData.token);
 		NetworkRequest request ("users/me");
 
-		//debugRequest (request);
-
-		httpConnector.get (request, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
+		httpConnector.get (request, HttpResponseCallback ([this, callback](const QJsonDocument& data, const QNetworkReply& reply) {
 			loginSuccess (data, reply, callback);
-		});
+		}));
 
 
 #if 0
@@ -146,9 +144,9 @@ void Backend::login (const BackendLoginData& loginData, std::function<void(const
 
 	//debugRequest (request, data);
 
-	httpConnector.post(request, data, [this, callback](QVariant, QByteArray data, const QNetworkReply& reply) {
+	httpConnector.post (request, data, HttpResponseCallback ([this, callback](const QJsonDocument& data, const QNetworkReply& reply) {
 		loginSuccess (data, reply, callback);
-	});
+	}));
 }
 
 void Backend::loginRetry ()
@@ -160,12 +158,12 @@ void Backend::loginRetry ()
 
 		debugRequest (request);
 
-		httpConnector.get (request, [this](QVariant, QByteArray, const QNetworkReply&) {
+		httpConnector.get (request, HttpResponseCallback ([this](QVariant, QByteArray, const QNetworkReply&) {
 			webSocketConnector.open (NetworkRequest::host() + "api/v4/", loginData.token);
 			isLoggedIn = true;
 			//loginSuccess (data, reply, [this] (const QString& token) {
 		//	});
-		});
+		}));
 
 		return;
 	}
@@ -183,10 +181,8 @@ BackendChannel* Backend::getCurrentChannel () const
 	return currentChannel;
 }
 
-void Backend::loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void (const QString&)> callback)
+void Backend::loginSuccess (const QJsonDocument& doc, const QNetworkReply& reply, std::function<void (const QString&)> callback)
 {
-	QJsonDocument doc = QJsonDocument::fromJson (data);
-
 #if 1
 	QString jsonString = doc.toJson(QJsonDocument::Indented);
 	std::cout << "loginUser: " << jsonString.toStdString() << std::endl;
@@ -228,27 +224,24 @@ void Backend::logout (std::function<void ()> callback)
 	NetworkRequest request ("users/logout");
 	isLoggedIn = false;
 
-	httpConnector.post (request, QByteArray(), [this, callback] (QVariant, QByteArray data) {
+	httpConnector.post (request, QByteArray(), HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
 		LOG_DEBUG ("Logout done");
 
 		reset ();
 
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		qDebug () << jsonString;
 		callback ();
-	});
+	}));
 }
 
 void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> callback)
 {
 	NetworkRequest request ("users/" + userID);
 
-	httpConnector.get(request, [this, callback](QVariant, QByteArray data) {
+	httpConnector.get (request, HttpResponseCallback ([this, callback](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("getUser reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
@@ -256,7 +249,7 @@ void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> c
 		BackendUser *user = storage.addUser (doc.object());
 		retrieveUserAvatar (user->id);
 		callback (*user);
-	});
+	}));
 }
 
 void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void ()> callback)
@@ -271,11 +264,9 @@ void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::functi
 
     QByteArray data (QJsonDocument (userIDsJson).toJson(QJsonDocument::Compact));
 
-	httpConnector.post(request, data, [this, callback](QVariant, QByteArray data) {
+	httpConnector.post (request, data, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
 
 		LOG_DEBUG ("getStatus reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		for (const auto& element: doc.array()) {
 
@@ -299,7 +290,7 @@ void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::functi
 		qDebug() << "get user status reply: " << jsonString;
 #endif
 		callback ();
-	});
+	}));
 }
 
 
@@ -307,18 +298,16 @@ void Backend::retrieveTotalUsersCount (std::function<void(uint32_t)> callback)
 {
 	NetworkRequest request ("users/stats");
 
-	httpConnector.get(request, [this, callback](QVariant, QByteArray data) {
+	httpConnector.get (request, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
 
 		LOG_DEBUG ("getTotalUsersCount reply");
-
-		QJsonDocument doc = QJsonDocument::fromJson(data);
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
 
 		storage.totalUsersCount = doc.object().value("total_users_count").toInt();
 		callback (storage.totalUsersCount);
-	});
+	}));
 }
 
 void Backend::retrieveAllUsers ()
@@ -330,11 +319,9 @@ void Backend::retrieveAllUsers ()
 	for (uint32_t page = 0; page < totalPages; ++page) {
 		NetworkRequest request ("users?per_page=" + QString::number(usersPerPage) + "&page=" + QString::number(page));
 
-		httpConnector.get(request, [this, page, totalPages](QVariant, QByteArray data) {
+		httpConnector.get (request, HttpResponseCallback ([this, page, totalPages] (const QJsonDocument& doc) {
 
 			LOG_DEBUG ("getAllUsers reply");
-
-			QJsonDocument doc = QJsonDocument::fromJson(data);
 
 			QString jsonString = doc.toJson(QJsonDocument::Indented);
 			//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
@@ -369,7 +356,7 @@ void Backend::retrieveAllUsers ()
 				LOG_DEBUG ("Get Users: Done ");
 				obtainedPages = 0;
 			}
-		});
+		}));
 
 	}
 }
@@ -378,7 +365,7 @@ void Backend::retrieveUserAvatar (QString userID)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
 
-	httpConnector.get(request, [this, userID] (QVariant, QByteArray data) {
+	httpConnector.get (request, HttpResponseCallback ([this, userID] (QVariant, QByteArray data) {
 
 		//LOG_DEBUG ("getUserImage reply");
 
@@ -392,7 +379,7 @@ void Backend::retrieveUserAvatar (QString userID)
 		user->avatar = data;
 
 		emit user->onAvatarChanged();
-	});
+	}));
 }
 
 void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray&)> callback)
@@ -400,9 +387,9 @@ void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray
 	NetworkRequest request ("files/" + fileID, true);
 	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
-	httpConnector.get(request, [this, fileID, callback](QVariant, QByteArray data) {
+	httpConnector.get (request, HttpResponseCallback ([this, fileID, callback](QVariant, QByteArray data) {
 		callback (data);
-	});
+	}));
 }
 
 /**
@@ -415,7 +402,7 @@ void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
 
     std::cout << "get teams" << std::endl;
 
-    httpConnector.get(request, [this, callback](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
     	LOG_DEBUG ("getOwnTeams reply");
 		storage.teams.clear ();
 
@@ -434,7 +421,7 @@ void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
 		for (auto& team: storage.teams) {
 			callback (team.second);
 		}
-    });
+    }));
 }
 
 void Backend::retrieveTeam (QString teamID)
@@ -444,7 +431,7 @@ void Backend::retrieveTeam (QString teamID)
     std::cout << "get team " << teamID.toStdString() << std::endl;
 
 
-    httpConnector.get(request, [this](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this] (const QJsonDocument& doc) {
     	LOG_DEBUG ("getTeam reply");
 
 #if 1
@@ -458,7 +445,7 @@ void Backend::retrieveTeam (QString teamID)
 		if (team) {
 			emit onAddedToTeam (*team);
 		}
-    });
+    }));
 }
 
 
@@ -468,7 +455,7 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
 
     std::cout << "get team channels " << teamID.toStdString() << std::endl;
 
-    httpConnector.get(request, [this, callback, teamID](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this, callback, teamID](QVariant, const QJsonDocument& doc) {
     	LOG_DEBUG ("getTeamChannels reply");
 
 		BackendTeam* team = storage.getTeamById (teamID);
@@ -488,14 +475,14 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
 		std::cout << "get team channels reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 		callback (team->allPublicChannels);
-    });
+    }));
 }
 
 void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback)
 {
     NetworkRequest request ("users/me/teams/" + team.id + "/channels");
 
-    httpConnector.get(request, [this, &team, callback](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this, &team, callback] (const QJsonDocument& doc) {
     	team.channels.clear ();
 
 #if 0
@@ -529,7 +516,7 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 		if (nonFilledTeams == 0) {
 			emit onAllTeamChannelsPopulated ();
 		}
-    });
+    }));
 }
 
 #if 0 //supported in Mattermost server 6.2
@@ -557,7 +544,7 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 {
 	NetworkRequest request ("teams/" + team.id + "/members");
 
-	httpConnector.get(request, [this, &team](QVariant, const QJsonDocument& doc) {
+	httpConnector.get(request, HttpResponseCallback ([this, &team] (const QJsonDocument& doc) {
 
 		auto root = doc.array();
 		for(const auto &itemRef: qAsConst(root)) {
@@ -576,7 +563,7 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 			}
 		}
 #endif
-	});
+	}));
 }
 
 void Backend::retrieveChannel (BackendTeam& team, QString channelID)
@@ -585,7 +572,7 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 
 	LOG_DEBUG ("retrieveChannel " << channelID);
 
-	httpConnector.get(request, [this, &team](QVariant, const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([this, &team] (const QJsonDocument& doc) {
 		LOG_DEBUG ("retrieveChannel reply");
 
 #if 0
@@ -597,7 +584,7 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit team.onNewChannel (*channel);
-    });
+    }));
 }
 
 void Backend::retrieveDirectChannel (QString channelID)
@@ -606,7 +593,7 @@ void Backend::retrieveDirectChannel (QString channelID)
 
 	LOG_DEBUG ("retrieveChannel " << channelID);
 
-	httpConnector.get(request, [this](QVariant, const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([this] (const QJsonDocument& doc) {
 		LOG_DEBUG ("retrieveChannel reply");
 
 #if 0
@@ -618,14 +605,14 @@ void Backend::retrieveDirectChannel (QString channelID)
 		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit storage.directChannels.onNewChannel (*channel);
-    });
+    }));
 }
 
 void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPage)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(page) + "&per_page=" + QString::number(perPage));
 
-    httpConnector.get(request, [this, &channel](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrieveChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
 
@@ -636,14 +623,14 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 
 		QJsonObject root = doc.object();
 		channel.addPosts (root.value("order").toArray(), root.value("posts").toObject());
-    });
+    }));
 }
 
 void Backend::retrieveChannelOlderPosts (BackendChannel& channel, int perPage)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(0) + "&per_page=" + QString::number(perPage) + "&before=" + channel.posts.front().id);
 
-    httpConnector.get(request, [this, &channel](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrieveChannelOlderPosts reply for " << channel.display_name << " (" << channel.id << ") - since " << channel.posts.front().id);
 
@@ -654,14 +641,14 @@ void Backend::retrieveChannelOlderPosts (BackendChannel& channel, int perPage)
 
 		QJsonObject root = doc.object();
 		channel.prependPosts (root.value("order").toArray(), root.value("posts").toObject());
-    });
+    }));
 }
 
 void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<void (const QString&)> responseHandler)
 {
 	NetworkRequest request ("users/me/channels/" + channel.id + "/posts/unread?limit_before=0&limit_after=1");
 
-    httpConnector.get(request, [this, &channel, responseHandler](QVariant, const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([this, &channel, responseHandler](const QJsonDocument& doc) {
 
     	//LOG_DEBUG ("getChannelUnreadPost reply for " << channel.display_name << " (" << channel.id << ")");
 
@@ -680,14 +667,14 @@ void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<
 			static QString emptyString ("");
 			responseHandler (emptyString);
 		}
-    });
+    }));
 }
 
 void Backend::retrieveChannelMembers (BackendChannel& channel)
 {
 	NetworkRequest request ("channels/" + channel.id + "/members");
 
-	httpConnector.get(request, [this, &channel](QVariant, const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
 
 		//LOG_DEBUG ("retrieveChannelMembers reply");
 
@@ -708,7 +695,7 @@ void Backend::retrieveChannelMembers (BackendChannel& channel)
 			}
 		}
 #endif
-	});
+	}));
 }
 
 void Backend::retrievePollMetadata (BackendPoll& poll)
@@ -717,7 +704,7 @@ void Backend::retrievePollMetadata (BackendPoll& poll)
 
 	LOG_DEBUG ("retrievePollMetadata request");
 
-	httpConnector.get(request, [this, &poll](QVariant, const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([this, &poll](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrievePollMetadata reply");
 
@@ -725,7 +712,7 @@ void Backend::retrievePollMetadata (BackendPoll& poll)
 		std::cout << jsonString.toStdString() << std::endl;
 
 		poll.fillMetadata (doc.object());
-	});
+	}));
 }
 
 void Backend::markChannelAsViewed (BackendChannel& channel)
@@ -737,12 +724,9 @@ void Backend::markChannelAsViewed (BackendChannel& channel)
 	//maybe add prev_channel_id, the Mattermost API supports it
 	//json.insert ("prev_channel_id", channel.id);
 
-	QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
-
 	NetworkRequest request ("channels/members/me/view");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray data) {
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
 
 		//no callbacks are required. the server will send a WebSocket packet 'channel_viewed'
 
@@ -752,7 +736,7 @@ void Backend::markChannelAsViewed (BackendChannel& channel)
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
-	});
+	}));
 }
 
 void Backend::editChannelProperties (BackendChannel& channel, const BackendChannelProperties& newProperties)
@@ -774,14 +758,14 @@ void Backend::editChannelProperties (BackendChannel& channel, const BackendChann
 	NetworkRequest request ("channels/" + channel.id);
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.put (request, data, [this](QVariant, QByteArray) {
+	httpConnector.put (request, data, HttpResponseCallback ([this](QVariant, QByteArray) {
 #if 0
 	QJsonDocument doc = QJsonDocument::fromJson(data);
 	QString jsonString = doc.toJson(QJsonDocument::Indented);
 	std::cout << "editChannelProperties" << jsonString.toStdString() << std::endl;
 #endif
 
-	});
+	}));
 }
 
 void Backend::addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments, const QString& rootID)
@@ -805,18 +789,16 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 		json.insert ("root_id", rootID);
 	}
 
-    QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
 
 	NetworkRequest request ("posts");
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post (request, data, [this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
-	});
+	}));
 }
 
 void Backend::editPost (const QString& postID, const QString& message, const QList<QString>* attachments)
@@ -845,15 +827,14 @@ void Backend::editPost (const QString& postID, const QString& message, const QLi
 	NetworkRequest request ("posts/" + postID + "/patch");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.put (request, data, [this](QVariant, QByteArray data) {
-		QJsonDocument doc = QJsonDocument::fromJson(data);
+	httpConnector.put (request, data, HttpResponseCallback ([this](const QJsonDocument& doc) {
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
-	});
+	}));
 }
 
 void Backend::deletePost (const QString postID)
@@ -871,7 +852,7 @@ void Backend::sendPostAction (const BackendPost& post, const QString& action)
 {
 	NetworkRequest request  ("posts/" + post.id + "/actions/" + action);
 
-	httpConnector.post (request, QByteArray(), [this](QVariant, const QJsonDocument& doc) {
+	httpConnector.post (request, QByteArray(), HttpResponseCallback ([this](const QJsonDocument& doc) {
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -883,7 +864,7 @@ void Backend::sendPostAction (const BackendPost& post, const QString& action)
 		}
 #endif
 
-	});
+	}));
 }
 
 void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std::function<void (QString)> responseHandler)
@@ -903,7 +884,7 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 	QByteArray data = file.readAll();
 	qDebug() << data.size();
 
-	httpConnector.post(request, data, [this, responseHandler](QVariant, const QJsonDocument& doc) {
+	httpConnector.post (request, data, HttpResponseCallback ([this, responseHandler](QVariant, const QJsonDocument& doc) {
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -918,19 +899,16 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 		}
 
 		responseHandler (arr.at(0).toObject().value("id").toString());
-	});
+	}));
 }
 
 void Backend::createDirectChannel (const BackendUser& user)
 {
 	QJsonArray json {getLoginUser().id, user.id};
 
-    QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
-
 	NetworkRequest request ("channels/direct");
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -938,7 +916,7 @@ void Backend::createDirectChannel (const BackendUser& user)
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
-	});
+	}));
 }
 
 void Backend::addUserToChannel (const BackendChannel& channel, const QString& userID)
@@ -947,12 +925,9 @@ void Backend::addUserToChannel (const BackendChannel& channel, const QString& us
 		{"user_id", userID}
 	};
 
-    QByteArray data (QJsonDocument (json).toJson(QJsonDocument::Compact));
-
 	NetworkRequest request ("channels/" + channel.id + "/members");
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.post(request, data, [this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -960,7 +935,7 @@ void Backend::addUserToChannel (const BackendChannel& channel, const QString& us
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
-	});
+	}));
 }
 
 void Backend::joinChannel (const BackendChannel& channel)
@@ -984,7 +959,7 @@ void Backend::addUserToTeam (const BackendTeam& team, const QString& userID)
 
 	NetworkRequest request ("teams/" + team.id + "/members");
 
-	httpConnector.post (request, json, [this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -992,24 +967,23 @@ void Backend::addUserToTeam (const BackendTeam& team, const QString& userID)
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
-	});
+	}));
 }
 
-void Backend::sendSubmitDialog (const QJsonDocument& doc)
+void Backend::sendSubmitDialog (const QJsonDocument& json)
 {
-	QString jsonString = doc.toJson(QJsonDocument::Indented);
+	QString jsonString = json.toJson(QJsonDocument::Indented);
 	qDebug() << "SendSubmitDialog request: " << jsonString.toStdString().c_str();
 
-	QByteArray data (doc.toJson(QJsonDocument::Compact));
 
 	NetworkRequest request ("actions/dialogs/submit");
-	httpConnector.post (request, data, [] (QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([] (QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc2 = QJsonDocument::fromJson(data);
 		QString jsonString = doc2.toJson(QJsonDocument::Indented);
 		qDebug() << "SendSubmitDialog reply: " << jsonString.toStdString().c_str();
 #endif
-	});
+	}));
 }
 
 const BackendUser& Backend::getLoginUser () const

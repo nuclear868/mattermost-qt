@@ -27,6 +27,7 @@
 #include <memory>
 #include <QNetworkReply>
 #include "backend/types/BackendError.h"
+#include "backend/HttpResponseCallback.h"
 
 class QNetworkAccessManager;
 class QNetworkDiskCache;
@@ -43,16 +44,9 @@ public:
 
 	void reset ();
 
-	void get (const QNetworkRequest &request, std::function<void(QVariant,QByteArray)> responseHandler);
-	void get (const QNetworkRequest &request, std::function<void(QVariant, const QJsonDocument&)> responseHandler);
-	void get (const QNetworkRequest &request, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
-
-	void post (QNetworkRequest &request, const QByteArrayCreator &data, std::function<void(QVariant,QByteArray)> responseHandler);
-	void post (QNetworkRequest &request, const QByteArrayCreator &data, std::function<void(QVariant,const QJsonDocument&)> responseHandler);
-	void post (QNetworkRequest &request, const QByteArrayCreator &data, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
-
-	void put (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray)> responseHandler);
-	void put (const QNetworkRequest &request, const QByteArray &data, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
+	void get (const QNetworkRequest &request, HttpResponseCallback responseHandler);
+	void post (QNetworkRequest &request, const QByteArrayCreator &data, HttpResponseCallback responseHandler);
+	void put (const QNetworkRequest &request, const QByteArray &data, HttpResponseCallback responseHandler);
 	void del (const QNetworkRequest &request);
 
 signals:
@@ -60,7 +54,6 @@ signals:
 	void onHttpError (uint32_t errorNumber, const QString& errorText);
 
 private:
-	//virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray)>&& responseHandler);
 	virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 private:
 	std::unique_ptr<QNetworkAccessManager> 	qnetworkManager;

@@ -53,42 +53,13 @@ void HTTPConnector::reset ()
 	qnetworkManager->setCache (diskCache);
 }
 
-void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVariant, QByteArray)> responseHandler)
-{
-	return get (request, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
-		responseHandler (status, result);
-	});
-}
-
-void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVariant, const QJsonDocument&)> responseHandler)
-{
-	return get (request, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
-		responseHandler (status, QJsonDocument::fromJson(result));
-	});
-}
-
-void HTTPConnector::get (const QNetworkRequest& request, std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
+void HTTPConnector::get (const QNetworkRequest& request, HttpResponseCallback responseHandler)
 {
 	QNetworkReply* reply = qnetworkManager->get (request);
 	setProcessReply (reply, std::move (responseHandler));
 }
 
-void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data, std::function<void (QVariant, QByteArray)> responseHandler)
-{
-	return post (request, data, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
-		responseHandler (status, result);
-	});
-}
-
-void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data, std::function<void (QVariant, const QJsonDocument&)> responseHandler)
-{
-	return post (request, data, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
-		responseHandler (status, QJsonDocument::fromJson(result));
-	});
-}
-
-void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data,
-		std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
+void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& data, HttpResponseCallback responseHandler)
 {
 	if (data.isJson()) {
 		request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -98,15 +69,7 @@ void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& dat
 	setProcessReply (reply, std::move (responseHandler));
 }
 
-void HTTPConnector::put (const QNetworkRequest& request, const QByteArray& data, std::function<void (QVariant, QByteArray)> responseHandler)
-{
-	return put (request, data, [responseHandler] (QVariant status, QByteArray result, const QNetworkReply&) {
-		responseHandler (status, result);
-	});
-}
-
-void HTTPConnector::put (const QNetworkRequest& request, const QByteArray& data,
-		std::function<void (QVariant, QByteArray, const QNetworkReply&)> responseHandler)
+void HTTPConnector::put (const QNetworkRequest& request, const QByteArray& data, HttpResponseCallback responseHandler)
 {
 	QNetworkReply* reply = qnetworkManager->put (request, data);
 	setProcessReply (reply, std::move (responseHandler));

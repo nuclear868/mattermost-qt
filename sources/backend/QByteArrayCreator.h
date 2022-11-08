@@ -1,6 +1,6 @@
 /**
  * @file QByteArrayCreator.h
- * @brief Creates a byte array from byte array or JSON
+ * @brief Creates a QByteArray from byte array or JSON
  * @author Lyubomir Filipov
  * @date Nov 3, 2022
  *
@@ -25,15 +25,18 @@
 #pragma once
 
 #include <QByteArray>
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 namespace Mattermost {
 
 class QByteArrayCreator: public QByteArray {
 public:
-	using QByteArray::QByteArray;
 	QByteArrayCreator (QByteArray arr);
+	QByteArrayCreator (QJsonDocument doc);
 	QByteArrayCreator (QJsonObject json);
+	QByteArrayCreator (QJsonArray json);
 public:
 	bool isJson () const;
 private:

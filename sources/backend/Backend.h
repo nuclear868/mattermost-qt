@@ -149,7 +149,7 @@ public:
 	void addUserToTeam (const BackendTeam& team, const QString& userID);
 
 	//send a submit dialog response. In most cases, dialogs are handled by the UI
-	void sendSubmitDialog (const QJsonDocument& doc);
+	void sendSubmitDialog (const QJsonDocument& json);
 
 	const BackendUser& getLoginUser () const;
 
@@ -198,7 +198,7 @@ signals:
     void onNetworkError (uint32_t errorNumber, const QString& errorText);
     void onHttpError (uint32_t errorNumber, const QString& errorText);
 private:
-    void loginSuccess (const QByteArray& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
+    void loginSuccess (const QJsonDocument& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
 private:
     Storage							storage;
     ServerDialogsMap				serverDialogsMap;
