@@ -28,15 +28,24 @@
 
 namespace Mattermost {
 
+
+/**
+ * lookup for emoji value, given an emoji name
+ */
 class EmojiMap {
 public:
 	EmojiMap () = delete;
 	~EmojiMap () = delete;
 public:
-	static const QString& idToString (uint32_t id);
-	static const QString& nameToString (const QString& emojiName);
-	static uint32_t nameToId (const QString& emojiName);
+	using iterator = QMap<QString, QString>::const_iterator;
+
+	static iterator findByName (const QString& emojiName);
+	static iterator missing ();
 };
-extern const QMap<QString, QString> EmojiMap;
+
+bool operator< (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs);
 
 } /* namespace Mattermost */
+
+using Mattermost::operator<;
+

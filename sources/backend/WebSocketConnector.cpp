@@ -34,10 +34,10 @@
 namespace Mattermost {
 
 static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonObject&, const QJsonObject&)>> eventHandlers {
-	{"hello", [] (WebSocketConnector& conn, const QJsonObject&, const QJsonObject&) {
+	{"hello", [] (WebSocketConnector&, const QJsonObject&, const QJsonObject&) {
 		std::cout << "Hello" << std::endl;
 	}},
-	{"channel_viewed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+	{"channel_viewed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
 		conn.eventHandler.handleEvent (ChannelViewedEvent (data));
 	}},
 
@@ -53,6 +53,11 @@ static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonOb
 	//post deleted
 	{"post_deleted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
 		conn.eventHandler.handleEvent (PostDeletedEvent (data, broadcast));
+	}},
+
+	//post reaction added
+	{"reaction_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
+		conn.eventHandler.handleEvent (PostReactionAddedEvent (data, broadcast));
 	}},
 
 	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {

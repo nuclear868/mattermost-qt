@@ -86,7 +86,7 @@ void WebSocketEventHandler::handleEvent (const PostEditedEvent& event)
 
 	QString channelName = channel ? channel->name : event.channelId;
 
-	BackendPost post (event.postObject);
+	BackendPost post (event.postObject, storage);
 	channel->editPost (post);
 
 #if 0
@@ -109,6 +109,21 @@ void WebSocketEventHandler::handleEvent (const PostDeletedEvent& event)
 	if (channel) {
 		emit channel->onPostDeleted (event.postId);
 	}
+}
+
+
+void WebSocketEventHandler::handleEvent (const PostReactionAddedEvent& event)
+{
+	BackendChannel* channel = storage.getChannelById (event.channelId);
+
+	if (!channel) {
+		return;
+	}
+
+	channel->addPostReaction (event.postId, event.userId, event.emojiName);
+
+	LOG_DEBUG ("Reaction " << event.emojiName << " from " << event.userId << " for post " << event.postId);
+
 }
 
 void WebSocketEventHandler::handleEvent (const TypingEvent& event)

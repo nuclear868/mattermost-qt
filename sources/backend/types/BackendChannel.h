@@ -81,6 +81,7 @@ public:
 	void prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void editPost (BackendPost& newPost);
+	void addPostReaction (QString postId, QString userId, QString emojiName);
 
 signals:
 
@@ -112,9 +113,15 @@ signals:
 
 	/**
 	 * Called when a post is being edited
-	 * @param postId postId
+	 * @param post post
 	 */
 	void onPostEdited (BackendPost& post);
+
+	/**
+	 * Called when a post reaction is being added
+	 * @param post post
+	 */
+	void onPostReactionAdded (BackendPost& post);
 
 	/**
 	 * Called when a post is being deleted

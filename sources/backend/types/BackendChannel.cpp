@@ -94,7 +94,7 @@ BackendChannel::~BackendChannel () = default;
 
 BackendPost* BackendChannel::addPost (const QJsonObject& postObject)
 {
-	posts.emplace_back (postObject);
+	posts.emplace_back (postObject, storage);
 
 	BackendPost* newPost = &posts.back ();
 	newPost->author = storage.getUserById (newPost->user_id);
@@ -107,7 +107,7 @@ void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPo
 	 * Add a post.
 	 * And add added post to the list of new posts
 	 */
-	BackendPost* newPost = &*posts.emplace(position, postObject);
+	BackendPost* newPost = &*posts.emplace(position, postObject, storage);
 	newPost->author = storage.getUserById (newPost->user_id);
 
 	currentChunk.postsToAdd.emplace_front (newPost);
@@ -222,6 +222,18 @@ void BackendChannel::editPost (BackendPost& newPost)
 		if (post.id == newPost.id) {
 			post.updatePostEdits (newPost);
 			emit onPostEdited (post);
+			break;
+		}
+	}
+}
+
+void BackendChannel::addPostReaction (QString postId, QString userId, QString emojiName)
+{
+	for (auto& post: posts) {
+		if (post.id == postId) {
+
+			post.addReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
+			emit onPostReactionAdded (post);
 			break;
 		}
 	}

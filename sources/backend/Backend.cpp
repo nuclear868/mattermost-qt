@@ -137,14 +137,12 @@ void Backend::login (const BackendLoginData& loginData, std::function<void(const
 		jsonRoot.insert("token", token);
 #endif
 	json.setObject(jsonRoot);
-	QByteArray data = json.toJson(QJsonDocument::Compact);
 
 	NetworkRequest request ("users/login");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 	//debugRequest (request, data);
 
-	httpConnector.post (request, data, HttpResponseCallback ([this, callback](const QJsonDocument& data, const QNetworkReply& reply) {
+	httpConnector.post (request, json, HttpResponseCallback ([this, callback](const QJsonDocument& data, const QNetworkReply& reply) {
 		loginSuccess (data, reply, callback);
 	}));
 }
@@ -262,9 +260,7 @@ void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::functi
 
 	NetworkRequest request ("users/status/ids");
 
-    QByteArray data (QJsonDocument (userIDsJson).toJson(QJsonDocument::Compact));
-
-	httpConnector.post (request, data, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
+	httpConnector.post (request, userIDsJson, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
 
 		LOG_DEBUG ("getStatus reply");
 

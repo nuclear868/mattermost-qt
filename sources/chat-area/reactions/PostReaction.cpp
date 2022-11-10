@@ -18,16 +18,33 @@
  */
 
 #include "PostReaction.h"
+#include "backend/types/BackendPost.h"
 #include "ui_PostReaction.h"
 
 namespace Mattermost {
 
-PostReaction::PostReaction (const QString& reactionString, QWidget *parent)
+PostReaction::PostReaction (const QString& emojiName, const QString& emojiValue, const BackendPostReaction& reactionData, QWidget *parent)
 :QWidget(parent)
 ,ui(new Ui::PostReaction)
 {
     ui->setupUi (this);
-    ui->label->setText (reactionString);
+    ui->emoji->setText (emojiValue);
+    ui->count->setText (QString::number (reactionData.size()));
+
+    QString tooltip (emojiName + "  " + emojiValue + "\n");
+
+    for (auto& it: reactionData) {
+    	tooltip += it + "\n";
+    }
+
+    //remove the last '\n'
+    tooltip.chop (1);
+    setToolTip (tooltip);
+
+	QPalette pal = palette();
+	pal.setColor(QPalette::Base, QColor (230,230,230));
+	setAutoFillBackground(true);
+    setPalette(pal);
 }
 
 PostReaction::~PostReaction()

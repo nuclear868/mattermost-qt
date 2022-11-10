@@ -28,6 +28,8 @@ class PostReactionList;
 
 namespace Mattermost {
 
+using BackendPostReaction = QVector<QString>;
+
 class PostReactionList: public QWidget
 {
     Q_OBJECT
@@ -35,7 +37,7 @@ public:
     explicit PostReactionList(QWidget *parent = nullptr);
     ~PostReactionList();
 public:
-    void addReaction (uint32_t reactionID);
+    void addReaction (const QString& emojiName, const QString& emojiValue, const BackendPostReaction& reactionData);
 
 private:
     Ui::PostReactionList *ui;

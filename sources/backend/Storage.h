@@ -51,6 +51,15 @@ public:
 	BackendUser* getUserById (const QString& userID);
 	const BackendUser* getUserById (const QString& userID) const;
 
+	/**
+	 * Get user's display name by given user ID.
+	 * If no user is found, the user ID is returned.
+	 * @param userID user ID
+	 * @param explainLoginUser if user is same as loginUser, the "(you)" string is appended to the name
+	 * @return user display name
+	 */
+	QString getUserDisplayNameByUserId (const QString& userID, bool explainLoginUser = false) const;
+
 	BackendTeam* addTeam (const QJsonObject& json);
 
 	BackendChannel* addNonDirectChannel (BackendTeam& team, const QJsonObject& json);

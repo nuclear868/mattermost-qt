@@ -74,8 +74,9 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	if (!post.reactions.empty()) {
 		reactions = std::make_unique<PostReactionList> (this);
 
-		for (int it: post.reactions) {
-			reactions->addReaction (it);
+		for (auto& it: post.reactions) {
+			auto emojiIterator = it.first;
+			reactions->addReaction (emojiIterator.key(), emojiIterator.value(), it.second);
 		}
 
 		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
@@ -101,7 +102,7 @@ PostWidget::~PostWidget()
 
 void PostWidget::setEdited (const QString& message)
 {
-	ui->message->setText (message);
+	ui->message->setText (formatMessageText (message));
 
 	/**
 	 * if (there is a poll in the post, just recreate the poll instance
@@ -112,6 +113,25 @@ void PostWidget::setEdited (const QString& message)
 		std::unique_ptr<PostPoll> newPoll = std::make_unique<PostPoll> (poll->backend, post, *post.poll, this);
 		ui->verticalLayout->replaceWidget (poll.get(), newPoll.get());
 		poll = std::move (newPoll);
+	}
+}
+
+void PostWidget::updateReactions ()
+{
+	if (reactions) {
+		reactions.reset ();
+	}
+
+	//Add reactions, if any
+	if (!post.reactions.empty()) {
+		reactions = std::make_unique<PostReactionList> (this);
+
+		for (auto& it: post.reactions) {
+			auto emojiIterator = it.first;
+			reactions->addReaction (emojiIterator.key(), emojiIterator.value(), it.second);
+		}
+
+		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
 	}
 }
 

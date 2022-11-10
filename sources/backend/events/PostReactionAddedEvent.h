@@ -1,4 +1,9 @@
 /**
+ * @file PostReactionAddedEvent.h
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Nov 9, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,30 +22,21 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef POSTREACTION_H
-#define POSTREACTION_H
+#pragma once
 
-#include <QWidget>
-
-namespace Ui {
-class PostReaction;
-}
+#include <QJsonObject>
 
 namespace Mattermost {
 
-using BackendPostReaction = QVector<QString>;
-
-class PostReaction: public QWidget
-{
-    Q_OBJECT
+class PostReactionAddedEvent {
 public:
-    explicit PostReaction (const QString& emojiName, const QString& emojiValue, const BackendPostReaction& reactionData, QWidget *parent = nullptr);
-    ~PostReaction();
-
-private:
-    Ui::PostReaction *ui;
+	PostReactionAddedEvent (const QJsonObject& data, const QJsonObject& broadcast);
+	virtual ~PostReactionAddedEvent ();
+public:
+	QString	channelId;
+	QString userId;
+	QString postId;
+	QString emojiName;
 };
 
 } /* namespace Mattermost */
-
-#endif // POSTREACTION_H

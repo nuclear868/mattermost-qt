@@ -27,10 +27,12 @@
 #include <QJsonArray>
 #include "backend/EmojiMap.h"
 #include "BackendPoll.h"
+#include "backend/Storage.h"
+#include "log.h"
 
 namespace Mattermost {
 
-BackendPost::BackendPost (const QJsonObject& jsonObject)
+BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
 :author (nullptr)
 ,isDeleted (false)
 {
@@ -58,8 +60,9 @@ BackendPost::BackendPost (const QJsonObject& jsonObject)
 	}
 
 	for (const auto &reactionElement: metadata.value("reactions").toArray()) {
-		QString emoji = reactionElement.toObject().value ("emoji_name").toString();
-		reactions.emplace_back (EmojiMap::nameToId (emoji));
+
+		QString userName = storage.getUserDisplayNameByUserId (reactionElement.toObject().value ("user_id").toString(), true);
+		addReaction (userName, reactionElement.toObject().value ("emoji_name").toString());
 	}
 
 	/**
@@ -103,6 +106,18 @@ QString BackendPost::getDisplayAuthorName () const
 	}
 
 	return getAuthorName();
+}
+
+void BackendPost::addReaction (QString userName, QString emojiName)
+{
+	auto iterator = EmojiMap::findByName(emojiName);
+
+	if (iterator == EmojiMap::missing()) {
+		LOG_DEBUG ("Missing emoji: " << emojiName);
+		return;
+	}
+
+	reactions[iterator].push_back (userName);
 }
 
 /**

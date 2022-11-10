@@ -64,20 +64,19 @@ namespace Mattermost {
 static const QString emojiSourceFileEnd =
 R"(};
 
-const QString& EmojiMap::idToString (uint32_t id)
+EmojiMap::iterator EmojiMap::findByName (const QString& emojiName)
 {
-	return emojiStrings[id];
+	return emojiMap.find (emojiName);
 }
 
-const QString& EmojiMap::nameToString (const QString& name)
+EmojiMap::iterator EmojiMap::missing ()
 {
-	int id = emojiMap.value (name);
-	return idToString (id);
+	return emojiMap.end ();
 }
 
-uint32_t EmojiMap::nameToId (const QString& emojiName)
+bool operator < (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs)
 {
-	return emojiMap.value (emojiName);
+	return lhs < rhs;
 }
 
 } /* namespace Mattermost */
@@ -152,31 +151,11 @@ int main (int argc, char** argv)
 		}
 	}
 
-	outStream << "static const QString emojiStrings[] {\n";
-
-	for (int i = 0; i < emojiValues.size(); ++i) {
-		outStream << "\t\"" << emojiValues[i];
-
-		if (emojiValues[i].size() <= 1) {
-			outStream << "\",\t\t//";
-		} else {
-			outStream << "\",\t//";
-		}
-
-		if (i == 0) {
-			outStream << "(placeholder for not found emoji)" << "\n";
-		} else {
-			outStream << emojiNames[i] << "\n";
-		}
-	}
-
-	outStream << R"(};
-
-static const QMap<QString, uint32_t> emojiMap {
+	outStream << R"(static const QMap<QString, QString> emojiMap {
 )";
 
 	for (int i = 0; i < emojiValues.size(); ++i) {
-		outStream << "\t{\"" << emojiNames[i] << "\"," << i << "}," << "\n";
+		outStream << "\t{\"" << emojiNames[i] << "\",\"" << emojiValues[i] << "\"}," << "\n";
 	}
 
 	outStream << emojiSourceFileEnd;

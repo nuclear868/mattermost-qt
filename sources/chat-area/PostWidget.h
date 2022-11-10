@@ -50,6 +50,7 @@ public:
     };
 
     void setEdited (const QString& message);
+    void updateReactions ();
 
     void markAsDeleted ();
 

@@ -115,6 +115,16 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 	});
 
+	connect (&channel, &BackendChannel::onPostReactionAdded, [this] (BackendPost& post) {
+		PostWidget* postWidget = ui->listWidget->findPost (post.id);
+
+		if (postWidget) {
+			postWidget->updateReactions ();
+			//ui->listWidget->adjustSize();
+		}
+	});
+
+
 	//initiate editing of last post, after an up arrow is pressed
 	connect (ui->textEdit, &MessageTextEditWidget::upArrowPressed, [this] {
 		QListWidgetItem* post = ui->listWidget->getLastOwnPost ();

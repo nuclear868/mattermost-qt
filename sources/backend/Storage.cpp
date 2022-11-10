@@ -58,6 +58,19 @@ const BackendUser* Storage::getUserById (const QString& userID) const
 	return &it->second;
 }
 
+
+QString Storage::getUserDisplayNameByUserId (const QString& userID, bool explainLoginUser) const
+{
+	const BackendUser* user = getUserById (userID);
+	QString ret = user ? user->getDisplayName() : userID;
+
+	if (explainLoginUser && user == loginUser) {
+		ret += " (you)";
+	}
+
+	return ret;
+}
+
 BackendUser* Storage::getUserById (const QString& userID)
 {
 	auto it = users.find (userID);

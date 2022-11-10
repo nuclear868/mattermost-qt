@@ -38,9 +38,9 @@ PostReactionList::~PostReactionList()
     delete ui;
 }
 
-void PostReactionList::addReaction (uint32_t reactionID)
+void PostReactionList::addReaction (const QString& emojiName, const QString& emojiValue, const BackendPostReaction& reactionData)
 {
-	PostReaction* reaction = new PostReaction (EmojiMap::idToString (reactionID), this);
+	PostReaction* reaction = new PostReaction (emojiName, emojiValue, reactionData, this);
 	ui->horizontalLayout_2->addWidget (reaction, 0, Qt::AlignLeft);
 }
 

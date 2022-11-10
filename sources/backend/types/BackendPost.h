@@ -31,14 +31,18 @@
 #include <memory>
 #include "BackendUser.h"
 #include "BackendFile.h"
+#include "backend/EmojiMap.h"
 
 namespace Mattermost {
 
 class BackendPoll;
+class Storage;
+
+using BackendPostReaction = QVector<QString>;
 
 class BackendPost {
 public:
-	BackendPost (const QJsonObject& jsonObject);
+	BackendPost (const QJsonObject& jsonObject, const Storage& storage);
 	BackendPost (BackendPost&& other) = default;
 	~BackendPost ();
 public:
@@ -46,6 +50,7 @@ public:
 	QString getDisplayAuthorName () const;
 	QDateTime getCreationTime () const;
 	void updatePostEdits (BackendPost& editedPost);
+	void addReaction (QString userName, QString emojiName);
 private:
 	QString getAuthorName () const;
 public:
@@ -66,7 +71,7 @@ public:
 	QString						hashtags;
 	QString						pending_post_id;
 	std::list<BackendFile>		files;
-	std::vector<int>			reactions;
+	std::map<EmojiMap::iterator,BackendPostReaction> reactions;
 
 
 	std::unique_ptr<BackendPoll> poll;
