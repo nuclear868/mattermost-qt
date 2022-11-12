@@ -30,7 +30,7 @@ namespace Mattermost {
 
 class ChannelCreatedEvent {
 public:
-	ChannelCreatedEvent (const QJsonObject& object);
+	ChannelCreatedEvent (const QJsonObject& object, const QJsonObject&);
 	virtual ~ChannelCreatedEvent ();
 public:
 	QString channelId;

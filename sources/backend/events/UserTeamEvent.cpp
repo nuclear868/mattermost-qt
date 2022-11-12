@@ -26,7 +26,7 @@
 
 namespace Mattermost {
 
-UserTeamEvent::UserTeamEvent (const QJsonObject& object)
+UserTeamEvent::UserTeamEvent (const QJsonObject& object, const QJsonObject&)
 :team_id (object.value("team_id").toString())
 ,user_id (object.value("user_id").toString())
 {

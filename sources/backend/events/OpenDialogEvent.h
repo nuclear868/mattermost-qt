@@ -31,7 +31,7 @@ namespace Mattermost {
 
 class OpenDialogEvent {
 public:
-	OpenDialogEvent (const QJsonObject& data);
+	OpenDialogEvent (const QJsonObject& data, const QJsonObject&);
 	explicit OpenDialogEvent (const QString& triggerID);
 	~OpenDialogEvent ();
 public:

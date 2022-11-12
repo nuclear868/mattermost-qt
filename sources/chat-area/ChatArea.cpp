@@ -115,7 +115,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 	});
 
-	connect (&channel, &BackendChannel::onPostReactionAdded, [this] (BackendPost& post) {
+	connect (&channel, &BackendChannel::onPostReactionUpdated, [this] (BackendPost& post) {
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
 
 		if (postWidget) {

@@ -28,7 +28,7 @@
 
 namespace Mattermost {
 
-ChannelUpdatedEvent::ChannelUpdatedEvent (const QJsonObject& data)
+ChannelUpdatedEvent::ChannelUpdatedEvent (const QJsonObject& data, const QJsonObject&)
 {
 	//the channel object is a JSON string inside the channel object, with escaped json elements
 	QJsonObject channelObject = QJsonDocument::fromJson (data.value ("channel").toString().toUtf8()).object();

@@ -122,9 +122,22 @@ void WebSocketEventHandler::handleEvent (const PostReactionAddedEvent& event)
 
 	channel->addPostReaction (event.postId, event.userId, event.emojiName);
 
-	LOG_DEBUG ("Reaction " << event.emojiName << " from " << event.userId << " for post " << event.postId);
-
+	LOG_DEBUG ("Reaction added " << event.emojiName << " from " << event.userId << " for post " << event.postId);
 }
+
+void WebSocketEventHandler::handleEvent (const PostReactionRemovedEvent& event)
+{
+	BackendChannel* channel = storage.getChannelById (event.channelId);
+
+	if (!channel) {
+		return;
+	}
+
+	channel->removePostReaction (event.postId, event.userId, event.emojiName);
+
+	LOG_DEBUG ("Reaction removed " << event.emojiName << " from " << event.userId << " for post " << event.postId);
+}
+
 
 void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 {

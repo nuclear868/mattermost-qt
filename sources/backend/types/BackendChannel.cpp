@@ -233,7 +233,19 @@ void BackendChannel::addPostReaction (QString postId, QString userId, QString em
 		if (post.id == postId) {
 
 			post.addReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
-			emit onPostReactionAdded (post);
+			emit onPostReactionUpdated (post);
+			break;
+		}
+	}
+}
+
+void BackendChannel::removePostReaction (QString postId, QString userId, QString emojiName)
+{
+	for (auto& post: posts) {
+		if (post.id == postId) {
+
+			post.removeReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
+			emit onPostReactionUpdated (post);
 			break;
 		}
 	}

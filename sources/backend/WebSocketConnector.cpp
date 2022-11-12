@@ -33,76 +33,31 @@
 
 namespace Mattermost {
 
-static const QMap<QString, std::function<void(WebSocketConnector&, const QJsonObject&, const QJsonObject&)>> eventHandlers {
+template<typename T>
+void handler (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast)
+{
+	conn.eventHandler.handleEvent (T (data, broadcast));
+}
+
+static const QMap<QString, void(*)(WebSocketConnector&, const QJsonObject&, const QJsonObject&)> eventHandlers {
 	{"hello", [] (WebSocketConnector&, const QJsonObject&, const QJsonObject&) {
 		std::cout << "Hello" << std::endl;
 	}},
-	{"channel_viewed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (ChannelViewedEvent (data));
-	}},
-
-	{"posted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (PostEvent (data, broadcast));
-	}},
-
-	//post edited
-	{"post_edited", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (PostEditedEvent (data, broadcast));
-	}},
-
-	//post deleted
-	{"post_deleted", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (PostDeletedEvent (data, broadcast));
-	}},
-
-	//post reaction added
-	{"reaction_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (PostReactionAddedEvent (data, broadcast));
-	}},
-
-	{"typing", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (TypingEvent (data, broadcast));
-	}},
-
-	//new direct channel created
-	{"direct_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (NewDirectChannelEvent (data, broadcast));
-	}},
-
-	//user added to channel
-	{"user_added", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (UserAddedToChannelEvent (data, broadcast));
-	}},
-
-	//user added to team
-	{"added_to_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (UserAddedToTeamEvent (data));
-	}},
-
-	//a user has left a team
-	{"leave_team", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (UserLeaveTeamEvent (data));
-	}},
-
-	//a user (the logged-in user, or someone else) was removed from a channel
-	{"user_removed", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject& broadcast) {
-		conn.eventHandler.handleEvent (UserRemovedFromChannelEvent (data, broadcast));
-	}},
-
-	//a new channel was created
-	{"channel_created", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (ChannelCreatedEvent (data));
-	}},
-
-	//a channel was updated
-	{"channel_updated", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (ChannelUpdatedEvent (data));
-	}},
-
-	//a server-side dialog
-	{"open_dialog", [] (WebSocketConnector& conn, const QJsonObject& data, const QJsonObject&) {
-		conn.eventHandler.handleEvent (OpenDialogEvent (data));
-	}},
+	{"channel_viewed",		handler<ChannelViewedEvent>},
+	{"posted", 				handler<PostEvent>},
+	{"post_edited", 		handler<PostEditedEvent>},
+	{"post_deleted",		handler<PostDeletedEvent>},
+	{"reaction_added",		handler<PostReactionAddedEvent>},
+	{"reaction_removed",	handler<PostReactionRemovedEvent>},
+	{"typing",				handler<TypingEvent>},
+	{"direct_added", 		handler<NewDirectChannelEvent>}, 		//new direct channel created
+	{"user_added",			handler<UserAddedToChannelEvent>}, 		//user added to channel
+	{"added_to_team",		handler<UserAddedToTeamEvent>},			//user added to team
+	{"leave_team",			handler<UserLeaveTeamEvent>},			//a user has left a team
+	{"user_removed",		handler<UserRemovedFromChannelEvent>}, 	//a user (the logged-in user, or someone else) was removed from a channel
+	{"channel_created",		handler<ChannelCreatedEvent>},			//a new channel was created
+	{"channel_updated",		handler<ChannelUpdatedEvent>},			//a channel was updated
+	{"open_dialog",			handler<OpenDialogEvent>},				//a server-side dialog
 };
 
 WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
@@ -209,7 +164,7 @@ void WebSocketConnector::reset ()
 
 static bool printEvent (const QString& name)
 {
-	if (name == "channel_viewed" || name == "channel_updated") {
+	if (name == "channel_viewed" || name == "channel_updated" || name == "reaction_added" || name == "reaction_removed") {
 		return false;
 	}
 

@@ -26,7 +26,7 @@
 
 namespace Mattermost {
 
-ChannelCreatedEvent::ChannelCreatedEvent (const QJsonObject& object)
+ChannelCreatedEvent::ChannelCreatedEvent (const QJsonObject& object, const QJsonObject&)
 :channelId (object.value("channel_id").toString())
 ,teamId (object.value("team_id").toString())
 {

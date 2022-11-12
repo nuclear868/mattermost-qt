@@ -1,8 +1,8 @@
 /**
- * @file OpenDialogEvent.cpp
+ * @file PostReactionRemovedEvent.h
  * @brief
  * @author Lyubomir Filipov
- * @date Oct 15, 2022
+ * @date Nov 12, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -22,27 +22,15 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "OpenDialogEvent.h"
+#pragma once
 
-#include <QJsonDocument>
+#include "PostReactionAddedEvent.h"
 
 namespace Mattermost {
 
-OpenDialogEvent::OpenDialogEvent (const QJsonObject& data, const QJsonObject&)
-{
-	//the dialog object is a JSON string inside the data object, with escaped json elements
-	QJsonObject dialogObject = QJsonDocument::fromJson (data.value ("dialog").toString().toUtf8()).object();
-
-	url = dialogObject.value ("url").toString();
-	triggerID = dialogObject.value ("trigger_id").toString();
-	callbackID = dialogObject.value ("dialog").toObject().value ("callback_id").toString();
-}
-
-OpenDialogEvent::OpenDialogEvent (const QString& triggerID)
-:triggerID(triggerID)
-{
-}
-
-OpenDialogEvent::~OpenDialogEvent () = default;
+class PostReactionRemovedEvent: public PostReactionAddedEvent {
+public:
+	using PostReactionAddedEvent::PostReactionAddedEvent;
+};
 
 } /* namespace Mattermost */

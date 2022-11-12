@@ -51,6 +51,7 @@ public:
 	QDateTime getCreationTime () const;
 	void updatePostEdits (BackendPost& editedPost);
 	void addReaction (QString userName, QString emojiName);
+	void removeReaction (QString userName, QString emojiName);
 private:
 	QString getAuthorName () const;
 public:

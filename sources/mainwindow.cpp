@@ -205,14 +205,13 @@ void MainWindow::createMenu ()
 	ui->toolButton->setMenu(mainMenu);
 }
 
-
 void MainWindow::changeEvent (QEvent* event)
 {
 	QWidget::changeEvent(event);
 
 	if (event->type() == QEvent::ActivationChange) {
 		if (isActiveWindow()) {
-			qDebug() << "Activated";
+			//qDebug() << "Activated";
 
 			if (currentPage) {
 				currentPage->onMainWindowActivate ();
@@ -223,7 +222,7 @@ void MainWindow::changeEvent (QEvent* event)
 			}
 
 		} else {
-			qDebug() << "Deactivated";
+			//qDebug() << "Deactivated";
 		}
 	} else {
 		qDebug() << event->type();

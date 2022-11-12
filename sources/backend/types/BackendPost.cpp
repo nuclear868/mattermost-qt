@@ -120,6 +120,25 @@ void BackendPost::addReaction (QString userName, QString emojiName)
 	reactions[iterator].push_back (userName);
 }
 
+void BackendPost::removeReaction (QString userName, QString emojiName)
+{
+	auto iterator = EmojiMap::findByName(emojiName);
+
+	if (iterator == EmojiMap::missing()) {
+		LOG_DEBUG ("Missing emoji: " << emojiName);
+		return;
+	}
+
+	auto& vec = reactions[iterator];
+
+	vec.erase(std::remove(vec.begin(), vec.end(), userName), vec.end());
+
+	//if this was the only user used this reaction, remove the reaction
+	if (vec.isEmpty()) {
+		reactions.erase (iterator);
+	}
+}
+
 /**
  * Get the author name. This is the name of the user, set as a post author
  * @return

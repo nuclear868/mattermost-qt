@@ -30,7 +30,7 @@ namespace Mattermost {
 
 class UserTeamEvent {
 public:
-	UserTeamEvent (const QJsonObject& object);
+	UserTeamEvent (const QJsonObject& object, const QJsonObject&);
 	virtual ~UserTeamEvent ();
 public:
 	QString team_id;

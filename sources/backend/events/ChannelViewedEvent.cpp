@@ -26,7 +26,7 @@
 
 namespace Mattermost {
 
-ChannelViewedEvent::ChannelViewedEvent (const QJsonObject& object)
+ChannelViewedEvent::ChannelViewedEvent (const QJsonObject& object, const QJsonObject&)
 :channelId (object.value("channel_id").toString())
 {
 }
