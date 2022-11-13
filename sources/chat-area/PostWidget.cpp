@@ -150,6 +150,12 @@ void PostWidget::markAsDeleted ()
 	}
 }
 
+
+QString PostWidget::getSelectedText ()
+{
+	return ui->message->selectedText();
+}
+
 QString PostWidget::formatMessageText (const QString& str)
 {
 	QString ret (str.toHtmlEscaped ());

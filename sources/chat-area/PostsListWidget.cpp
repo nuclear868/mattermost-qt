@@ -29,7 +29,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QResizeEvent>
-#include "PostSeparatorWidget.h"
+#include "post-separator/PostDaySeparatorWidget.h"
 #include "backend/Backend.h"
 #include "backend/types/BackendPost.h"
 #include "info-dialogs/UserProfileDialog.h"
@@ -136,23 +136,9 @@ void PostsListWidget::scrollToUnreadPostsOrBottom ()
 	}
 }
 
-static QString getDayString (int daysAgo)
-{
-	switch (daysAgo) {
-	case 0:
-		return "Today";
-	case 1:
-		return "Yesterday";
-	default:
-		return QDateTime::currentDateTime().date().addDays(-daysAgo).toString("dd MMM yyyy");
-	}
-
-	return "";
-}
-
 void PostsListWidget::addDaySeparator (int daysAgo)
 {
-	PostSeparatorWidget* separator = new PostSeparatorWidget (getDayString (daysAgo));
+	PostSeparatorWidget* separator = new PostDaySeparatorWidget (daysAgo);
 	QListWidgetItem* newItem = new QListWidgetItem();
 	newItem->setData(Qt::UserRole, ItemType::separator);
 	addItem (newItem);
@@ -161,7 +147,7 @@ void PostsListWidget::addDaySeparator (int daysAgo)
 
 void PostsListWidget::addDaySeparator (int insertPos, int daysAgo)
 {
-	PostSeparatorWidget* separator = new PostSeparatorWidget (getDayString (daysAgo));
+	PostSeparatorWidget* separator = new PostDaySeparatorWidget (daysAgo);
 	QListWidgetItem* newItem = new QListWidgetItem();
 	newItem->setData(Qt::UserRole, ItemType::separator);
 	insertItem (insertPos, newItem);
@@ -332,13 +318,22 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		});
 	}
 
-	myMenu.addAction ("Copy to clipboard (formatted)", [this, post] {
+	QString selectedText = post->getSelectedText ();
+
+	if (!selectedText.isEmpty()) {
+		myMenu.addAction ("Copy selected text", [this, post, selectedText] {
+			qDebug() << "Copy selected text";
+			QApplication::clipboard()->setText (selectedText);
+		});
+	}
+
+	myMenu.addAction ("Copy entire post (formatted)", [this, post] {
 		//qDebug() << "Copy " << post->post.message;
 		copySelectedItemsToClipboard (PostWidget::entirePost);
 	});
 
 	if (selectedItemsCount == 1) {
-		myMenu.addAction ("Copy to clipboard (text only)", [this, post] {
+		myMenu.addAction ("Copy post message", [this, post] {
 			//qDebug() << "Copy " << post->post.message;
 			copySelectedItemsToClipboard (PostWidget::messageOnly);
 		});

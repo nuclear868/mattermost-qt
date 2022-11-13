@@ -17,18 +17,26 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "PostSeparatorWidget.h"
-#include "ui_PostSeparatorWidget.h"
+#ifndef MESSAGESEPARATORWIDGET_H
+#define MESSAGESEPARATORWIDGET_H
 
-PostSeparatorWidget::PostSeparatorWidget (const QString& text)
-:QWidget(nullptr)
-,ui(new Ui::PostSeparatorWidget)
-{
-    ui->setupUi(this);
-    ui->label->setText (text);
+#include <QWidget>
+
+namespace Ui {
+class PostSeparatorWidget;
 }
 
-PostSeparatorWidget::~PostSeparatorWidget()
+class PostSeparatorWidget : public QWidget
 {
-    delete ui;
-}
+    Q_OBJECT
+
+public:
+    explicit PostSeparatorWidget (const QString& text);
+    ~PostSeparatorWidget();
+public:
+    void setText (const QString& text);
+private:
+    Ui::PostSeparatorWidget *ui;
+};
+
+#endif // MESSAGESEPARATORWIDGET_H

@@ -54,6 +54,7 @@ public:
 
     void markAsDeleted ();
 
+    QString getSelectedText ();
 
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);

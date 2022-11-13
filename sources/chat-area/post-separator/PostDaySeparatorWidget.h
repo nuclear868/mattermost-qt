@@ -1,4 +1,9 @@
 /**
+ * @file PostDaySeparatorWidget.h
+ * @brief Separates posts from different days
+ * @author Lyubomir Filipov
+ * @date Nov 12, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,25 +22,24 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef MESSAGESEPARATORWIDGET_H
-#define MESSAGESEPARATORWIDGET_H
+#pragma once
 
-#include <QWidget>
+#include <QTimer>
+#include "PostSeparatorWidget.h"
 
-namespace Ui {
-class PostSeparatorWidget;
-}
+namespace Mattermost {
 
-class PostSeparatorWidget : public QWidget
-{
-    Q_OBJECT
-
+class PostDaySeparatorWidget: public PostSeparatorWidget {
 public:
-    explicit PostSeparatorWidget (const QString& text);
-    ~PostSeparatorWidget();
-
+	PostDaySeparatorWidget (uint32_t daysAgo);
+	virtual ~PostDaySeparatorWidget ();
 private:
-    Ui::PostSeparatorWidget *ui;
+    int getMsToEndOfTheDay ();
+private:
+    void startUpdateDayStringTimer ();
+private:
+	QTimer updateDayStringTimer;
+	int daysAgo;
 };
 
-#endif // MESSAGESEPARATORWIDGET_H
+} /* namespace Mattermost */
