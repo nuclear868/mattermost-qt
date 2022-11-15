@@ -69,7 +69,7 @@ void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& dat
 	setProcessReply (reply, std::move (responseHandler));
 }
 
-void HTTPConnector::put (const QNetworkRequest& request, const QByteArray& data, HttpResponseCallback responseHandler)
+void HTTPConnector::put (const QNetworkRequest& request, const QByteArrayCreator& data, HttpResponseCallback responseHandler)
 {
 	QNetworkReply* reply = qnetworkManager->put (request, data);
 	setProcessReply (reply, std::move (responseHandler));

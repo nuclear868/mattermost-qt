@@ -41,6 +41,7 @@ void Storage::reset ()
 	teams.clear();
 
 	directChannels.channels.clear();
+	groupChannels.channels.clear();
 
 	channels.clear();
 	users.clear();
@@ -150,7 +151,7 @@ BackendTeam* Storage::addTeam (const QJsonObject& json)
 	}
 }
 
-BackendChannel* Storage::addNonDirectChannel (BackendTeam& team, const QJsonObject& json)
+BackendChannel* Storage::addTeamScopeChannel (BackendTeam& team, const QJsonObject& json)
 {
 	//get channel ID and channel type in order to check if a channel has to be created
 	uint32_t channelType = BackendChannel::getChannelType (json);
@@ -230,6 +231,44 @@ BackendChannel* Storage::addDirectChannel (const QJsonObject& json)
 
 	directChannels.channels.emplace_back (newChannel);
 	channels[newChannel->id] = directChannels.channels.back().get();
+	return newChannel;
+}
+
+BackendChannel* Storage::addGroupChannel (const QJsonObject& json)
+{
+	/**
+	 * The Mattermost server adds all group channels to all teams (wtf?), so
+	 * a group channel may appear multiple times. We create only one channel
+	 * instance for such duplicate channels and they are displayed only once
+	 */
+	QString channelId = json.value("id").toString();
+
+	BackendChannel* existingChannel = getChannelById (channelId);
+
+	/**
+	 * Check if the channel is already added
+	 */
+	if (existingChannel) {
+		++existingChannel->referenceCount;
+		return existingChannel;
+	}
+
+	BackendChannel* newChannel = new BackendChannel (*this, json);
+
+	//the channel display name contains comma-separated lists of usernames of it's participants
+	QStringList allUserNames = newChannel->display_name.split(",");
+
+	for (auto& it: allUserNames) {
+		it = it.trimmed();
+	}
+
+	//remove the logged-in user from the list of names
+	allUserNames.removeAll (loginUser->username);
+
+	newChannel->display_name = allUserNames.join ('|');
+
+	groupChannels.channels.emplace_back (newChannel);
+	channels[newChannel->id] = groupChannels.channels.back().get();
 	return newChannel;
 }
 

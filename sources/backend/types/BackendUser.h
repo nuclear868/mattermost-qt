@@ -31,6 +31,12 @@ class QJsonObject;
 
 namespace Mattermost {
 
+struct BackendUserPreferences {
+	QString category;
+	QString	name;
+	QString	value;
+};
+
 class BackendUser: public QObject {
 	Q_OBJECT
 public:

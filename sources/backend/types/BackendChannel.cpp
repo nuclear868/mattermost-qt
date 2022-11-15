@@ -43,6 +43,8 @@ uint32_t BackendChannel::getChannelType (const QJsonObject& jsonObject)
 		break;
 	case 'D':
 		return directChannel;
+	case 'G':
+		return groupChannel;
 		break;
 	default:
 		return unknown;

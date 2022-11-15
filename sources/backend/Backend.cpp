@@ -198,6 +198,7 @@ void Backend::loginSuccess (const QJsonDocument& doc, const QNetworkReply& reply
 
 	webSocketConnector.open (NetworkRequest::host() + "api/v4/", NetworkRequest::getToken());
 	isLoggedIn = true;
+	retrieveUserPreferences ();
 	callback (NetworkRequest::getToken());
 }
 
@@ -247,6 +248,37 @@ void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> c
 		BackendUser *user = storage.addUser (doc.object());
 		retrieveUserAvatar (user->id);
 		callback (*user);
+	}));
+}
+
+void Backend::retrieveUserPreferences ()
+{
+	NetworkRequest request ("users/" + getLoginUser().id + "/preferences");
+
+	httpConnector.get (request, HttpResponseCallback ([this](const QJsonDocument& doc) {
+
+		LOG_DEBUG ("retrieveUserPreferences reply");
+
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		//LOG_DEBUG ("retrieveUserPreferences reply: " << jsonString);
+	}));
+}
+
+void Backend::updateUserPreferences (const BackendUserPreferences& preferences)
+{
+	NetworkRequest request ("users/" + getLoginUser().id + "/preferences");
+
+	QJsonArray jsonArr;
+	jsonArr.push_back (QJsonObject {
+		{"user_id", getLoginUser().id},
+		{"category", preferences.category},
+		{"name", preferences.name},
+		{"value", preferences.value},
+	});
+
+	httpConnector.put (request, jsonArr, HttpResponseCallback ([this](const QJsonDocument& doc) {
+
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
 	}));
 }
 
@@ -396,10 +428,10 @@ void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
     NetworkRequest request ("users/me/teams");
     //request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
-    std::cout << "get teams" << std::endl;
+    LOG_DEBUG ("retrieveOwnTeams request");
 
     httpConnector.get (request, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
-    	LOG_DEBUG ("getOwnTeams reply");
+    	LOG_DEBUG ("retrieveOwnTeams reply");
 		storage.teams.clear ();
 
 #if 0
@@ -474,7 +506,7 @@ void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std
     }));
 }
 
-void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback)
+void Backend::retrieveOwnChannelMembershipsForTeam (BackendTeam& team, std::function<void(BackendChannel&)> callback)
 {
     NetworkRequest request ("users/me/teams/" + team.id + "/channels");
 
@@ -483,7 +515,7 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 
 #if 0
     	QString jsonString = doc.toJson(QJsonDocument::Indented);
-    	std::cout << "getOwnChannelMemberships reply: " <<  jsonString.toStdString() << std::endl;
+    	std::cout << "retrieveOwnChannelMembershipsForTeam reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 
     	LOG_DEBUG ("Team " << team.display_name << ":");
@@ -492,14 +524,17 @@ void Backend::retrieveOwnChannelMemberships (BackendTeam& team, std::function<vo
 			const QJsonObject& channelObject = itemRef.toObject();
 			uint32_t channelType = BackendChannel::getChannelType (channelObject);
 
-			BackendChannel* channel;
-
-			if (channelType == BackendChannel::directChannel) {
-				channel = storage.addDirectChannel (channelObject);
-			} else {
-				channel = storage.addNonDirectChannel (team, channelObject);
+			switch (channelType) {
+			case BackendChannel::directChannel:
+				storage.addDirectChannel (channelObject);
+				break;
+			case BackendChannel::groupChannel:
+				storage.addGroupChannel (channelObject);
+				break;
+			default:
+				storage.addTeamScopeChannel (team, channelObject);
+				break;
 			}
-
 		}
 
 		for (auto& channel: team.channels) {
@@ -576,7 +611,7 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 
-		BackendChannel* channel =  storage.addNonDirectChannel (team, doc.object());
+		BackendChannel* channel =  storage.addTeamScopeChannel (team, doc.object());
 		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit team.onNewChannel (*channel);
@@ -904,7 +939,7 @@ void Backend::createDirectChannel (const BackendUser& user)
 
 	NetworkRequest request ("channels/direct");
 
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([this, &user](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -912,6 +947,12 @@ void Backend::createDirectChannel (const BackendUser& user)
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 
+		/*
+		 * The channel is created, but the official Mattermost client requires
+		 * that the 'direct_channel_show' property is set for this channel,
+		 * in order for the channel to be visible there
+		 */
+		updateUserPreferences(BackendUserPreferences {"direct_channel_show",user.id, "true"});
 	}));
 }
 

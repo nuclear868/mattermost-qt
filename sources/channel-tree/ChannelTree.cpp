@@ -50,7 +50,7 @@ ChannelTree::~ChannelTree () = default;
  * 2. creates a QTreeWidgetItem for this team
  * 3. gets all channels of the team, where the user is member and creates QTreeWidgetItem for each of them
  */
-TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
+void ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 {
 	TeamItem* teamList = new GroupTeamItem (*this, backend, team.display_name, team.id);
 
@@ -78,16 +78,14 @@ TeamItem* ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 		delete (item);
 	});
 
-	backend.retrieveOwnChannelMemberships (team, [this, teamList] (BackendChannel& channel) {
+	backend.retrieveOwnChannelMembershipsForTeam (team, [this, teamList] (BackendChannel& channel) {
 		teamList->addChannel (channel, parentWidget());
 	});
 
 	backend.retrieveTeamMembers (team);
-
-	return teamList;
 }
 
-TeamItem* ChannelTree::addDirectChannelsList (Backend& backend)
+void ChannelTree::addDirectChannelsList (Backend& backend)
 {
 	TeamItem* teamList = new DirectTeamItem (*this, backend, "Direct Channels", "0");
 
@@ -106,8 +104,32 @@ TeamItem* ChannelTree::addDirectChannelsList (Backend& backend)
 	for (auto &channel: team.channels) {
 		teamList->addChannel (*channel, parentWidget());
 	}
+}
 
-	return teamList;
+void ChannelTree::addGroupChannelsList (Backend& backend)
+{
+	auto& team = backend.getStorage().groupChannels;
+
+	//Do not add group channel menu, if no group channels
+	if (team.channels.empty()) {
+		return;
+	}
+
+	TeamItem* teamList = new DirectTeamItem (*this, backend, "Group Channels", "0");
+
+	addTopLevelItem (teamList);
+	//header()->resizeSection (0, 200);
+	header()->setSectionResizeMode(0, QHeaderView::Stretch);
+	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+	//header()->resizeSection (1, 30);
+
+	connect (&team, &BackendDirectChannelsTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
+		teamList->addChannel (channel, parentWidget());
+	});
+
+	for (auto &channel: team.channels) {
+		teamList->addChannel (*channel, parentWidget());
+	}
 }
 
 void ChannelTree::showContextMenu (const QPoint& pos)

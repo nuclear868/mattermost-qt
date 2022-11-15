@@ -54,8 +54,13 @@ public:
 	//logout (/users/logout)
 	void logout (std::function<void ()> callback);
 
-	//get specific user (/users/userID);
+	//get specific user (/users/userID)
 	void retrieveUser (QString userID, std::function<void(BackendUser&)> callback);
+
+	//get user's preferences (/users/{user_id}/preferences)
+	void retrieveUserPreferences ();
+
+	void updateUserPreferences (const BackendUserPreferences& preferences);
 
 	//get user's status (/users/status/ids)
 	void retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void()> callback);
@@ -82,7 +87,7 @@ public:
 	void retrieveTeamPublicChannels (QString teamID, std::function<void(std::list<BackendChannel>&)> callback);
 
 	//get own channel memberships (/users/me/teams/teamID/channels)
-	void retrieveOwnChannelMemberships (BackendTeam& team, std::function<void(BackendChannel&)> callback);
+	void retrieveOwnChannelMembershipsForTeam (BackendTeam& team, std::function<void(BackendChannel&)> callback);
 
 	//get own channel memberships from all teams (/users/me/channel_members)
 	//void retrieveOwnAllChannelMemberships (std::function<void()> callback);

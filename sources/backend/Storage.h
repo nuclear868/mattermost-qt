@@ -62,9 +62,9 @@ public:
 
 	BackendTeam* addTeam (const QJsonObject& json);
 
-	BackendChannel* addNonDirectChannel (BackendTeam& team, const QJsonObject& json);
-
+	BackendChannel* addTeamScopeChannel (BackendTeam& team, const QJsonObject& json);
 	BackendChannel* addDirectChannel (const QJsonObject& json);
+	BackendChannel* addGroupChannel (const QJsonObject& json);
 
 	BackendUser* addUser (const QJsonObject& json, bool isLoggedInUser = false);
 
@@ -76,6 +76,7 @@ public:
 public:
 	std::map<QString, BackendTeam>					teams;
 	BackendDirectChannelsTeam						directChannels;
+	BackendDirectChannelsTeam						groupChannels;
 	QMap<QString, BackendChannel*> 					channels;
 	QMap<QString, BackendChannel*> 					directChannelsByUser;
 	std::map<QString, BackendUser>					users;

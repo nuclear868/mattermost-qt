@@ -47,8 +47,9 @@ public:
 	ChannelTree (QWidget* parent = nullptr);
 	virtual ~ChannelTree ();
 public:
-	TeamItem* addTeam (Backend& backend, BackendTeam& team);
-	TeamItem* addDirectChannelsList (Backend& backend);
+	void addTeam (Backend& backend, BackendTeam& team);
+	void addDirectChannelsList (Backend& backend);
+	void addGroupChannelsList (Backend& backend);
 	void removeTeam (BackendTeam& team);
 private:
 	void showContextMenu (const QPoint& pos);

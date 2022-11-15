@@ -46,7 +46,7 @@ public:
 
 	void get (const QNetworkRequest &request, HttpResponseCallback responseHandler);
 	void post (QNetworkRequest &request, const QByteArrayCreator &data, HttpResponseCallback responseHandler);
-	void put (const QNetworkRequest &request, const QByteArray &data, HttpResponseCallback responseHandler);
+	void put (const QNetworkRequest &request, const QByteArrayCreator &data, HttpResponseCallback responseHandler);
 	void del (const QNetworkRequest &request);
 
 signals:

@@ -60,9 +60,11 @@ PostDaySeparatorWidget::PostDaySeparatorWidget (uint32_t daysAgo)
 
 		updateDayStringTimer.stop ();
 
-		if (this->daysAgo <= 1) {
-			startUpdateDayStringTimer ();
+		if (this->daysAgo > 1) {
+			return;
 		}
+
+		startUpdateDayStringTimer ();
 	});
 
 	startUpdateDayStringTimer ();
@@ -82,7 +84,6 @@ int PostDaySeparatorWidget::getMsToEndOfTheDay ()
 void PostDaySeparatorWidget::startUpdateDayStringTimer ()
 {
 	int diff = getMsToEndOfTheDay ();
-	qDebug () << "diff: " << diff;
 	updateDayStringTimer.start (diff);
 }
 

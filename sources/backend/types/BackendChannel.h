@@ -64,7 +64,8 @@ public:
 		unknown,
 		publicChannel,
 		privateChannel,
-		directChannel,
+		directChannel,		//!< Direct channel, has only 2 users
+		groupChannel,		//!< Group channel. Like direct, but has more than 2 users. Does not belong to any team
 	};
 	BackendChannel (Storage& storage, const QJsonObject& jsonObject);
 	virtual ~BackendChannel ();
