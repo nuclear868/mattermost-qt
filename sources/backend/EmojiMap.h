@@ -41,6 +41,16 @@ public:
 
 	static iterator findByName (const QString& emojiName);
 	static iterator missing ();
+
+	/**
+	 * Add a custom emoji.
+	 * Custom emojis use image instead of unicode codepoints.
+	 * However, images can be represented as <img> tags in Qt's QLabel rich text.
+	 * This allows custom emojis also to use strings as values
+	 * @param emojiName emoji name
+	 * @param emojiID emoji id
+	 */
+	static void addCustomEmoji (const QString& emojiName, const QString& emojiID);
 };
 
 bool operator< (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs);

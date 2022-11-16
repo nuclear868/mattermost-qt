@@ -33,6 +33,7 @@
 #include <QJsonArray>
 #include "QByteArrayCreator.h"
 #include <QFile>
+#include <QDir>
 #include <QFileInfo>
 #include <QSettings>
 #include <QDebug>
@@ -199,6 +200,7 @@ void Backend::loginSuccess (const QJsonDocument& doc, const QNetworkReply& reply
 	webSocketConnector.open (NetworkRequest::host() + "api/v4/", NetworkRequest::getToken());
 	isLoggedIn = true;
 	retrieveUserPreferences ();
+	retrieveCustomEmojis ();
 	callback (NetworkRequest::getToken());
 }
 
@@ -1021,6 +1023,48 @@ void Backend::sendSubmitDialog (const QJsonDocument& json)
 		qDebug() << "SendSubmitDialog reply: " << jsonString.toStdString().c_str();
 #endif
 	}));
+}
+
+void Backend::retrieveCustomEmojis ()
+{
+	NetworkRequest request ("emoji");
+	httpConnector.get (request, HttpResponseCallback ([this] (QVariant, QJsonDocument data) {
+
+#if 0
+		QString jsonString = data.toJson(QJsonDocument::Indented);
+		qDebug() << "retrieveCustomEmojis reply: " << jsonString.toStdString().c_str();
+#endif
+
+		for (const auto& it: data.array()) {
+			QString emojiID = it.toObject().value("id").toString();
+			QString emojiName = it.toObject().value("name").toString();
+			retrieveCustomEmojiImage (emojiID, [emojiID, emojiName] (QByteArray data) {
+				QString filename ("cache/custom-emoji/" + emojiID + ".png");
+
+				QDir dir("cache/custom-emoji/");
+				if (!dir.exists()) {
+					dir.mkpath(".");
+				}
+
+				QFile file (filename);
+
+				if (!file.open (QIODevice::WriteOnly)) {
+					qDebug() << "retrieveCustomEmojiImage: Cannot open " << filename << ":" << file.errorString();
+					return;
+				}
+
+				file.write (data);
+				file.close ();
+				EmojiMap::addCustomEmoji (emojiName, emojiID);
+			});
+		}
+	}));
+}
+
+void Mattermost::Backend::retrieveCustomEmojiImage (const QString& emojiID, std::function <void (QByteArray)> callback)
+{
+	NetworkRequest request ("emoji/" + emojiID + "/image");
+	httpConnector.get (request, HttpResponseCallback (callback));
 }
 
 const BackendUser& Backend::getLoginUser () const

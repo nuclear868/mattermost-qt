@@ -49,6 +49,12 @@ public:
 	HttpResponseCallback (std::function<void(QVariant,QByteArray)> fn);
 
 	/**
+	 * Callback, which receives QByteArray only.
+	 * @param fn callback. QVariant and QByteArray arguments are forwarded, the QNetworkReply argument is ignored
+	 */
+	HttpResponseCallback (std::function<void(QByteArray)> fn);
+
+	/**
 	 * Callback, which receives QVariant and QJsonDocument.
 	 * @param fn callback. QVariant is forwarded, QByteArray is parsed as QJsonDocuemnt, QNetworkReply is ignored
 	 */

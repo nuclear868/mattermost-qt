@@ -26,8 +26,7 @@
 
 namespace Mattermost {
 
-static const QMap<QString, QString> emojiMap {
-	{"",""},
+static QMap<QString, QString> emojiMap {
 	{"grinning","😀"},
 	{"smiley","😃"},
 	{"smile","😄"},
@@ -4491,7 +4490,7 @@ static const QMap<QString, QString> emojiMap {
 	{"writing_hand_medium_skin_tone","✍🏽"},
 	{"writing_hand_medium_dark_skin_tone","✍🏾"},
 	{"writing_hand_dark_skin_tone","✍🏿"},
-	{"mattermost",""},
+	{"mattermost"," <img src=\"mattermost-emoji.png\" width=32 height=32> "},
 };
 
 EmojiMap::iterator EmojiMap::findByName (const QString& emojiName)
@@ -4507,6 +4506,11 @@ EmojiMap::iterator EmojiMap::missing ()
 bool operator < (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs)
 {
 	return lhs.key() < rhs.key();
+}
+
+void EmojiMap::addCustomEmoji (const QString& emojiName, const QString& emojiID)
+{
+	emojiMap[emojiName] = " <img src=\"cache/custom-emoji/" + emojiID + ".png\" width=32 height=32> ";
 }
 
 } /* namespace Mattermost */

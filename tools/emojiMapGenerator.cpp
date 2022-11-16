@@ -1,6 +1,6 @@
 /**
  * @file emojiMapGenerator.cpp
- * @brief
+ * @brief Generate emoji map C++ source file
  * @author Lyubomir Filipov
  * @date Jul 28, 2022
  *
@@ -58,6 +58,7 @@ R"(/**
 
 namespace Mattermost {
 
+static QMap<QString, QString> emojiMap {
 )";
 
 
@@ -76,7 +77,12 @@ EmojiMap::iterator EmojiMap::missing ()
 
 bool operator < (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs)
 {
-	return lhs < rhs;
+	return lhs.key() < rhs.key();
+}
+
+void EmojiMap::addCustomEmoji (const QString& emojiName, const QString& emojiID)
+{
+	emojiMap[emojiName] = " <img src=\"cache/custom-emoji/" + emojiID + ".png\" width=32 height=32> ";
 }
 
 } /* namespace Mattermost */
@@ -120,15 +126,20 @@ int main (int argc, char** argv)
 	QTextStream outStream (&outFile);
 	outStream << emojiSourceFileStart;
 
-
-	addEmoji ("", "");
-
-
 	for (auto it: doc.array()) {
+
 		const QJsonObject& jsonObject = it.toObject();
 
 		QString unicode = jsonObject.value("unified").toString();
 		QString name = jsonObject.value("short_name").toString();
+
+		/**
+		 * The 'mattermost' emoji is special - it is not in custom emoji list. Maybe it is hardcoded in Mattermost
+		 */
+		if (name == "mattermost") {
+			addEmoji (name, " <img src=\\\"mattermost-emoji.png\\\" width=32 height=32> ");
+			continue;
+		}
 
 		QVector<uint32_t> vec;
 
@@ -150,9 +161,6 @@ int main (int argc, char** argv)
 			}
 		}
 	}
-
-	outStream << R"(static const QMap<QString, QString> emojiMap {
-)";
 
 	for (int i = 0; i < emojiValues.size(); ++i) {
 		outStream << "\t{\"" << emojiNames[i] << "\",\"" << emojiValues[i] << "\"}," << "\n";

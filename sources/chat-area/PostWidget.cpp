@@ -28,6 +28,7 @@
 #include "reactions/PostReactionList.h"
 #include "ui_PostWidget.h"
 #include "backend/types/BackendPost.h"
+#include "backend/EmojiMap.h"
 
 namespace Mattermost {
 
@@ -156,6 +157,50 @@ QString PostWidget::getSelectedText ()
 	return ui->message->selectedText();
 }
 
+void replaceEmojis (QString& str)
+{
+	int emojiStart = 0;
+	int emojiEnd = 0;
+
+	do {
+
+		//find a substring enclosed in ':' - for example - :wave:
+		emojiStart = str.indexOf (':', emojiEnd);
+		if (emojiStart == -1) {
+			break;
+		}
+
+		emojiEnd = str.indexOf (':', emojiStart + 1);
+		if (emojiEnd == -1) {
+			break;
+		}
+
+		if (emojiEnd - emojiStart == 1) {
+			++emojiEnd;
+			continue;
+		}
+
+		int emojiNameSize = emojiEnd - emojiStart - 1;
+
+		//get the substring enclosed in ':' (without the ':'). This is the emoji name
+		QString emojiName = str.mid (emojiStart + 1, emojiNameSize);
+
+		auto it = EmojiMap::findByName (emojiName);
+
+		if (it == EmojiMap::missing ()) {
+			continue;
+		}
+
+		//replace the emoji name (together with ':') with it's corresponding value
+		str.replace (emojiStart, emojiNameSize + 2, it.value());
+
+		emojiEnd -= emojiName.size() + 2 - it.value().size();
+		++emojiEnd;
+
+	} while (emojiStart != -1);
+
+}
+
 QString PostWidget::formatMessageText (const QString& str)
 {
 	QString ret (str.toHtmlEscaped ());
@@ -163,6 +208,8 @@ QString PostWidget::formatMessageText (const QString& str)
 
 	int linkStart = 0;
 	int linkEnd = 0;
+
+	replaceEmojis (ret);
 
 	do {
 
@@ -203,7 +250,6 @@ QString PostWidget::formatMessageText (const QString& str)
 
 	//std::cout << str.toStdString() << std::endl;
 	//std::cout << ret.toStdString() << std::endl;
-	//ret.repl
 	return ret;
 }
 

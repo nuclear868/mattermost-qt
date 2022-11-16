@@ -156,6 +156,12 @@ public:
 	//send a submit dialog response. In most cases, dialogs are handled by the UI
 	void sendSubmitDialog (const QJsonDocument& json);
 
+	//retrieve custom emojis (/emoji)
+	void retrieveCustomEmojis ();
+
+	//retrieve custom emojis (/emoji/{emoji_id}/image)
+	void retrieveCustomEmojiImage (const QString& emojiID, std::function <void(QByteArray)> callback);
+
 	const BackendUser& getLoginUser () const;
 
 	void setCurrentChannel (BackendChannel& channel);

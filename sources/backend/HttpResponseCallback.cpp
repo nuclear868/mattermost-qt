@@ -39,6 +39,12 @@ HttpResponseCallback::HttpResponseCallback (std::function<void (QVariant, QByteA
 })
 {}
 
+HttpResponseCallback::HttpResponseCallback (std::function<void (QByteArray)> fn)
+:HttpResponseCallback ([fn] (QVariant, QByteArray result, const QNetworkReply&) {
+	fn (result);
+})
+{}
+
 HttpResponseCallback::HttpResponseCallback (std::function<void (QVariant, const QJsonDocument&)> fn)
 :HttpResponseCallback ([fn] (QVariant status, QByteArray result, const QNetworkReply&) {
 	fn (status, QJsonDocument::fromJson(result));
@@ -59,5 +65,6 @@ HttpResponseCallback::HttpResponseCallback (std::function<void (const QJsonDocum
 }
 
 HttpResponseCallback::~HttpResponseCallback () = default;
+
 
 } /* namespace Mattermost */
