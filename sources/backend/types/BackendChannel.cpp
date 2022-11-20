@@ -100,10 +100,11 @@ BackendPost* BackendChannel::addPost (const QJsonObject& postObject)
 
 	BackendPost* newPost = &posts.back ();
 	newPost->author = storage.getUserById (newPost->user_id);
+	postIdToPost[newPost->id] = newPost;
 	return newPost;
 }
 
-void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad)
+void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, QVector<QPair<QString, QString>>& rootIdAndPostList, bool initialLoad)
 {
 	/*
 	 * Add a post.
@@ -111,8 +112,15 @@ void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPo
 	 */
 	BackendPost* newPost = &*posts.emplace(position, postObject, storage);
 	newPost->author = storage.getUserById (newPost->user_id);
+	postIdToPost[newPost->id] = newPost;
 
 	currentChunk.postsToAdd.emplace_front (newPost);
+
+	QString rootId = postObject.value("root_id").toString();
+
+	if (!rootId.isEmpty()) {
+		rootIdAndPostList.push_back(QPair<QString,QString> (rootId, newPost->id));
+	}
 
 	if (!initialLoad) {
 		qDebug() << newPost->create_at << " " << newPost->id << " " << newPost->getDisplayAuthorName() << " " << newPost->message;
@@ -132,12 +140,14 @@ void BackendChannel::prependPosts (const QJsonArray& orderArray, const QJsonObje
 	 */
 	ChannelNewPostsChunk currentNewPostsChunk;
 
+	QVector<QPair<QString, QString>> rootIdAndPostList;
+
 	bool initialLoad = true;
 
 	//add all posts to the beginning of the posts list
 	for (const auto& newPostEl: orderArray) {
 		QString newPostId = newPostEl.toString();
-		addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, initialLoad);
+		addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, rootIdAndPostList, initialLoad);
 	}
 
 	//if there are new posts left, add them to allMissingPosts
@@ -159,6 +169,8 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 	 * A sequential group of new posts
 	 */
 	ChannelNewPostsChunk currentNewPostsChunk;
+
+	QVector<QPair<QString, QString>> rootIdAndPostList;
 
 	//search local posts from newest to oldest
 	std::list<BackendPost>::reverse_iterator currentLocalPost = posts.rbegin();
@@ -183,7 +195,7 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 		//end of local posts list. Save the current missing post sequence and add all missing posts
 		if (currentLocalPost == posts.rend()) {
-			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, initialLoad);
+			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, rootIdAndPostList, initialLoad);
 			++currentLocalPost;
 			continue;
 		}
@@ -202,7 +214,7 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 		//post not found. Add it to the list of new posts
 		qDebug () << "Add after currentLocalPost";
-		addPost (postsObject.find (newPostId).value().toObject(), currentLocalPost.base(), currentNewPostsChunk, initialLoad);
+		addPost (postsObject.find (newPostId).value().toObject(), currentLocalPost.base(), currentNewPostsChunk, rootIdAndPostList, initialLoad);
 		++currentLocalPost;
 		lastPostWasSkipped = true;
 	}
@@ -215,42 +227,70 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 		allNewPosts.addChunk (std::move (currentNewPostsChunk));
 	}
 
+	/**
+	 * Associate post with a root ID (if exists)
+	 */
+	for (auto& it: rootIdAndPostList) {
+		QString& rootID = it.first;
+		QString& postID = it.second;
+
+		BackendPost* rootPost = findPostById (rootID);
+		BackendPost* post = findPostById (postID);
+
+		if (!rootPost) {
+			LOG_DEBUG("root post " << rootID << " not found  (to be associated with post " << postID << ")");
+			continue;
+		}
+
+		if (!post) {
+			LOG_DEBUG("post " << postID << " not found (to be associated with root " << rootID << ")");
+			continue;
+		}
+
+		LOG_DEBUG("post " << postID << " add root " << rootID << ")");
+		post->rootPost = rootPost;
+	}
+
 	emit onNewPosts (allNewPosts);
 }
 
 void BackendChannel::editPost (BackendPost& newPost)
 {
-	for (auto& post: posts) {
-		if (post.id == newPost.id) {
-			post.updatePostEdits (newPost);
-			emit onPostEdited (post);
-			break;
-		}
+	BackendPost* existingPost = findPostById (newPost.id);
+
+	if (!existingPost) {
+		LOG_DEBUG ("BackendChannel::editPost: post with ID " << newPost.id << " not found");
+		return;
 	}
+
+	existingPost->updatePostEdits (newPost);
+	emit onPostEdited (*existingPost);
 }
 
 void BackendChannel::addPostReaction (QString postId, QString userId, QString emojiName)
 {
-	for (auto& post: posts) {
-		if (post.id == postId) {
+	BackendPost* existingPost = findPostById (postId);
 
-			post.addReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
-			emit onPostReactionUpdated (post);
-			break;
-		}
+	if (!existingPost) {
+		LOG_DEBUG ("BackendChannel::addPostReaction: post with ID " << postId << " not found");
+		return;
 	}
+
+	existingPost->addReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
+	emit onPostReactionUpdated (*existingPost);
 }
 
 void BackendChannel::removePostReaction (QString postId, QString userId, QString emojiName)
 {
-	for (auto& post: posts) {
-		if (post.id == postId) {
+	BackendPost* existingPost = findPostById (postId);
 
-			post.removeReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
-			emit onPostReactionUpdated (post);
-			break;
-		}
+	if (!existingPost) {
+		LOG_DEBUG ("BackendChannel::addPostReaction: post with ID " << postId << " not found");
+		return;
 	}
+
+	existingPost->removeReaction (storage.getUserDisplayNameByUserId (userId, true), emojiName);
+	emit onPostReactionUpdated (*existingPost);
 }
 
 QSet<const BackendUser*> BackendChannel::getAllMembers () const
@@ -262,6 +302,17 @@ QSet<const BackendUser*> BackendChannel::getAllMembers () const
 	}
 
 	return ret;
+}
+
+BackendPost* BackendChannel::findPostById (QString postID)
+{
+	auto it = postIdToPost.find (postID);
+
+	if (it == postIdToPost.end()) {
+		return nullptr;
+	}
+
+	return it.value();
 }
 
 } /* namespace Mattermost */

@@ -63,9 +63,12 @@ public:
 	bool						is_pinned;
 	QString						user_id;
 	QString						channel_id;
+#if 1
 	QString						root_id;
 	QString						parent_id;
 	QString						original_id;
+#endif
+	BackendPost*				rootPost;
 	QString						message;
 	QString						type;
 	QJsonValue					props;

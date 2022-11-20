@@ -4490,7 +4490,7 @@ static QMap<QString, QString> emojiMap {
 	{"writing_hand_medium_skin_tone","✍🏽"},
 	{"writing_hand_medium_dark_skin_tone","✍🏾"},
 	{"writing_hand_dark_skin_tone","✍🏿"},
-	{"mattermost"," <img src=\"mattermost-emoji.png\" width=32 height=32> "},
+	{"mattermost"," <img src=\"qrc://img/mattermost-emoji.png\" width=32 height=32> "},
 };
 
 EmojiMap::iterator EmojiMap::findByName (const QString& emojiName)

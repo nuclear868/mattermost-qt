@@ -22,6 +22,7 @@
 #include <QDateTime>
 #include <QResizeEvent>
 #include "PostWidget.h"
+#include "post/PostQuoteFrame.h"
 #include "ChatArea.h"
 #include "attachments/PostAttachmentList.h"
 #include "attachments/PostPoll.h"
@@ -56,6 +57,12 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		ui->authorAvatar->setPixmap (QPixmap::fromImage(img));
 	}
 
+	if (post.rootPost) {
+		quoteFrame = std::make_unique<PostQuoteFrame> (*post.rootPost, this);
+
+		//insert the frame after the post author line
+		ui->verticalLayout->insertWidget (1, quoteFrame.get(), 0, Qt::AlignLeft);
+	}
 
 	//Add previews for files, if any
 	if (!post.files.empty()) {

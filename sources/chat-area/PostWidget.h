@@ -30,6 +30,7 @@ namespace Mattermost {
 
 class Backend;
 class BackendPost;
+class PostQuoteFrame;
 class PostAttachmentList;
 class PostReactionList;
 class PostPoll;
@@ -66,6 +67,7 @@ signals:
 	void dimensionsChanged ();
 private:
     Ui::PostWidget*						ui;
+    std::unique_ptr<PostQuoteFrame>		quoteFrame;
     std::unique_ptr<PostAttachmentList>	attachments;
     std::unique_ptr<PostPoll>			poll;
     std::unique_ptr<PostReactionList>	reactions;

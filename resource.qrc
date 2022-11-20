@@ -13,5 +13,6 @@
     <qresource prefix="/">
         <file>img/arrow_collapsed.png</file>
         <file>img/arrow_expanded.png</file>
+        <file>img/mattermost-emoji.png</file>
     </qresource>
 </RCC>

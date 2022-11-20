@@ -138,7 +138,7 @@ int main (int argc, char** argv)
 		 * The 'mattermost' emoji is special - it is not in custom emoji list. Maybe it is hardcoded in Mattermost
 		 */
 		if (name == "mattermost") {
-			addEmoji (name, " <img src=\\\"mattermost-emoji.png\\\" width=32 height=32> ");
+			addEmoji (name, " <img src=\\\"qrc://img/mattermost-emoji.png\\\" width=32 height=32> ");
 			continue;
 		}
 

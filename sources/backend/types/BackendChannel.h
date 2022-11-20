@@ -78,7 +78,6 @@ public:
 
 	BackendPost* addPost (const QJsonObject& postObject);
 
-	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, bool initialLoad);
 	void prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void editPost (BackendPost& newPost);
@@ -147,28 +146,32 @@ signals:
 	 * Called when the user is removed from the channel, or has left the channel
 	 */
 	void onLeave ();
+private:
+	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, QVector<QPair<QString, QString>>& rootIdAndPostList, bool initialLoad);
+	BackendPost* findPostById (QString postID);
 public:
-	const Storage&		storage;
-    QString				id;
-    uint64_t			create_at;
-    uint64_t			update_at;
-    uint64_t			delete_at;
-    BackendTeam*		team;
-    QString				display_name;
-    QString				name;
-    QString				header;
-    QString				purpose;
-    int					type;
-    uint64_t			last_post_at;
-    int					total_msg_count;
-    int					extra_update_at;
-    const BackendUser*	creator;
+	const Storage&					storage;
+    QString							id;
+    uint64_t						create_at;
+    uint64_t						update_at;
+    uint64_t						delete_at;
+    BackendTeam*					team;
+    QString							display_name;
+    QString							name;
+    QString							header;
+    QString							purpose;
+    int								type;
+    uint64_t						last_post_at;
+    int								total_msg_count;
+    int								extra_update_at;
+    const BackendUser*				creator;
     QList<BackendChannelMember> 	members;
     QVariant						scheme_id;
     QVariant						props;
     uint32_t						referenceCount;
 
-    std::list<BackendPost>	posts;
+    QMap<QString, BackendPost*>		postIdToPost;
+    std::list<BackendPost>			posts;
 };
 
 } /* namespace Mattermost */

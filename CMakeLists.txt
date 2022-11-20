@@ -51,13 +51,6 @@ else()
   file(GLOB_RECURSE SOURCES sources/*.cpp)
   add_executable(qmattermost
     ${SOURCES}
-    sources/login/LoginDialog.ui
-    sources/mainwindow.ui
-    sources/chat-area/ChatArea.ui
-    sources/preview-window/FilePreview.ui
-    sources/chat-area/attachments/PostAttachmentList.ui
-    sources/chat-area/PostWidget.ui
-    sources/chat-area/post-separator/PostSeparatorWidget.ui
     resource.qrc
   )
 endif()
