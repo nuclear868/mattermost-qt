@@ -120,7 +120,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 		if (postWidget) {
 			postWidget->updateReactions ();
-			//ui->listWidget->adjustSize();
+			ui->listWidget->adjustSize();
 		}
 	});
 
@@ -439,6 +439,13 @@ void ChatArea::dropEvent (QDropEvent* event)
 QVBoxLayout& ChatArea::getAttachmentListParentWidget ()
 {
 	return *ui->verticalLayout;
+}
+
+void ChatArea::goToPost (const BackendPost& post)
+{
+	int pos = ui->listWidget->findPostByIndex (post.id, 0);
+
+	ui->listWidget->scrollToItem(ui->listWidget->item(pos), QAbstractItemView::PositionAtTop);
 }
 
 void ChatArea::setTextEditWidgetHeight (int height)

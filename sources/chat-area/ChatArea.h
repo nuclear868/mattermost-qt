@@ -57,6 +57,12 @@ public:
 	void handleUserTyping (const BackendUser& user);
 
 	/**
+	 * Scroll to given post
+	 * @param post post
+	 */
+	void goToPost (const BackendPost& post);
+
+	/**
 	 * Called when the chat area is being selected from the channels menu (so that it's contents is shown)
 	 */
 	void onActivate ();

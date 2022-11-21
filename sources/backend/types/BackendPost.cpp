@@ -118,7 +118,24 @@ void BackendPost::addReaction (QString userName, QString emojiName)
 		return;
 	}
 
-	reactions[iterator].push_back (userName);
+	auto& vec = reactions[iterator];
+
+	/**
+	 * If the same reaction from the same user already exists, remove it.
+	 * The official Mattermost client sends 'reaction added' on each reaction add,
+	 * but the reaction is removed if it already exists
+	 */
+	auto it = std::find (vec.begin(), vec.end(), userName);
+	if (it != vec.end()) {
+		vec.erase (it);
+
+		//if this was the only user used this reaction, remove the reaction
+		if (vec.isEmpty()) {
+			reactions.erase (iterator);
+		}
+	} else {
+		vec.push_back (userName);
+	}
 }
 
 void BackendPost::removeReaction (QString userName, QString emojiName)

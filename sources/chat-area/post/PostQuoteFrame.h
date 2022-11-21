@@ -36,7 +36,8 @@ class PostQuoteFrame: public QFrame
 public:
     explicit PostQuoteFrame (const BackendPost& post, QWidget *parent = nullptr);
     ~PostQuoteFrame();
-
+signals:
+	void postClicked ();
 private:
     Ui::PostQuoteFrame *ui;
 };

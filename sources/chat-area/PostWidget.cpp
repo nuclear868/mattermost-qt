@@ -62,6 +62,10 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 
 		//insert the frame after the post author line
 		ui->verticalLayout->insertWidget (1, quoteFrame.get(), 0, Qt::AlignLeft);
+
+		connect (quoteFrame.get(), &PostQuoteFrame::postClicked, [&post, chatArea] {
+			chatArea->goToPost (*post.rootPost);
+		});
 	}
 
 	//Add previews for files, if any
