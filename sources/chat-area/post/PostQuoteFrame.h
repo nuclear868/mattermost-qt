@@ -28,14 +28,18 @@ class PostQuoteFrame;
 namespace Mattermost {
 
 class BackendPost;
+class Storage;
+class PostWidget;
 
 class PostQuoteFrame: public QFrame
 {
     Q_OBJECT
 
 public:
-    explicit PostQuoteFrame (const BackendPost& post, QWidget *parent = nullptr);
+    explicit PostQuoteFrame (BackendPost& containingPost, const BackendPost& quotedPost, const Storage& storage, PostWidget* parent);
     ~PostQuoteFrame();
+public:
+    void setHeaderText (const QString& headerText);
 signals:
 	void postClicked ();
 private:

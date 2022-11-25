@@ -26,7 +26,7 @@
 
 #include <QListWidget>
 #include <QTimer>
-#include "PostWidget.h"
+#include "post/PostWidget.h"
 
 namespace Mattermost {
 

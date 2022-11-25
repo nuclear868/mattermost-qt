@@ -17,23 +17,25 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
+#include "PostWidget.h"
+
 #include <iostream>
 #include <QDebug>
 #include <QDateTime>
 #include <QResizeEvent>
-#include "PostWidget.h"
-#include "post/PostQuoteFrame.h"
-#include "ChatArea.h"
+#include "backend/Backend.h"
+#include "backend/types/BackendPost.h"
+#include "backend/EmojiMap.h"
+#include "chat-area/ChatArea.h"
+#include "PostQuoteFrame.h"
 #include "attachments/PostAttachmentList.h"
 #include "attachments/PostPoll.h"
 #include "reactions/PostReactionList.h"
 #include "ui_PostWidget.h"
-#include "backend/types/BackendPost.h"
-#include "backend/EmojiMap.h"
 
 namespace Mattermost {
 
-PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea)
+PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea, BackendPost* lastRootPost)
 :QWidget(parent)
 ,post (post)
 ,ui(new Ui::PostWidget)
@@ -57,8 +59,13 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		ui->authorAvatar->setPixmap (QPixmap::fromImage(img));
 	}
 
-	if (post.rootPost) {
-		quoteFrame = std::make_unique<PostQuoteFrame> (*post.rootPost, this);
+	/**
+	 * Add root post as a quote box.
+	 * Multiple consecutive posts, quoting the same post will have the quote added only to the first of them.
+	 */
+	if (post.rootPost && post.rootPost != lastRootPost) {
+
+		quoteFrame = std::make_unique<PostQuoteFrame> (post, *post.rootPost, backend.getStorage(), this);
 
 		//insert the frame after the post author line
 		ui->verticalLayout->insertWidget (1, quoteFrame.get(), 0, Qt::AlignLeft);
@@ -95,8 +102,8 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	}
 
 	if (post.poll) {
-		//set message height 0, because poll messages do not contain free text (outside the poll itself)
-		ui->message->setMaximumHeight (0);
+		//clear message text, because poll messages do not contain free text (outside the poll itself)
+		clearMessageText ();
 		poll = std::make_unique<PostPoll> (backend, post, *post.poll, this);
 		ui->verticalLayout->addWidget (poll.get(), 0, Qt::AlignLeft);
 	}
@@ -120,8 +127,8 @@ void PostWidget::setEdited (const QString& message)
 	 * if (there is a poll in the post, just recreate the poll instance
 	 */
 	if (post.poll) {
-		//set message height 0, because poll messages do not contain free text (outside the poll itself)
-		ui->message->setMaximumHeight (0);
+		//clear message text, because poll messages do not contain free text (outside the poll itself)
+		clearMessageText ();
 		std::unique_ptr<PostPoll> newPoll = std::make_unique<PostPoll> (poll->backend, post, *post.poll, this);
 		ui->verticalLayout->replaceWidget (poll.get(), newPoll.get());
 		poll = std::move (newPoll);
@@ -292,6 +299,12 @@ QString PostWidget::formatForClipboardSelection (FormatType formatType) const
 	QString ret (post.getDisplayAuthorName() + "\t[" + ui->time->text() + "]\n");
 	ret += " " + post.message + "\n\n";
 	return ret;
+}
+
+void PostWidget::clearMessageText ()
+{
+	ui->message->setText ("");
+	ui->message->setMaximumHeight (0);
 }
 
 } /* namespace Mattermost */

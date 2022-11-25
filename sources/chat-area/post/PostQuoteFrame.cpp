@@ -18,24 +18,63 @@
  */
 
 #include "PostQuoteFrame.h"
+
+#include <QDebug>
 #include "ui_PostQuoteFrame.h"
 #include "backend/types/BackendPost.h"
+#include "backend/types/BackendPoll.h"
+#include "backend/Storage.h"
+#include "PostWidget.h"
 
 namespace Mattermost {
 
-PostQuoteFrame::PostQuoteFrame (const BackendPost& post, QWidget *parent)
-:QFrame(parent)
-,ui(new Ui::PostQuoteFrame)
+PostQuoteFrame::PostQuoteFrame (BackendPost& containingPost, const BackendPost& quotedPost, const Storage& storage, PostWidget* containingPostWidget)
+:QFrame (containingPostWidget)
+,ui (new Ui::PostQuoteFrame)
 {
-    ui->setupUi(this);
-    ui->header->setText ("Originally posted by " + post.author->getDisplayName ());
-    ui->message->setText (post.message);
-    setContentsMargins (20, 4, 4, 4);
+	ui->setupUi(this);
+
+	QString headerText;
+
+	bool isMatterpollQuote = quotedPost.author == storage.matterpollUser && containingPost.author == storage.matterpollUser;
+	if (isMatterpollQuote) {
+
+		if (!quotedPost.poll) {
+			qDebug() << "Matterpoll quoted post contains no poll";
+		} else {
+			QString pollTitle = quotedPost.poll->title;
+
+			/**
+			 * When a poll ends, there is auto-generated message with the following text, from the Matterpoll user.
+			 * The message is too annoying. Replace it with shorter message and a button, which links to the ended poll
+			 */
+			QString expectedText = "The poll **" + pollTitle + "** has ended and the original post has been updated. You can jump to it by pressing";
+
+			if (containingPost.message.startsWith (expectedText)) {
+				ui->header->setText ("The poll '" + pollTitle + "' has ended.");
+				ui->message->setText("");
+				ui->message->setMaximumHeight (0);
+				containingPostWidget->clearMessageText ();
+			}
+		}
+	} else {
+
+		ui->header->setText ("Originally posted by " + quotedPost.author->getDisplayName ());
+	}
+
+	setContentsMargins (20, 4, 4, 4);
+	connect (ui->postArrow, &QPushButton::clicked, this, &PostQuoteFrame::postClicked);
 }
 
 PostQuoteFrame::~PostQuoteFrame()
 {
     delete ui;
 }
+
+void PostQuoteFrame::setHeaderText (const QString& headerText)
+{
+	ui->header->setText (headerText);
+}
+
 
 } /* namespace Mattermost */

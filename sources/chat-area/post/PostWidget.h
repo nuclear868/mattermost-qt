@@ -41,7 +41,7 @@ class PostWidget: public QWidget
     Q_OBJECT
 
 public:
-    explicit PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea);
+    explicit PostWidget (Backend& backend, BackendPost &post, QWidget *parent, ChatArea* chatArea, BackendPost* lastRootPost);
     ~PostWidget();
 public:
 
@@ -60,6 +60,8 @@ public:
     QString getMessageTimeString (uint64_t timestamp);
     QString formatMessageText (const QString& str);
     QString formatForClipboardSelection (FormatType formatType) const;
+
+    void clearMessageText ();
 
     BackendPost&						post;
     QString								hoveredLink;

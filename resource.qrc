@@ -9,6 +9,7 @@
         <file>img/icon4.ico</file>
         <file>img/icon5.ico</file>
         <file>img/icon6.ico</file>
+        <file>img/quote-arrow.png</file>
     </qresource>
     <qresource prefix="/">
         <file>img/arrow_collapsed.png</file>

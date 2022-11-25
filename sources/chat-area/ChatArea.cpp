@@ -21,7 +21,7 @@
 
 #include "channel-tree/ChannelItem.h"
 #include "ui_ChatArea.h"
-#include "PostWidget.h"
+#include "post/PostWidget.h"
 #include "backend/Backend.h"
 #include "channel-tree/ChannelItemWidget.h"
 #include "log.h"
@@ -229,6 +229,8 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 		currentElapsedDays = firstPostWidget->post.getCreationTime().date().daysTo(currentDate);
 	}
 
+	BackendPost* lastRootPost = nullptr;
+
 	for (const ChannelNewPostsChunk& chunk: newPosts.postsToAdd) {
 
 		if (!chunk.previousPostId.isEmpty()) {
@@ -256,7 +258,8 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 				++insertPos;
 			}
 
-			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this));
+			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this, lastRootPost));
+			lastRootPost = post->rootPost;
 			++insertPos;
 
 			if (post->id == lastReadPostId) {
@@ -294,7 +297,7 @@ void ChatArea::appendChannelPost (BackendPost& post)
 		ui->listWidget->addNewMessagesSeparator ();
 	}
 
-	ui->listWidget->insertPost (new PostWidget (backend, post, ui->listWidget, this));
+	ui->listWidget->insertPost (new PostWidget (backend, post, ui->listWidget, this, nullptr));
 
 	ui->listWidget->adjustSize();
 	ui->listWidget->scrollToBottom();

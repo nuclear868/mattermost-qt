@@ -91,7 +91,7 @@
   <customwidget>
    <class>Mattermost::PostAttachmentListWidget</class>
    <extends>QListWidget</extends>
-   <header>chat-area/attachments/PostAttachmentListWidget.h</header>
+   <header>chat-area/post/attachments/PostAttachmentListWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
