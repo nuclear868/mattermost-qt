@@ -60,6 +60,7 @@ PostQuoteFrame::PostQuoteFrame (BackendPost& containingPost, const BackendPost& 
 	} else {
 
 		ui->header->setText ("Originally posted by " + quotedPost.author->getDisplayName ());
+		ui->message->setText (quotedPost.message);
 	}
 
 	setContentsMargins (20, 4, 4, 4);
