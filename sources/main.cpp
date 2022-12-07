@@ -36,23 +36,21 @@ public:
 	void openLoginWindow ();
 	void showWindow ();
 	void toggleShowWindow ();
-	void quitAction ();
 	void reopen ();
 private:
 	std::unique_ptr<MainWindow>			mainWindow;
 	std::unique_ptr<QSystemTrayIcon> 	trayIcon;
 	std::unique_ptr<QMenu>				trayIconMenu;
 	Backend								backend;
-	LoginDialog* 						loginDialog;
-	bool								autologin;
+	LoginDialog*						loginDialog;
+	QWidget*							currentWindow;
 };
 
 inline MattermostApplication::MattermostApplication (int& argc, char *argv[])
 :QApplication (argc, argv)
 ,trayIcon (std::make_unique<QSystemTrayIcon> (QIcon(":/icons/img/icon0.ico"), nullptr))
 ,trayIconMenu (std::make_unique<QMenu> (nullptr))
-,loginDialog (nullptr)
-,autologin (true)
+,currentWindow (nullptr)
 {
     Config::init ();
 	trayIcon->setToolTip(tr("Mattermost Qt"));
@@ -69,49 +67,33 @@ inline MattermostApplication::MattermostApplication (int& argc, char *argv[])
 	});
 
 	trayIconMenu->addAction ("Open Mattermost", this, &MattermostApplication::showWindow);
-	trayIconMenu->addAction ("Quit", this, &MattermostApplication::quitAction);
+	trayIconMenu->addAction ("Quit", qApp, &QApplication::quit);
 }
 
 void MattermostApplication::openLoginWindow ()
 {
-	loginDialog = new LoginDialog (nullptr, backend, autologin);
+	loginDialog = new LoginDialog (nullptr, backend);
 	loginDialog->open();
+	currentWindow = loginDialog;
 
 	connect (loginDialog, &LoginDialog::accepted, [this] {
 		//create Main Window and open it, after successful login
 		loginDialog = nullptr;
 		mainWindow = std::make_unique<MainWindow> (nullptr, *trayIcon, backend);
 		mainWindow->show();
-
-		autologin = false;
+		currentWindow = mainWindow.get();
 	});
 }
 
 inline void MattermostApplication::showWindow ()
 {
-	QWidget* currentWindow = mainWindow.get();
-
-	if (!currentWindow) {
-		currentWindow = loginDialog;
-	}
-
-	if (!currentWindow) {
-		return;
-	}
-
-	if (!currentWindow->isVisible()) {
+	if (currentWindow && !currentWindow->isVisible()) {
 		currentWindow->show ();
 	}
 }
 
 inline void MattermostApplication::toggleShowWindow ()
 {
-	QWidget* currentWindow = mainWindow.get();
-
-	if (!currentWindow) {
-		currentWindow = loginDialog;
-	}
-
 	if (!currentWindow) {
 		return;
 	}
@@ -120,15 +102,6 @@ inline void MattermostApplication::toggleShowWindow ()
 		currentWindow->hide ();
 	} else {
 		currentWindow->show ();
-	}
-}
-
-inline void MattermostApplication::quitAction ()
-{
-	if (mainWindow) {
-		mainWindow->onQuit();
-	} else {
-		qApp->quit();
 	}
 }
 

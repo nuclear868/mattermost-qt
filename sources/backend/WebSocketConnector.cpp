@@ -88,7 +88,11 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 
 	connect(&webSocket, &QWebSocket::disconnected, [this]{
 		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
-		doReconnect ();
+
+		//if the token is empty, this means that the disconnect was forced
+		if (!token.isEmpty()) {
+			doReconnect ();
+		}
 	});
 
     connect(&webSocket, &QWebSocket::textMessageReceived, this, &WebSocketConnector::onNewPacket);
@@ -160,6 +164,8 @@ void WebSocketConnector::doHandshake ()
 void WebSocketConnector::reset ()
 {
 	webSocket.close(QWebSocketProtocol::CloseCodeNormal, "Client Close");
+	pingTimer.stop();
+	pongTimer.stop();
 }
 
 static bool printEvent (const QString& name)

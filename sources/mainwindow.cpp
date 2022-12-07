@@ -26,6 +26,7 @@
 #include "./ui_mainwindow.h"
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
+#include "SettingsWindow.h"
 #include "build-config.h"
 #include "log.h"
 
@@ -70,7 +71,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 	backend.retrieveTotalUsersCount ([this] (uint32_t) {
 		backend.retrieveAllUsers ();
-	}); //on getTotalUsersCount()
+	});
 
 	/*
 	 * Register for signals
@@ -85,7 +86,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 		 */
 		backend.retrieveOwnTeams ([this](BackendTeam& team) {
 			ui->channelList->addTeam (backend, team);
-		}); //on getOwnTeams()
+		});
 	});
 
 	/*
@@ -143,10 +144,13 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	QSettings settings;
 	restoreGeometry (settings.value( "geometry", saveGeometry()).toByteArray());
 
+	connect (qApp, &QApplication::aboutToQuit, this, &MainWindow::saveState);
 	LOG_DEBUG ("MainWindow create finish");
 }
 
-MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow()
+{
+}
 
 static QString infoText (QString ("Version " PROJECT_VER "<br/>"
 "An unofficial Mattermost Client, using the QT framework<br/>") +
@@ -169,23 +173,29 @@ along with Mattermost-QT; if not, see <a href='https://www.gnu.org/licenses/'>ht
 
 void MainWindow::createMenu ()
 {
-	QMenu* mainMenu = new QMenu (ui->toolButton);
+	mainMenu = new QMenu (ui->toolButton);
 
 	QMenu* fileMenu = mainMenu->addMenu ("File");
 	fileMenu->addAction ("Logout", [this] {
+
 		backend.logout ([this] {
 			doDeinit = true;
 			QMainWindow::close ();
 			LOG_DEBUG ("Logout done");
 		});
-
-		QTimer::singleShot (100, [this] {
-			backend.reset();
-			doDeinit = true;
-			QMainWindow::close ();
-			LOG_DEBUG ("Logout timer");
-		});
 	});
+
+	mainMenu->addAction ("Settings", [this] {
+		settingsWindow = new SettingsWindow (this);
+
+		connect (settingsWindow, &QDialog::accepted, [this] {
+			settingsWindow->applyNewSettings ();
+			reload ();
+		});
+
+		settingsWindow->show();
+	});
+
 
 	QMenu* helpMenu = mainMenu->addMenu ("Help");
 	helpMenu->addAction ("About Mattermost", [this] {
@@ -204,6 +214,15 @@ void MainWindow::createMenu ()
 	});
 
 	ui->toolButton->setMenu(mainMenu);
+}
+
+void MainWindow::reload ()
+{
+	QTimer::singleShot(0, [this] {
+		backend.reset();
+		doDeinit = true;
+		QMainWindow::close ();
+	});
 }
 
 void MainWindow::changeEvent (QEvent* event)
@@ -236,6 +255,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 	if (doDeinit) {
 		qDebug() << "QMainWindow closeEvent";
+		saveState ();
 		return QMainWindow::closeEvent (event);
 	}
 
@@ -342,15 +362,15 @@ void MainWindow::setNotificationsCountVisualization (uint32_t notificationsCount
 	trayIcon.setIcon(QIcon(iconName));
 }
 
-void MainWindow::onQuit ()
+void MainWindow::saveState ()
 {
+	LOG_DEBUG ("MainWindow saveState");
 	QSettings settings;
 	settings.setValue ("geometry", saveGeometry());
 //	settings.setValue ("current_team", channelList.getCurrentTeamId());
 //	if (currentPage) {
 //		settings.setValue ("current_channel", currentPage->getChannel().id);
 //	}
-	qApp->quit();
 }
 
 

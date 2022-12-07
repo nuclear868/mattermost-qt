@@ -27,7 +27,7 @@
 
 namespace Mattermost {
 
-LoginDialog::LoginDialog (QWidget *parent, Backend& backend, bool autoLogin)
+LoginDialog::LoginDialog (QWidget *parent, Backend& backend)
 :QDialog(parent)
 ,backend (backend)
 ,ui(new Ui::LoginDialog)
@@ -53,7 +53,7 @@ LoginDialog::LoginDialog (QWidget *parent, Backend& backend, bool autoLogin)
 	ui->icon->setPixmap (icon.pixmap (QSize (64, 64)));
 
 	//if all data is available in the settings, use it for the login
-	if (autoLogin && loginData.areAllFieldsFilled()) {
+	if (backend.autoLoginEnabled() && loginData.areAllFieldsFilled()) {
 		loginToServer (loginData);
 	}
 }

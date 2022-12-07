@@ -58,6 +58,7 @@ Backend::Backend(QObject *parent)
 ,webSocketConnector (webSocketEventHandler)
 ,currentChannel (nullptr)
 ,isLoggedIn (false)
+,autoLoginEnabledFlag (true)
 ,nonFilledTeams (0)
 {
 	connect (&webSocketConnector, &WebSocketConnector::onReconnect, [this] {
@@ -180,6 +181,11 @@ BackendChannel* Backend::getCurrentChannel () const
 	return currentChannel;
 }
 
+bool Backend::autoLoginEnabled ()
+{
+	return autoLoginEnabledFlag;
+}
+
 void Backend::loginSuccess (const QJsonDocument& doc, const QNetworkReply& reply, std::function<void (const QString&)> callback)
 {
 #if 1
@@ -206,6 +212,8 @@ void Backend::loginSuccess (const QJsonDocument& doc, const QNetworkReply& reply
 
 void Backend::reset ()
 {
+	isLoggedIn = false;
+
 	/*
 	 * This is important. Disconnect all signals. Added lambda functions are not removed when
 	 * objects are destroyed
@@ -214,6 +222,7 @@ void Backend::reset ()
 	NetworkRequest::clearToken ();
 
 	//reinit all network connectors
+	timeoutTimer.disconnect ();
 	httpConnector.reset ();
 	webSocketConnector.close ();
 	storage.reset ();
@@ -225,9 +234,22 @@ void Backend::logout (std::function<void ()> callback)
 	NetworkRequest request ("users/logout");
 	isLoggedIn = false;
 
+	//when logging out manually, disable the autologin
+	autoLoginEnabledFlag = false;
+
+	timeoutTimer.setSingleShot (true);
+	connect (&timeoutTimer, &QTimer::timeout, [this, callback] {
+		LOG_DEBUG ("Logout timeout");
+		reset ();
+		callback ();
+	});
+
+	timeoutTimer.start (1000);
+
 	httpConnector.post (request, QByteArray(), HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
 		LOG_DEBUG ("Logout done");
 
+		timeoutTimer.stop();
 		reset ();
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -438,7 +460,7 @@ void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
-		std::cout << "get teams reply: " << statusCode.toInt() << std::endl;
+		std::cout << "get teams reply: "  << std::endl;
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
 

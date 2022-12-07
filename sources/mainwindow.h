@@ -37,6 +37,7 @@ class Backend;
 class BackendChannel;
 class BackendPost;
 class BackendTeam;
+class SettingsWindow;
 
 class MainWindow: public QMainWindow {
 	Q_OBJECT
@@ -55,9 +56,10 @@ public:
 	void closeEvent(QCloseEvent *event) override;
 
 	/**
-	 * Called when the quit action is chosen from the tray icon's menu
+	 * Called when the window is about to be closed, either because of logout or reload action or quit action from the tray menu.
+	 * In all cases it's state has to be saved
 	 */
-	void onQuit ();
+	void saveState ();
 
 	/**
 	 * Called when a new post is received while the Mattermost client is on
@@ -74,6 +76,7 @@ public:
 	void setNotificationsCountVisualization (uint32_t notificationsCount);
 private:
 	void createMenu ();
+	void reload ();
 private slots:
 	void channelListWidget_itemClicked(QTreeWidgetItem* item, QTreeWidgetItem*);
 private:
@@ -83,6 +86,8 @@ private:
 	Backend&							backend;
 	ChatArea*							currentPage;
 	bool								currentTeamRestoredFromSettings;
+	QMenu*								mainMenu;
+	SettingsWindow*						settingsWindow;
 	bool								doDeinit;
 };
 

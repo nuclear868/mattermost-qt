@@ -43,6 +43,8 @@ class Backend: public QObject
 public:
 	explicit Backend (QObject *parent = nullptr);
 
+	bool autoLoginEnabled ();
+
 	void reset ();
 
 	//login to server (/users/login)
@@ -219,7 +221,9 @@ private:
     WebSocketConnector				webSocketConnector;
     BackendLoginData				loginData;
     BackendChannel*					currentChannel;
+    QTimer 							timeoutTimer;
     bool							isLoggedIn;
+    bool							autoLoginEnabledFlag;
     uint32_t						nonFilledTeams;
 };
 
