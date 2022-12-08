@@ -189,7 +189,12 @@ void MainWindow::createMenu ()
 		settingsWindow = new SettingsWindow (this);
 
 		connect (settingsWindow, &QDialog::accepted, [this] {
-			settingsWindow->applyNewSettings ();
+
+			if (QMessageBox::question (this, "Reload?", "In order to apply some settings, Mattermost has to be reloaded.\n"
+					" Do you want to reload now? (If no, settings will be applied on the next startup)") == QMessageBox::Yes) {
+
+				settingsWindow->applyNewSettings ();
+			}
 			reload ();
 		});
 

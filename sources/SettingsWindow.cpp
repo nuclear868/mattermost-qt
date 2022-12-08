@@ -24,13 +24,9 @@
 #include <QIntValidator>
 #include <QStandardPaths>
 #include "ui_SettingsWindow.h"
+#include "Settings.h"
 
 namespace Mattermost {
-
-static const char* DOWNLOAD_LOCATION = "config/downloadLocation";
-static const char* DOWNLOAD_ASK = "config/downloadAsk";
-static const char* DOWNLOAD_IMAGE_MAX_WIDTH = "config/imageMaxWidth";
-static const char* DOWNLOAD_IMAGE_MAX_HEIGHT = "config/imageMaxHeight";
 
 SettingsWindow::SettingsWindow(QWidget *parent) :
     QDialog(parent),

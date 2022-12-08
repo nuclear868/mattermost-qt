@@ -21,7 +21,9 @@
 #include "ui_AttachedImageFile.h"
 
 #include <QDebug>
+#include <QSettings>
 #include "backend/types/BackendFile.h"
+#include "Settings.h"
 
 namespace Mattermost {
 
@@ -38,13 +40,18 @@ AttachedImageFile::AttachedImageFile(const BackendFile& file, QWidget *parent)
     if (file.contents.isEmpty()) {
     	connect (&file, &BackendFile::onContentsAvailable, [&file, /*label, newItem, authorName, */this] (const QByteArray& fileContents){
 
+			QSettings settings;
+
+			int maxWidth = settings.value(DOWNLOAD_IMAGE_MAX_WIDTH, 500).toInt();
+			int maxHeight = settings.value(DOWNLOAD_IMAGE_MAX_HEIGHT, 500).toInt();
+
 			QImage img = QImage::fromData (fileContents);
-			if (img.width() > 500) {
-				img = img.scaledToWidth (500, Qt::SmoothTransformation);
+			if (img.width() > maxWidth) {
+				img = img.scaledToWidth (maxWidth, Qt::SmoothTransformation);
 			}
 
-			if (img.height() > 500) {
-				img = img.scaledToHeight (500, Qt::SmoothTransformation);
+			if (img.height() > maxHeight) {
+				img = img.scaledToHeight (maxHeight, Qt::SmoothTransformation);
 			}
 
 			ui->imagePreview->setPixmap (QPixmap::fromImage(img));
