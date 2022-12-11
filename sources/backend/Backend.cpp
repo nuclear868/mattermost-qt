@@ -660,6 +660,13 @@ void Backend::retrieveDirectChannel (QString channelID)
 		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit storage.directChannels.onNewChannel (*channel);
+
+		/*
+		 * The channel is created, but the official Mattermost client requires
+		 * that the 'direct_channel_show' property is set for this channel,
+		 * in order for the channel to be visible there
+		 */
+		updateUserPreferences(BackendUserPreferences {"direct_channel_show", channel->name, "true"});
     }));
 }
 
@@ -970,13 +977,6 @@ void Backend::createDirectChannel (const BackendUser& user)
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString() << std::endl;
 #endif
-
-		/*
-		 * The channel is created, but the official Mattermost client requires
-		 * that the 'direct_channel_show' property is set for this channel,
-		 * in order for the channel to be visible there
-		 */
-		updateUserPreferences(BackendUserPreferences {"direct_channel_show",user.id, "true"});
 	}));
 }
 
