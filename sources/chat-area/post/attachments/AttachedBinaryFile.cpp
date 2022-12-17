@@ -23,6 +23,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QDir>
+#include "Settings.h"
 #include "AttachedBinaryFile.h"
 #include "ui_AttachedBinaryFile.h"
 #include "backend/types/BackendFile.h"
@@ -49,37 +50,50 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 	 * Download the file to provided destination
 	 */
 	connect (ui->downloadButton, &QPushButton::clicked, [this, &backend, &file] {
-		ui->downloadedLabel->setText ("Downloading...");
 
-#if 0
-		if (!downloadedPath.isEmpty()) {
-			QMessageBox *_msgBox = new QMessageBox (QMessageBox::Question,
-					"File already downloaded - Mattermost",
-					"The file is already downloaded in " + downloadedPath + ".");
-			QMessageBox &msgBox = *_msgBox;
+		QSettings settings;
+		QDir downloadDir = settings.value(DOWNLOAD_LOCATION, QDir::currentPath()).toString();
+		QString fileDestination (downloadDir.filePath(file.name));
+		QFileInfo fileInfo (fileDestination);
 
-			msgBox.setInformativeText("Please choose:");
-			msgBox.setStandardButtons(QMessageBox::Open);
-			msgBox.addButton (new QPushButton ("Download Again", &msgBox), QMessageBox::AcceptRole);
-			msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Open);
-			msgBox.setDefaultButton(QMessageBox::Open);
-			msgBox.open();
+		if (fileInfo.isFile() && (uint64_t)fileInfo.size() == file.size) {
+
+			QMessageBox *msgBox = new QMessageBox (QMessageBox::Question,
+					"File exists - Mattermost",
+					"The file '" + file.name + "' is already downloaded to \n'" + downloadDir.absolutePath() + "'");
+
+			msgBox->setInformativeText("Please choose:");
+			msgBox->setStandardButtons(QMessageBox::Open);
+			msgBox->addButton ("Download Again", QMessageBox::AcceptRole);
+			QPushButton* openButton = msgBox->addButton ("Open File", QMessageBox::AcceptRole);
+			msgBox->setStandardButtons(QMessageBox::Cancel);
+			msgBox->setDefaultButton(QMessageBox::Cancel);
+			msgBox->exec();
+
+			if (msgBox->clickedButton() == msgBox->button(QMessageBox::Cancel)) {
+				return; //do nothing
+			} else if (msgBox->clickedButton() == openButton) {
+				QDesktopServices::openUrl ("file://" + fileDestination);
+				return;
+			}
+			//download again
 		}
-#endif
 
 		ui->openButton->setDisabled (true);
-		backend.retrieveFile (file.id, [this, &file] (const QByteArray& data){
+		backend.retrieveFile (file.id, [this, &file, downloadDir] (const QByteArray& data){
 
-			QString fileDestination (QDir::currentPath() + "/" + file.name);
+			QString fileDestination (downloadDir.filePath(file.name));
 
 			QFile destFile (fileDestination);
 			destFile.open (QIODevice::WriteOnly);
 			destFile.write (data);
 			destFile.close ();
-			ui->downloadedLabel->setText ("Download complete");
+			ui->downloadedLabel->setText ("File downloaded to '" + downloadDir.absolutePath() + "'");
 			downloadedPath = fileDestination;
 			ui->openButton->setDisabled (false);
 		});
+
+		ui->downloadedLabel->setText ("Downloading...");
 	});
 
 	/*
@@ -100,7 +114,7 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 			tmpName.insert (dot, "XXXXXX");
 
 
-			tempFile.setFileTemplate (Config::tempDirectory() + tmpName);
+			tempFile.setFileTemplate (Config::tempDirectory().filePath (tmpName));
 			bool result = tempFile.open ();
 
 			if (!result) {

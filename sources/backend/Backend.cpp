@@ -36,6 +36,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QDebug>
 #include <QList>
 
@@ -1061,23 +1062,25 @@ void Backend::retrieveCustomEmojis ()
 			QString emojiID = it.toObject().value("id").toString();
 			QString emojiName = it.toObject().value("name").toString();
 			retrieveCustomEmojiImage (emojiID, [emojiID, emojiName] (QByteArray data) {
-				QString filename ("cache/custom-emoji/" + emojiID + ".png");
 
-				QDir dir("cache/custom-emoji/");
-				if (!dir.exists()) {
-					dir.mkpath(".");
+				QDir cacheDir (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+				QDir emojiDir (cacheDir.filePath ("custom-emoji"));
+
+				if (!emojiDir.exists()) {
+					emojiDir.mkpath(".");
 				}
 
-				QFile file (filename);
+				QString filePath (emojiDir.filePath (emojiID + ".png"));
+				QFile file (filePath);
 
 				if (!file.open (QIODevice::WriteOnly)) {
-					qDebug() << "retrieveCustomEmojiImage: Cannot open " << filename << ":" << file.errorString();
+					qDebug() << "retrieveCustomEmojiImage: Cannot open " << filePath << ":" << file.errorString();
 					return;
 				}
 
 				file.write (data);
 				file.close ();
-				EmojiMap::addCustomEmoji (emojiName, emojiID);
+				EmojiMap::addCustomEmoji (emojiName, filePath);
 			});
 		}
 	}));

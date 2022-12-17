@@ -109,14 +109,14 @@
         <item row="0" column="2">
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>pixels</string>
+           <string>pixels (height will be scaled proportionally)</string>
           </property>
          </widget>
         </item>
         <item row="1" column="2">
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>pixels</string>
+           <string>pixels (width will be scaled proportionally)</string>
           </property>
          </widget>
         </item>

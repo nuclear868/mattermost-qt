@@ -81,9 +81,9 @@ bool operator < (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs)
 	return lhs.key() < rhs.key();
 }
 
-void EmojiMap::addCustomEmoji (const QString& emojiName, const QString& emojiID)
+void EmojiMap::addCustomEmoji (const QString& emojiName, const QString& emojiPath)
 {
-	emojiMap[emojiName] = " <img src=\"cache/custom-emoji/" + emojiID + ".png\" width=32 height=32> ";
+	emojiMap[emojiName] = " <img src=\"" + emojiPath + "\" width=32 height=32> ";
 }
 
 } /* namespace Mattermost */

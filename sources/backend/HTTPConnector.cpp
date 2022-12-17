@@ -30,8 +30,9 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include "QByteArrayCreator.h"
+#include <QStandardPaths>
 #include <QNetworkReply>
+#include "QByteArrayCreator.h"
 
 namespace Mattermost {
 
@@ -39,7 +40,7 @@ HTTPConnector::HTTPConnector ()
 :qnetworkManager (std::make_unique <QNetworkAccessManager> ())
 ,diskCache (new QNetworkDiskCache)
 {
-	diskCache->setCacheDirectory ("cache");
+	diskCache->setCacheDirectory (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
 	qnetworkManager->setCache (diskCache);
 }
 
@@ -49,7 +50,7 @@ void HTTPConnector::reset ()
 {
 	qnetworkManager.reset(new QNetworkAccessManager());
 	diskCache = new QNetworkDiskCache ();
-	diskCache->setCacheDirectory ("cache");
+	diskCache->setCacheDirectory (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
 	qnetworkManager->setCache (diskCache);
 }
 

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <QString>
+#include <QDir>
 
 namespace Mattermost {
 
@@ -34,7 +34,7 @@ public:
 	virtual ~Config () = delete;
 public:
 	static void init ();
-	static QString tempDirectory ();
+	static QDir tempDirectory ();
 };
 
 } /* namespace Mattermost */

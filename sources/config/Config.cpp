@@ -22,7 +22,7 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include <QDir>
+#include <QStandardPaths>
 #include "Config.h"
 
 namespace Mattermost {
@@ -36,10 +36,10 @@ void Config::init ()
 	}
 }
 
-QString Config::tempDirectory ()
+QDir Config::tempDirectory ()
 {
-	static QString dir (QDir::tempPath() + "/qmattermost/");
-	return dir;
+	static QDir tempDir	(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+	return tempDir.filePath("qmattermost");
 }
 
 } /* namespace Mattermost */

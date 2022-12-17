@@ -50,7 +50,7 @@ public:
 	 * @param emojiName emoji name
 	 * @param emojiID emoji id
 	 */
-	static void addCustomEmoji (const QString& emojiName, const QString& emojiID);
+	static void addCustomEmoji (const QString& emojiName, const QString& emojiPath);
 };
 
 bool operator< (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs);
