@@ -36,6 +36,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 :QMainWindow(parent)
 ,ui (std::make_unique<Ui::MainWindow>())
 ,trayIcon (trayIcon)
+,chooseEmojiDialog (this)
 ,backend (_backend)
 ,currentPage (nullptr)
 ,currentTeamRestoredFromSettings (false)
@@ -378,6 +379,8 @@ void MainWindow::saveState ()
 //	}
 }
 
-
 } /* namespace Mattermost */
+
+
+
 

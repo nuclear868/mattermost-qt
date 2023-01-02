@@ -42,6 +42,7 @@
 
 #include "NetworkRequest.h"
 #include "types/BackendPoll.h"
+#include "emoji/EmojiInfo.h"
 #include "log.h"
 
 /**
@@ -812,7 +813,6 @@ void Backend::editChannelProperties (BackendChannel& channel, const BackendChann
 		{"header", newProperties.header},
 	};
 
-
 	QString jsonString = QJsonDocument(json).toJson(QJsonDocument::Indented);
 	std::cout << jsonString.toStdString() << std::endl;
 
@@ -909,6 +909,22 @@ void Backend::deletePost (const QString postID)
 
 void Backend::pinPost (const QString postID)
 {
+
+}
+
+void Mattermost::Backend::addPostReaction (const QString& postID, const QString& emojiName)
+{
+	QJsonObject json {
+		{"user_id", getLoginUser().id},
+		{"post_id", postID},
+		{"emoji_name", emojiName},
+		{"create_at", 0},
+	};
+
+	NetworkRequest request ("reactions");
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+		//no callbacks are required. the server will send a WebSocket packet 'reaction_added'
+	}));
 }
 
 void Backend::sendPostAction (const BackendPost& post, const QString& action)
@@ -1070,7 +1086,7 @@ void Backend::retrieveCustomEmojis ()
 					emojiDir.mkpath(".");
 				}
 
-				QString filePath (emojiDir.filePath (emojiID + ".png"));
+				QString filePath (emojiDir.filePath (emojiID + ".gif"));
 				QFile file (filePath);
 
 				if (!file.open (QIODevice::WriteOnly)) {
@@ -1080,7 +1096,7 @@ void Backend::retrieveCustomEmojis ()
 
 				file.write (data);
 				file.close ();
-				EmojiMap::addCustomEmoji (emojiName, filePath);
+				EmojiInfo::addCustomEmoji (emojiName, filePath);
 			});
 		}
 	}));

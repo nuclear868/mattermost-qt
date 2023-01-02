@@ -23,7 +23,7 @@
 #include <QDate>
 #include <QTreeWidgetItem>
 
-#include "OutgoingPostCreator.h"
+#include "outgoing-post/OutgoingPostCreator.h"
 
 namespace Ui {
 class ChatArea;

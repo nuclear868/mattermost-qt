@@ -25,7 +25,7 @@
 #include <QResizeEvent>
 #include "backend/Backend.h"
 #include "backend/types/BackendPost.h"
-#include "backend/EmojiMap.h"
+#include "backend/emoji/EmojiInfo.h"
 #include "chat-area/ChatArea.h"
 #include "PostQuoteFrame.h"
 #include "attachments/PostAttachmentList.h"
@@ -94,8 +94,9 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		reactions = std::make_unique<PostReactionList> (this);
 
 		for (auto& it: post.reactions) {
-			auto emojiIterator = it.first;
-			reactions->addReaction (emojiIterator.key(), emojiIterator.value(), it.second);
+			EmojiID emojiID = it.first;
+			Emoji emoji = EmojiInfo::getEmoji (emojiID);
+			reactions->addReaction (emoji.name, emoji.unicodeString, it.second);
 		}
 
 		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
@@ -146,8 +147,9 @@ void PostWidget::updateReactions ()
 		reactions = std::make_unique<PostReactionList> (this);
 
 		for (auto& it: post.reactions) {
-			auto emojiIterator = it.first;
-			reactions->addReaction (emojiIterator.key(), emojiIterator.value(), it.second);
+			EmojiID emojiID = it.first;
+			Emoji emoji = EmojiInfo::getEmoji (emojiID);
+			reactions->addReaction (emoji.name, emoji.unicodeString, it.second);
 		}
 
 		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
@@ -203,16 +205,18 @@ void replaceEmojis (QString& str)
 		//get the substring enclosed in ':' (without the ':'). This is the emoji name
 		QString emojiName = str.mid (emojiStart + 1, emojiNameSize);
 
-		auto it = EmojiMap::findByName (emojiName);
+		EmojiID emojiID = EmojiInfo::findByName (emojiName);
 
-		if (it == EmojiMap::missing ()) {
+		if (!emojiID) {
 			continue;
 		}
 
-		//replace the emoji name (together with ':') with it's corresponding value
-		str.replace (emojiStart, emojiNameSize + 2, it.value());
+		Emoji emoji = EmojiInfo::getEmoji (emojiID);
 
-		emojiEnd -= emojiName.size() + 2 - it.value().size();
+		//replace the emoji name (together with ':') with it's corresponding value
+		str.replace (emojiStart, emojiNameSize + 2, emoji.unicodeString);
+
+		emojiEnd -= emojiName.size() + 2 - emoji.unicodeString.size();
 		++emojiEnd;
 
 	} while (emojiStart != -1);

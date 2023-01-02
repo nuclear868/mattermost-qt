@@ -27,18 +27,19 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QVBoxLayout>
-#include "ChatArea.h"
+#include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
 #include "backend/types/BackendPost.h"
 #include "MessageTextEditWidget.h"
 #include "OutgoingPostCreator.h"
 #include "OutgoingAttachmentList.h"
-#include "ui_ChatArea.h"
+#include "choose-emoji-dialog/ChooseEmojiDialogWrapper.h"
+#include "../ui_ChatArea.h"
 
 namespace Mattermost {
 
-OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
-:chatArea (pchatArea)
+OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea)
+:chatArea (chatArea)
 ,postToEdit (nullptr)
 ,attachmentList (nullptr)
 ,waitingForNewPostToAppear (false)
@@ -47,7 +48,7 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPost);
 
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::escapePressed, [this] {
-			auto* textEdit = chatArea.getUi()->textEdit;
+			auto* textEdit = this->chatArea.getUi()->textEdit;
 			textEdit->clear();
 			postToEdit = nullptr;
 			postEditFinished ();
@@ -63,6 +64,15 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& pchatArea)
 		connect (chatAreaUi->sendButton, &QPushButton::clicked, this, &OutgoingPostCreator::sendPost);
 
 		connect (chatAreaUi->attachButton, &QPushButton::clicked, this, &OutgoingPostCreator::onAttachButtonClick);
+
+		connect (chatAreaUi->addEmojiButton, &QPushButton::clicked, [this] {
+			showEmojiDialog ([this] (Emoji emoji){
+
+				auto* textEdit = this->chatArea.getUi()->textEdit;
+				textEdit->insertPlainText (" :" + emoji.name + ": ");
+				textEdit->setFocus ();
+			});
+		});
 
 		updateSendButtonState();
 	});
@@ -97,6 +107,8 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 	auto* textEdit = chatArea.getUi()->textEdit;
 
 	textEdit->setText (post.message);
+	textEdit->setFocus ();
+	textEdit->moveCursor (QTextCursor::End);
 	postToEdit = &post;
 }
 

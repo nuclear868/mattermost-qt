@@ -1,4 +1,9 @@
 /**
+ * @file ChooseEmojiDialogWrapper.h
+ * @brief Shows the ChooseEmojiDialog with given callback for chosen emoji
+ * @author Lyubomir Filipov
+ * @date Jan 2, 2023
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,30 +22,22 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "PostReactionList.h"
+#pragma once
 
-#include <QLabel>
-#include "PostReaction.h"
-#include "ui_PostReactionList.h"
+#include "choose-emoji-dialog/ChooseEmojiDialog.h"
+
+class QWidget;
 
 namespace Mattermost {
 
-PostReactionList::PostReactionList(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::PostReactionList)
-{
-    ui->setupUi(this);
-}
+class ChooseEmojiDialogWrapper {
+public:
+	ChooseEmojiDialogWrapper (QWidget* parent);
+	virtual ~ChooseEmojiDialogWrapper ();
+public:
+	ChooseEmojiDialog 	dialog;
+};
 
-PostReactionList::~PostReactionList()
-{
-    delete ui;
-}
-
-void PostReactionList::addReaction (const QString& emojiName, const QString& emojiValue, const BackendPostReaction& reactionData)
-{
-	PostReaction* reaction = new PostReaction (emojiName, emojiValue, reactionData, this);
-	ui->horizontalLayout_2->addWidget (reaction, 0, Qt::AlignLeft);
-}
+void showEmojiDialog (std::function<void(Emoji)> chooseCallback);
 
 } /* namespace Mattermost */

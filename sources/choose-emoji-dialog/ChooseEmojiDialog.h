@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -17,30 +18,36 @@
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "PostReactionList.h"
+#pragma once
 
-#include <QLabel>
-#include "PostReaction.h"
-#include "ui_PostReactionList.h"
+#include <QDialog>
+#include "backend/emoji/EmojiDefs.h"
+
+class QGridLayout;
+class QComboBox;
+
+namespace Ui {
+class ChooseEmojiDialog;
+}
 
 namespace Mattermost {
 
-PostReactionList::PostReactionList(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::PostReactionList)
-{
-    ui->setupUi(this);
-}
-
-PostReactionList::~PostReactionList()
-{
-    delete ui;
-}
-
-void PostReactionList::addReaction (const QString& emojiName, const QString& emojiValue, const BackendPostReaction& reactionData)
-{
-	PostReaction* reaction = new PostReaction (emojiName, emojiValue, reactionData, this);
-	ui->horizontalLayout_2->addWidget (reaction, 0, Qt::AlignLeft);
-}
+class ChooseEmojiDialog: public QDialog {
+private:
+    explicit ChooseEmojiDialog (QWidget *parent = nullptr);
+    ~ChooseEmojiDialog();
+public:
+    void show ();
+private:
+    void createEmojiTabs ();
+    Emoji getSelectedEmoji ();
+    void addSkinToneComboBox (QWidget *tab, QGridLayout *gridLayout, uint32_t categoryIdx);
+private:
+    friend class ChooseEmojiDialogWrapper;
+    Ui::ChooseEmojiDialog*	ui;
+    QComboBox*				skinToneComboBox;
+    QVector<QPushButton*>	peopleEmojiButtons;
+    Emoji					selectedEmoji;
+};
 
 } /* namespace Mattermost */

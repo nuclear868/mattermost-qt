@@ -34,6 +34,7 @@
 #include "backend/types/BackendPost.h"
 #include "info-dialogs/UserProfileDialog.h"
 #include "PostsListWidget.h"
+#include "choose-emoji-dialog/ChooseEmojiDialogWrapper.h"
 
 namespace Mattermost {
 
@@ -56,6 +57,8 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 		}
 	});
 }
+
+PostsListWidget::~PostsListWidget () = default;
 
 void PostsListWidget::insertPost (int position, PostWidget* postWidget)
 {
@@ -305,11 +308,6 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 		}
 	}
 
-	myMenu.addAction ("View " + post->post.author->getDisplayName() + "'s profile", [this, post] {
-		//qDebug() << "Copy " << post->post.message;
-		UserProfileDialog* dialog = new UserProfileDialog (*post->post.author, this);
-		dialog->show ();
-	});
 
 	if (!post->hoveredLink.isEmpty() && selectedItemsCount == 1) {
 		myMenu.addAction ("Copy link to clipboard", [this, post] {
@@ -338,6 +336,20 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 			copySelectedItemsToClipboard (PostWidget::messageOnly);
 		});
 	}
+
+	myMenu.addAction ("Add emoji reaction", [this, post] {
+		showEmojiDialog ([this, post] (Emoji emoji){
+			backend->addPostReaction (post->post.id, emoji.name);
+		});
+	});
+
+	myMenu.addSeparator();
+
+	myMenu.addAction ("View " + post->post.author->getDisplayName() + "'s profile", [this, post] {
+		//qDebug() << "Copy " << post->post.message;
+		UserProfileDialog* dialog = new UserProfileDialog (*post->post.author, this);
+		dialog->show ();
+	});
 
 #if 0
 	if (selectedItemsCount == 1) {

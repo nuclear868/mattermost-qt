@@ -31,7 +31,7 @@
 #include <memory>
 #include "BackendUser.h"
 #include "BackendFile.h"
-#include "backend/EmojiMap.h"
+#include "backend/emoji/EmojiDefs.h"
 
 namespace Mattermost {
 
@@ -75,7 +75,7 @@ public:
 	QString						hashtags;
 	QString						pending_post_id;
 	std::list<BackendFile>		files;
-	std::map<EmojiMap::iterator,BackendPostReaction> reactions;
+	std::map<EmojiID, BackendPostReaction> reactions;
 
 
 	std::unique_ptr<BackendPoll> poll;

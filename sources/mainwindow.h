@@ -22,6 +22,7 @@
 #include <memory>
 #include <QMainWindow>
 #include <QSet>
+#include "choose-emoji-dialog/ChooseEmojiDialogWrapper.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -82,6 +83,7 @@ private slots:
 private:
 	std::unique_ptr<Ui::MainWindow>		ui;
 	QSystemTrayIcon&					trayIcon;
+	ChooseEmojiDialogWrapper			chooseEmojiDialog;
 	QSet<const BackendChannel*>			channelsWithNewPosts;
 	Backend&							backend;
 	ChatArea*							currentPage;

@@ -28,7 +28,10 @@ PostReaction::PostReaction (const QString& emojiName, const QString& emojiValue,
 ,ui(new Ui::PostReaction)
 {
     ui->setupUi (this);
-    ui->emoji->setText (emojiValue);
+
+    QString emojiWidgetValue (emojiValue);
+    emojiWidgetValue.replace("width=32 height=32", "width=20 height=20");
+    ui->emoji->setText (emojiWidgetValue);
     ui->count->setText (QString::number (reactionData.size()));
 
     QString tooltip (emojiName + "  " + emojiValue + "\n");

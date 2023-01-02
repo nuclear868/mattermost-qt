@@ -24,11 +24,16 @@
 
 #include <iostream>
 #include <QFile>
+#include <set>
 #include <QVector>
+#include <QDebug>
 #include <QTextStream>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include "backend/emoji/EmojiDefs.h"
+
+namespace Mattermost {
 
 static const QString emojiSourceFileStart =
 R"(/**
@@ -55,53 +60,279 @@ R"(/**
  * along with Mattermost-QT; if not, see https://www.gnu.org/licenses/.
  */
 
-#include "EmojiMap.h"
+#include <QMap>
+#include <QVector>
+#include "EmojiDefs.h"
 
 namespace Mattermost {
 
-static QMap<QString, QString> emojiMap {
 )";
 
-
 static const QString emojiSourceFileEnd =
-R"(};
-
-EmojiMap::iterator EmojiMap::findByName (const QString& emojiName)
-{
-	return emojiMap.find (emojiName);
-}
-
-EmojiMap::iterator EmojiMap::missing ()
-{
-	return emojiMap.end ();
-}
-
-bool operator < (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs)
-{
-	return lhs.key() < rhs.key();
-}
-
-void EmojiMap::addCustomEmoji (const QString& emojiName, const QString& emojiPath)
-{
-	emojiMap[emojiName] = " <img src=\"" + emojiPath + "\" width=32 height=32> ";
-}
-
+R"(
 } /* namespace Mattermost */
 
 )";
 
-uint32_t emojiId = 0;
-QMap<QString, QString> emojiNameToIdMap;
-QVector<QString> emojiNames;
-QVector<QString> emojiValues;
+using Mattermost::Emoji;
+using Mattermost::SkinVariadicEmoji;
+using Mattermost::SKINVARIADIC_START_INDEX;
 
-static void addEmoji (const QString& name, const QString& value)
+static int emojiSeqNoSkinv = 1;
+static int emojiSeqSkinv = 0;
+
+static std::map<QString, uint16_t> emojiNameToIdMap;
+static uint32_t lastCategorySeq[EmojiCategory::COUNT];
+static QVector<Emoji> emojiVecNoSkinv[EmojiCategory::COUNT];
+static QVector<SkinVariadicEmoji> emojiVecSkinv;
+
+/**
+ * Category names - as they are mentioned in the json file
+ */
+static QString categoryNames[] {
+	"smileys-emotion",
+	"people-body",
+	"component",
+	"animals-nature",
+	"food-drink",
+	"travel-places",
+	"activities",
+	"objects",
+	"symbols",
+	"flags",
+	"custom",
+};
+
+static QMap<QString, uint32_t> categoryLookup {
+	{categoryNames[EmojiCategory::smileys],		EmojiCategory::smileys},
+	{categoryNames[EmojiCategory::people],		EmojiCategory::people},
+	{categoryNames[EmojiCategory::component], 	EmojiCategory::component},
+	{categoryNames[EmojiCategory::nature], 		EmojiCategory::nature},
+	{categoryNames[EmojiCategory::food], 		EmojiCategory::food},
+	{categoryNames[EmojiCategory::travel], 		EmojiCategory::travel},
+	{categoryNames[EmojiCategory::activities], 	EmojiCategory::activities},
+	{categoryNames[EmojiCategory::objects], 	EmojiCategory::objects},
+	{categoryNames[EmojiCategory::symbols], 	EmojiCategory::symbols},
+	{categoryNames[EmojiCategory::flags], 		EmojiCategory::flags},
+	{categoryNames[EmojiCategory::custom], 		EmojiCategory::custom},
+};
+
+
+static void addNoSkinVariadicEmoji (const QVector<QString>& names, const QVector<QString>& values, QMap<QString, uint32_t>::iterator categoryIt)
 {
-	emojiNames.push_back (name);
-	emojiValues.push_back (value);
-	emojiNameToIdMap [name] = value;
-	++emojiId;
+	//validate values size
+	if (values.size() != 1) {
+		qDebug() << names.front() << ": expecting exacly one value for NoSkinVariadicEmoji";
+		exit (1);
+	}
+
+//	if (emojiSeqNoSkinv != emojiVecNoSkinv.size() + 1) {
+//		qDebug() << names.front() << ": emoji ID " << emojiSeqNoSkinv << ": unexpected emojiVecNoSkinv size " << emojiVecNoSkinv.size();
+//		exit (1);
+//	}
+
+	//add all names to the map, so that the emoji can be found by it's name
+
+	/**
+	 * An emoji can have multiple names, associated with it.
+	 * Add all names to the map, so that the emoji can be identified by any of them
+	 */
+	for (auto& name: names) {
+		emojiNameToIdMap [name] = emojiSeqNoSkinv;
+	}
+
+	lastCategorySeq[categoryIt.value()] = emojiSeqNoSkinv;
+	emojiVecNoSkinv[categoryIt.value()].push_back (Mattermost::Emoji {names.front(), values.front()});
+	++emojiSeqNoSkinv;
 }
+
+static void addNoSkinVariadicEmoji (const QString& name, const QString& value)
+{
+	const QVector<QString> names ({name});
+	const QVector<QString> values ({value});
+
+	addNoSkinVariadicEmoji (names, values, categoryLookup.find("custom"));
+}
+
+static void addSkinVariadicEmoji (const QVector<QString>& names, const QVector<QString>& values)
+{
+	//validate values size
+	if (values.size() != 6 && values.size() != 26) {
+		qDebug() << names.front() << ": expecting 5 or 26 values for SkinVariadicEmoji, got " << values.size();
+		exit (1);
+	}
+
+	if (emojiSeqSkinv != emojiVecSkinv.size()) {
+		qDebug() << names.front() << ": emoji ID " << emojiSeqSkinv << ": unexpected emojiVecSkinv size " << emojiVecSkinv.size();
+		exit (1);
+	}
+
+	/**
+	 * An emoji can have multiple names, associated with it.
+	 * Add all names to the map, so that the emoji can be identified by any of them
+	 */
+	for (auto& name: names) {
+		emojiNameToIdMap [name] = emojiSeqSkinv + SKINVARIADIC_START_INDEX;
+	}
+
+	Mattermost::SkinVariadicEmoji skinVariadicEmoji;
+	skinVariadicEmoji.name = names.front();
+	skinVariadicEmoji.unicodeString = values;
+
+	lastCategorySeq[EmojiCategory::people] = emojiSeqNoSkinv;
+	emojiVecSkinv.push_back (skinVariadicEmoji);
+	++emojiSeqSkinv;
+}
+
+static QString getUnicodeFromJson (QString unicodeText)
+{
+	QVector<uint32_t> vec;
+
+	for (QString& it: unicodeText.split("-")) {
+		vec += it.toInt(0, 16);
+	}
+
+	QString result = QString::fromUcs4 (&vec[0], vec.size());
+
+	if (result.size() > 0 && result[0] == '\0') {
+		result = "";
+	}
+
+	return result;
+}
+
+/**
+ * Unicode codepoints for skin tones. They are appended to emojis, which have skin tone variation
+ */
+#define SKIN_LIGHT	"1F3FB"
+#define SKIN_MLIGHT "1F3FC"
+#define SKIN_MEDIUM "1F3FD"
+#define SKIN_MDARK 	"1F3FE"
+#define SKIN_DARK 	"1F3FF"
+
+
+uint32_t getSkinIndex (QString skinName)
+{
+	/**
+	 * Convert skin tone codepoint to skin tone index.
+	 * Note, some emojis have all combinations of skin tone (for example, 'people holding hands')
+	 * This results in 5 emojis for each such emoji, each of them having 5 variants for skin tone. It makes selection
+	 * more complicated for the user, so that only emojis with the same skin tone in both positions will be stored
+	 */
+	static const std::map<QString, int> skinToIndex {
+		{SKIN_LIGHT, 1},
+		{SKIN_MLIGHT, 2},
+		{SKIN_MEDIUM, 3},
+		{SKIN_MDARK, 4},
+		{SKIN_DARK, 5},
+
+		{SKIN_LIGHT "-" SKIN_LIGHT, 1},
+		{SKIN_MLIGHT "-" SKIN_MLIGHT, 2},
+		{SKIN_MEDIUM "-" SKIN_MEDIUM, 3},
+		{SKIN_MDARK "-" SKIN_MDARK, 4},
+		{SKIN_DARK "-" SKIN_DARK, 5},
+	};
+
+	auto skinIndexIt = skinToIndex.find (skinName);
+
+	if (skinIndexIt == skinToIndex.end()) {
+		qDebug() << "no skin-tone name " << skinName << "found";
+		//exit (1);
+		return 0;
+	}
+
+	return skinIndexIt->second;
+}
+
+void addEmoji (const QJsonObject& jsonObject)
+{
+	/**
+	 * Ignore emojis having 'skins' property, because they duplicate the emojis with
+	 * 'skin-variations' property. The 'skin-variations' property will be used for
+	 * emojis with skin variations
+	 */
+	if (jsonObject.contains("skins")) {
+		return;
+	}
+
+	QString name = jsonObject.value("short_name").toString();
+
+	/**
+	 * The 'mattermost' emoji is special - it is not in custom emoji list.
+	 * Maybe it is hardcoded in the official Mattermost client
+	 */
+	if (name == "mattermost") {
+		addNoSkinVariadicEmoji (name, " <img src=\\\"qrc://img/mattermost-emoji.png\\\" width=32 height=32> ");
+		return;
+	}
+
+	QString category = jsonObject.value("category").toString();
+	QString unicode = jsonObject.value("unified").toString();
+
+
+//		if (category == "people-body" && skinVariations ==!hasSkinVariations) {
+//			qDebug() << "[" << category << "] emoji '" << name << "' has no skin_variations";
+//			//exit (1);
+//		}
+
+
+	qDebug() << "[" << category << "] Add emoji '" << name << "'";
+
+
+	const QJsonObject& skinVariations = jsonObject.value("skin_variations").toObject();
+
+	/**
+	 * Values (unicode strings) for emojis
+	 */
+	QVector<QString> emojiValues;
+	emojiValues.resize (1 + skinVariations.keys().size());
+
+	//The default skin tone (yellow) always has the first index
+	emojiValues[0] = getUnicodeFromJson (unicode);
+
+	for (auto skinName: skinVariations.keys()) {
+
+		const QJsonObject& skinValue = skinVariations.value (skinName).toObject();
+
+		QString unicode = skinValue.value("unified").toString();
+		qDebug() << "[" << category << "] Add emoji '" << name << "'" << unicode;
+
+		uint32_t skinIndex = getSkinIndex (skinName);
+
+		if (skinIndex != 0) {
+			emojiValues[skinIndex] = getUnicodeFromJson (unicode);
+		}
+	}
+
+	/**
+	 * Names which are used to identify the emoji.
+	 * An emoji may have multiple names and should be able to be found by any of them
+	 */
+	QVector<QString> emojiNames;
+	emojiNames.push_back (name);
+
+	for (auto shortName: jsonObject.value("short_names").toArray()) {
+		if (shortName.toString() != name) {
+			emojiNames.push_back (shortName.toString());
+		}
+	}
+
+	auto categoryIt = categoryLookup.find (category);
+	if (categoryIt == categoryLookup.end()) {
+		qDebug() << "category " << category << "not found";
+		exit (1);
+	}
+
+	if (!skinVariations.isEmpty()) {
+		addSkinVariadicEmoji (emojiNames, emojiValues);
+	} else {
+		addNoSkinVariadicEmoji (emojiNames, emojiValues, categoryIt);
+	}
+}
+
+} /* namespace Mattermost */
+
+using namespace Mattermost;
 
 int main (int argc, char** argv)
 {
@@ -113,59 +344,60 @@ int main (int argc, char** argv)
 	QFile file (argv[1]);
 	file.open(QIODevice::ReadOnly);
 
-//	if (!file) {
-//		std::cout << "Error opening file '" << argv[1] << "'" << std::endl;
-//		return 1;
-//	}
-
-	QFile outFile ("EmojiMap.cpp");
-	outFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
 
 	QByteArray bytes = file.readAll();
 	QJsonDocument doc = QJsonDocument::fromJson(bytes);
 
+	/**
+	 * Read all emoji data from the .json file
+	 */
+	for (auto jsonObjectIt: doc.array()) {
+		addEmoji (jsonObjectIt.toObject());
+	}
+
+	/**
+	 * Open the output .cpp file and write emoji definitions to it
+	 */
+	QFile outFile ("EmojiMap.cpp");
+	outFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
 	QTextStream outStream (&outFile);
 	outStream << emojiSourceFileStart;
 
-	for (auto it: doc.array()) {
+	outStream << "uint32_t nextEmojiSeq = " << emojiSeqNoSkinv << ";\n\n";
 
-		const QJsonObject& jsonObject = it.toObject();
-
-		QString unicode = jsonObject.value("unified").toString();
-		QString name = jsonObject.value("short_name").toString();
-
-		/**
-		 * The 'mattermost' emoji is special - it is not in custom emoji list. Maybe it is hardcoded in Mattermost
-		 */
-		if (name == "mattermost") {
-			addEmoji (name, " <img src=\\\"qrc://img/mattermost-emoji.png\\\" width=32 height=32> ");
-			continue;
-		}
-
-		QVector<uint32_t> vec;
-
-		for (QString& it: unicode.split("-")) {
-			vec += it.toInt(0, 16);
-		}
-
-		QString result = QString::fromUcs4 (&vec[0], vec.size());
-
-		if (result.size() > 0 && result[0] == '\0') {
-			result = "";
-		}
-
-		addEmoji (name, result);
-
-		for (auto shortName: jsonObject.value("short_names").toArray()) {
-			if (shortName.toString() != name) {
-				addEmoji (shortName.toString(), result);
-			}
-		}
+	outStream << "uint32_t lastCategorySeq[EmojiCategory::COUNT] = {\n";
+	for (int i = 0; i < EmojiCategory::COUNT; ++i) {
+		outStream << "\t" << lastCategorySeq[i] << ", //" << categoryNames[i] << "\n";
 	}
+	outStream << "};\n\n";
 
-	for (int i = 0; i < emojiValues.size(); ++i) {
-		outStream << "\t{\"" << emojiNames[i] << "\",\"" << emojiValues[i] << "\"}," << "\n";
+	outStream << "QVector<Emoji> emojiVecNoSkinVariadic[EmojiCategory::COUNT] {\n";
+	for (int i = 0; i < EmojiCategory::COUNT; ++i) {
+		outStream << "{ //" << categoryNames[i] << "\n";
+		for (auto& it: emojiVecNoSkinv[i]) {
+			outStream << "\t{\"" << it.name << "\",\"" << it.unicodeString << "\"}," << "\n";
+		}
+		outStream << "\n},";
 	}
+	outStream << "};\n\n";
+
+	outStream << "QVector<SkinVariadicEmoji> emojiVecSkinVariadic {\n";
+	for (auto& it: emojiVecSkinv) {
+		outStream << "\t{\"" << it.name << "\",";
+
+		outStream << "{";
+		for (auto& val: it.unicodeString) {
+			outStream << "\"" << val << "\",";
+		}
+		outStream << "}},\n";
+	}
+	outStream << "};\n\n";
+
+	outStream << "QMap<QString, EmojiSeq>  emojiMap {\n";
+	for (auto& it: emojiNameToIdMap) {
+		outStream << "\t{\"" << it.first << "\", " << it.second  << "}," << "\n";
+	}
+	outStream << "};\n";
 
 	outStream << emojiSourceFileEnd;
 	outFile.close();

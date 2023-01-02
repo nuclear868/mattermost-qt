@@ -43,6 +43,7 @@ class PostsListWidget: public QListWidget {
 	Q_OBJECT
 public:
 	explicit PostsListWidget (QWidget* parent);
+	~PostsListWidget ();
 public:
 	void insertPost (int position, PostWidget* postWidget);
 	void insertPost (PostWidget* postWidget);

@@ -1,8 +1,8 @@
 /**
- * @file EmojiMap.h
- * @brief Auto-generated file, containing emoji-name to emoji-string map
+ * @file EmojiInfo.h
+ * @brief Contains functions for getting emoji by ID and adding custom emojis
  * @author Lyubomir Filipov
- * @date Jul 28, 2022
+ * @date Dec 30, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -24,23 +24,32 @@
 
 #pragma once
 
-#include <QMap>
+#include <QVector>
+#include "EmojiDefs.h"
 
 namespace Mattermost {
 
-
-/**
- * lookup for emoji value, given an emoji name
- */
-class EmojiMap {
+class EmojiInfo {
 public:
-	EmojiMap () = delete;
-	~EmojiMap () = delete;
+	EmojiInfo ();
+	virtual ~EmojiInfo ();
 public:
-	using iterator = QMap<QString, QString>::const_iterator;
 
-	static iterator findByName (const QString& emojiName);
-	static iterator missing ();
+	/**
+	 * Find emoji by name
+	 * @param emojiName emoji name. Emoji names are used to identify emojis in packets from/to Mattermost server
+	 * @return EmojiID
+	 */
+	static EmojiID findByName (const QString& emojiName);
+
+	/**
+	 * Get emoji by EmojiID
+	 * @param emojiID emoji ID (can be obtained using findByName())
+	 * @return Emoji
+	 */
+	static Emoji getEmoji (const EmojiID& emojiID);
+
+	static QVector<Emoji> getAllEmojis (uint32_t category, uint32_t skinTone);
 
 	/**
 	 * Add a custom emoji.
@@ -48,14 +57,9 @@ public:
 	 * However, images can be represented as <img> tags in Qt's QLabel rich text.
 	 * This allows custom emojis also to use strings as values
 	 * @param emojiName emoji name
-	 * @param emojiID emoji id
+	 * @param emojiPath path to the emoji image
 	 */
 	static void addCustomEmoji (const QString& emojiName, const QString& emojiPath);
 };
 
-bool operator< (const EmojiMap::iterator lhs, const EmojiMap::iterator rhs);
-
 } /* namespace Mattermost */
-
-using Mattermost::operator<;
-

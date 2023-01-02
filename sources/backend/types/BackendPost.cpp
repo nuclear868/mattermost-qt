@@ -25,7 +25,7 @@
 #include "BackendPost.h"
 
 #include <QJsonArray>
-#include "backend/EmojiMap.h"
+#include "backend/emoji/EmojiInfo.h"
 #include "BackendPoll.h"
 #include "backend/Storage.h"
 #include "log.h"
@@ -34,8 +34,8 @@ namespace Mattermost {
 
 BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
 :author (nullptr)
-,isDeleted (false)
 ,rootPost (nullptr)
+,isDeleted (false)
 {
 	id = jsonObject.value("id").toString();
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();
@@ -111,14 +111,14 @@ QString BackendPost::getDisplayAuthorName () const
 
 void BackendPost::addReaction (QString userName, QString emojiName)
 {
-	auto iterator = EmojiMap::findByName(emojiName);
+	EmojiID emojiId = EmojiInfo::findByName(emojiName);
 
-	if (iterator == EmojiMap::missing()) {
+	if (!emojiId) {
 		LOG_DEBUG ("Missing emoji: " << emojiName);
 		return;
 	}
 
-	auto& vec = reactions[iterator];
+	auto& vec = reactions[emojiId];
 
 	/**
 	 * If the same reaction from the same user already exists, remove it.
@@ -131,7 +131,7 @@ void BackendPost::addReaction (QString userName, QString emojiName)
 
 		//if this was the only user used this reaction, remove the reaction
 		if (vec.isEmpty()) {
-			reactions.erase (iterator);
+			reactions.erase (emojiId);
 		}
 	} else {
 		vec.push_back (userName);
@@ -140,20 +140,20 @@ void BackendPost::addReaction (QString userName, QString emojiName)
 
 void BackendPost::removeReaction (QString userName, QString emojiName)
 {
-	auto iterator = EmojiMap::findByName(emojiName);
+	EmojiID emojiId = EmojiInfo::findByName(emojiName);
 
-	if (iterator == EmojiMap::missing()) {
+	if (!emojiId) {
 		LOG_DEBUG ("Missing emoji: " << emojiName);
 		return;
 	}
 
-	auto& vec = reactions[iterator];
+	auto& vec = reactions[emojiId];
 
 	vec.erase(std::remove(vec.begin(), vec.end(), userName), vec.end());
 
 	//if this was the only user used this reaction, remove the reaction
 	if (vec.isEmpty()) {
-		reactions.erase (iterator);
+		reactions.erase (emojiId);
 	}
 }
 

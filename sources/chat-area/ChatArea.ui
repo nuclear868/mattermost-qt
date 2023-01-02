@@ -274,6 +274,19 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="addEmojiButton">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Insert Emoji</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="attachButton">
        <property name="minimumSize">
         <size>
@@ -324,7 +337,7 @@
   <customwidget>
    <class>Mattermost::MessageTextEditWidget</class>
    <extends>QTextEdit</extends>
-   <header>chat-area/MessageTextEditWidget.h</header>
+   <header>chat-area/outgoing-post/MessageTextEditWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
