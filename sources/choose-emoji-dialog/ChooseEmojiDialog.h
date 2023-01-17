@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QMap>
 #include "backend/emoji/EmojiDefs.h"
 
 class QGridLayout;
@@ -40,14 +41,20 @@ public:
     void show ();
 private:
     void createEmojiTabs ();
+    void createTabForCategory (uint32_t categoryIndex, uint32_t tabIndex, const QString& tabName, const QVector<Emoji>& emojis);
+    QGridLayout* createTab (uint32_t categoryIdx, int tabIndex);
     Emoji getSelectedEmoji ();
     void addSkinToneComboBox (QWidget *tab, QGridLayout *gridLayout, uint32_t categoryIdx);
+    void restoreEmojiFavorites ();
+    void saveEmojiFavorites ();
+    void updateFavoritesTab ();
 private:
     friend class ChooseEmojiDialogWrapper;
     Ui::ChooseEmojiDialog*	ui;
     QComboBox*				skinToneComboBox;
     QVector<QPushButton*>	peopleEmojiButtons;
     Emoji					selectedEmoji;
+    QMap<EmojiID, Emoji>	favorites;
 };
 
 } /* namespace Mattermost */

@@ -39,7 +39,8 @@ namespace EmojiCategory {
 		symbols,
 		flags,
 		custom,
-		COUNT
+		COUNT,
+		favorites = COUNT,
 	};
 }
 
@@ -105,9 +106,9 @@ using EmojiSeq = uint16_t;
  */
 struct EmojiID {
 
-	operator bool () const
+	bool operator ! () const
 	{
-		return !!seq;
+		return !seq;
 	}
 
 	bool operator< (const EmojiID& other) const
@@ -147,3 +148,4 @@ using Emoji = NonSkinVariadicEmoji;
 static constexpr int SKINVARIADIC_START_INDEX = 2048;
 
 } /* namespace Mattermost */
+
