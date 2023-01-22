@@ -33,8 +33,8 @@
 namespace Mattermost {
 
 BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
-:author (nullptr)
-,rootPost (nullptr)
+:rootPost (nullptr)
+,author (nullptr)
 ,isDeleted (false)
 {
 	id = jsonObject.value("id").toString();

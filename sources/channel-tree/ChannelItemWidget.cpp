@@ -33,9 +33,13 @@ ChannelItemWidget::~ChannelItemWidget()
     delete ui;
 }
 
-const QPixmap* ChannelItemWidget::getPixmap () const
+const QPixmap ChannelItemWidget::getPixmap () const
 {
-	return ui->icon->pixmap();
+#if QT_VERSION <= QT_VERSION_CHECK(5,15,0)
+	return ui->icon->pixmap () ? *ui->icon->pixmap () : QPixmap();
+#else
+	return ui->icon->pixmap (Qt::ReturnByValue);
+#endif
 }
 
 void ChannelItemWidget::setIcon (const QIcon& icon)

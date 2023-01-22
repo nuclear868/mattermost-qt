@@ -116,7 +116,11 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 		}
 	});
 
+#if QT_VERSION <= QT_VERSION_CHECK(5,15,0)
 	connect(reply, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
+#else
+	connect(reply, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::errorOccurred),
+#endif
 			this, [this, reply](QNetworkReply::NetworkError error) {
 
 		emit onNetworkError (error, reply->errorString());

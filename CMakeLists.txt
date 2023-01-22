@@ -53,6 +53,11 @@ else()
     ${SOURCES}
     resource.qrc
   )
+  
+  if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+	set_property(TARGET qmattermost PROPERTY WIN32_EXECUTABLE true)
+  endif()
+  
 endif()
 
 add_subdirectory (tools)

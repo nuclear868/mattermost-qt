@@ -72,8 +72,8 @@ PostDaySeparatorWidget::PostDaySeparatorWidget (uint32_t daysAgo)
 
 PostDaySeparatorWidget::~PostDaySeparatorWidget () = default;
 
-//date.endOfDay() was introduced in QT 14
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR < 14
+//date.endOfDay() was introduced in QT 5.14
+#if QT_VERSION <= QT_VERSION_CHECK(5,14,0)
 static QDateTime endOfDay (QDateTime now)
 {
 	QDateTime when (now.date(), QTime(23, 59, 59, 999));
@@ -88,7 +88,7 @@ int PostDaySeparatorWidget::getMsToEndOfTheDay ()
 	QDateTime now = QDateTime::currentDateTime();
 
 //date.endOfDay() was introduced in QT 14
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR < 14
+#if QT_VERSION <= QT_VERSION_CHECK(5,14,0)
 	QDateTime end = endOfDay ();
 #else
 	QDateTime end = now.date().endOfDay ();

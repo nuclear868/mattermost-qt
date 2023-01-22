@@ -386,8 +386,8 @@ void ChatArea::moveOnListTop ()
 	ChannelItemWidget* newItemWidget = new ChannelItemWidget (thisItemWidget->parentWidget());
 	newItemWidget->setLabel (channel.display_name);
 
-	if (thisItemWidget->getPixmap()) {
-		newItemWidget->setIcon (QIcon(*thisItemWidget->getPixmap()));
+	if (!thisItemWidget->getPixmap().isNull()) {
+		newItemWidget->setIcon (QIcon(thisItemWidget->getPixmap()));
 	}
 
 	qDebug() << "Move on top (" << parent->indexOfChild(treeItem) << ") -> 0";
