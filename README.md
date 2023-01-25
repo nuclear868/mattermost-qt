@@ -21,15 +21,16 @@ Mattermost native desktop client, using the QT framework
 * update, when a new team is added and you are added to it
 * Preview of team members, channel members, users, etc. There are more items to be added, but the basic functionality is supported
 * Properly handing adding / deleting users / channels / teams. However, it has to be tested more
+* loading channel history when scrolling to the beginning of a channel
+* emoticons, reactions, etc... (visual pleasures :) )
 
 # What does not work / What is planned to be implemented
 * notifications when someone is typing and sending a notification when you are typing
 * pinning posts to a channel and displaying pinned posts
-* loading channel history when scrolling to the beginning of a channel
-* emoticons, reactions, etc... (visual pleasures :) )
-* settings - image preview sizes, download locations, etc... I want this application to be fully customizable
+* adding additional settings... I want this application to be fully customizable
 
 # What is planned in a perfect world (when I have a time to do it)
+* voice calls
 * LAN file transfer between 2 QT Mattermost clients
 * Auto-detect if you are working from home and setting it as a status. This can be achieved by looking for an active VPN connection. It will be fully configurable from the settings
 
@@ -54,7 +55,7 @@ It is recommended to build in a separate directory:
 
 ## How to build on Windows
 
-Release 1.1 includes pre-built client for windows, which is expected to work on any windows installation.
+Releases since 1.1 includes pre-built client for windows, which is expected to work on any windows installation.
 
 If you want to build it yourself, just for fun or for any othre reason, you need the following packages
 minGW - https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe/download
