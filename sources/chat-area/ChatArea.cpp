@@ -213,20 +213,30 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 	QDate currentDate = QDateTime::currentDateTime().date();
 	int insertPos = 0;
 	int startPos = 0;
-	int currentElapsedDays = INT32_MAX;
+	int postSeq = 0;
+
+	//elapsed days since the last post that was added from the new posts packet
+	int elapsedDaysSinceLastNewPost = INT32_MAX;
+
+	//elapsed days since the oldest post that was available before retrieving older posts
+	int elapsedDaysSinceFirstExistingPost = INT32_MAX;
 
 	//save the first post (before insertion), so that the list will be scrolled to it after the insertion
-	QListWidgetItem* firstPost = nullptr;
+	QListWidgetItem* widgetToScrollTo = nullptr;
+	QListWidgetItem* daySeparatorOnTop = nullptr;
+
 	if (gettingOlderPosts) {
 
-		firstPost = ui->listWidget->item(0);
+		widgetToScrollTo = ui->listWidget->item(0);
+		uint32_t firstPostIndex = 0;
 
-		if (firstPost->data(Qt::UserRole) != ItemType::post) {
-			firstPost = ui->listWidget->item(1);
+		if (widgetToScrollTo->data(Qt::UserRole) != ItemType::post) {
+			daySeparatorOnTop = widgetToScrollTo;
+			firstPostIndex = 1;
 		}
 
-		PostWidget* firstPostWidget = static_cast<PostWidget*> (ui->listWidget->itemWidget (firstPost));
-		currentElapsedDays = firstPostWidget->post.getCreationTime().date().daysTo(currentDate);
+		PostWidget* firstPostWidget = static_cast<PostWidget*> (ui->listWidget->itemWidget (ui->listWidget->item(firstPostIndex)));
+		elapsedDaysSinceFirstExistingPost = firstPostWidget->post.getCreationTime().date().daysTo(currentDate);
 	}
 
 	BackendPost* lastRootPost = nullptr;
@@ -249,18 +259,23 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 
 			lastPostDate = post->getCreationTime ().date();
 
-			int postElapsedDays = (lastPostDate.daysTo (currentDate));
+			int elapsedDaysSinceThisNewPost = (lastPostDate.daysTo (currentDate));
 
-			if (postElapsedDays != currentElapsedDays) {
-				currentElapsedDays = postElapsedDays;
+			/**
+			 * Add a day separator, if the next added post is from a day, different from the previous added post.
+			 * Day separator is always added for the first new post.
+			 */
+			if (elapsedDaysSinceThisNewPost != elapsedDaysSinceLastNewPost) {
 
-				ui->listWidget->addDaySeparator (insertPos, postElapsedDays);
+				elapsedDaysSinceLastNewPost = elapsedDaysSinceThisNewPost;
+				ui->listWidget->addDaySeparator (insertPos, elapsedDaysSinceThisNewPost);
 				++insertPos;
 			}
 
 			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this, lastRootPost));
 			lastRootPost = post->rootPost;
 			++insertPos;
+			++postSeq;
 
 			if (post->id == lastReadPostId) {
 				ui->listWidget->addNewMessagesSeparator ();
@@ -272,9 +287,19 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 
 	gettingOlderPosts = false;
 
-	if (firstPost) {
-		ui->listWidget->scrollToItem(firstPost, QAbstractItemView::PositionAtTop);
+	if (widgetToScrollTo) {
+		ui->listWidget->scrollToItem (widgetToScrollTo, QAbstractItemView::PositionAtTop);
 	}
+
+	/**
+	 * If existing posts and new posts are from the same day, remove the day separator (if any) from the existing posts list
+	 */
+	if (elapsedDaysSinceLastNewPost == elapsedDaysSinceFirstExistingPost && daySeparatorOnTop) {
+		delete (daySeparatorOnTop);
+		daySeparatorOnTop = nullptr;
+		qDebug () << "Delete day separator";
+	}
+
 
 	//ui->listWidget->adjustSize();
 	setUnreadMessagesCount (unreadMessagesCount);
