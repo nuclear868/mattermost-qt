@@ -21,7 +21,9 @@
 #include "ui_AttachedImageFile.h"
 
 #include <QDebug>
+#include <QFileDialog>
 #include <QSettings>
+#include <QMenu>
 #include "backend/types/BackendFile.h"
 #include "Settings.h"
 
@@ -58,6 +60,25 @@ AttachedImageFile::AttachedImageFile(const BackendFile& file, QWidget *parent)
 			ui->imagePreview->adjustSize();
 
 			adjustSize();
+
+
+			connect (this, &QWidget::customContextMenuRequested, [this, fileContents, &file] (const QPoint& pos) {
+				QMenu menu (this);
+
+				menu.addAction("Save image", [this, fileContents, &file] {
+					QSettings settings;
+					QDir downloadDir = settings.value(DOWNLOAD_LOCATION, QDir::currentPath()).toString();
+					QString saveFileDestination = QFileDialog::getSaveFileName (this, "Save image as... - Mattermost", downloadDir.filePath(file.name));
+
+					QFile destFile (saveFileDestination);
+					destFile.open (QIODevice::WriteOnly);
+					destFile.write (fileContents);
+					destFile.close ();
+				});
+
+				menu.exec (mapToGlobal(pos) + QPoint (10, 0));
+			});
+
 			//parentWidget()->adjustSize();
     	});
     }
