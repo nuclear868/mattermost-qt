@@ -24,6 +24,8 @@
 
 #include "ChannelTree.h"
 #include <QHeaderView>
+#include <QStackedWidget>
+#include "chat-area/ChatArea.h"
 #include "team-item/DirectTeamItem.h"
 #include "team-item/GroupTeamItem.h"
 #include "backend/types/BackendTeam.h"
@@ -36,6 +38,32 @@ ChannelTree::ChannelTree (QWidget* parent)
 :QTreeWidget (parent)
 {
 	connect (this, &QTreeWidget::customContextMenuRequested, this, &ChannelTree::showContextMenu);
+
+	connect (this, &QTreeWidget::currentItemChanged, [this] (QTreeWidgetItem* item, QTreeWidgetItem*) {
+		ChatArea *newPage = item->data(0, Qt::UserRole).value<ChatArea*>();
+
+		if (!newPage) {
+			qCritical() << "chatArea is null";
+			return;
+		}
+
+		//same page, nothing to do
+		if (newPage == getCurrentPage ()) {
+			return;
+		}
+
+		newPage->onActivate ();
+		chatAreaStackedWidget->setCurrentWidget (newPage);
+
+		qDebug() << "Item Activated: " << newPage->channel.display_name;
+
+	#if 0
+		if (channelsWithNewPosts.remove (&currentPage->getChannel())) {
+			setNotificationsCountVisualization (channelsWithNewPosts.size());
+		}
+	#endif
+	});
+
 //	setColumnCount (2);
 //	setIconSize (QSize(24,24));
 //	header()->resizeSection(0 /*column index*/, 50 /*width*/);
@@ -43,6 +71,11 @@ ChannelTree::ChannelTree (QWidget* parent)
 }
 
 ChannelTree::~ChannelTree () = default;
+
+bool ChannelTree::isChannelActive (const BackendChannel& channel)
+{
+	return getCurrentPage () && &getCurrentPage()->getChannel() == &channel;
+}
 
 /**
  * For this team, performs the following actions:
@@ -55,13 +88,11 @@ void ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 	TeamItem* teamList = new GroupTeamItem (*this, backend, team.display_name, team.id);
 
 	addTopLevelItem (teamList);
-	//header()->resizeSection (0, 200);
 	header()->setSectionResizeMode(0, QHeaderView::Stretch);
 	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-	//header()->resizeSection (1, 30);
 
 	connect (&team, &BackendTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
-		teamList->addChannel (channel, parentWidget());
+		teamList->addChannel (channel, parentWidget(), chatAreaStackedWidget);
 	});
 
 	connect (&team, &BackendTeam::onLeave, [this, &team, teamList] {
@@ -79,31 +110,10 @@ void ChannelTree::addTeam (Backend& backend, BackendTeam& team)
 	});
 
 	backend.retrieveOwnChannelMembershipsForTeam (team, [this, teamList] (BackendChannel& channel) {
-		teamList->addChannel (channel, parentWidget());
+		teamList->addChannel (channel, parentWidget(), chatAreaStackedWidget);
 	});
 
 	backend.retrieveTeamMembers (team);
-}
-
-void ChannelTree::addDirectChannelsList (Backend& backend)
-{
-	TeamItem* teamList = new DirectTeamItem (*this, backend, "Direct Channels", "0");
-
-	auto& team = backend.getStorage().directChannels;
-
-	addTopLevelItem (teamList);
-	//header()->resizeSection (0, 200);
-	header()->setSectionResizeMode(0, QHeaderView::Stretch);
-	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-	//header()->resizeSection (1, 30);
-
-	connect (&team, &BackendDirectChannelsTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
-		teamList->addChannel (channel, parentWidget());
-	});
-
-	for (auto &channel: team.channels) {
-		teamList->addChannel (*channel, parentWidget());
-	}
 }
 
 void ChannelTree::addGroupChannelsList (Backend& backend)
@@ -118,18 +128,40 @@ void ChannelTree::addGroupChannelsList (Backend& backend)
 	TeamItem* teamList = new DirectTeamItem (*this, backend, "Group Channels", "0");
 
 	addTopLevelItem (teamList);
-	//header()->resizeSection (0, 200);
 	header()->setSectionResizeMode(0, QHeaderView::Stretch);
 	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-	//header()->resizeSection (1, 30);
 
 	connect (&team, &BackendDirectChannelsTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
-		teamList->addChannel (channel, parentWidget());
+		teamList->addChannel (channel, parentWidget(), chatAreaStackedWidget);
 	});
 
 	for (auto &channel: team.channels) {
-		teamList->addChannel (*channel, parentWidget());
+		teamList->addChannel (*channel, parentWidget(), chatAreaStackedWidget);
 	}
+}
+
+void ChannelTree::addDirectChannelsList (Backend& backend)
+{
+	TeamItem* teamList = new DirectTeamItem (*this, backend, "Direct Channels", "0");
+
+	auto& team = backend.getStorage().directChannels;
+
+	addTopLevelItem (teamList);
+	header()->setSectionResizeMode(0, QHeaderView::Stretch);
+	header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+
+	connect (&team, &BackendDirectChannelsTeam::onNewChannel, [this, teamList] (BackendChannel& channel) {
+		teamList->addChannel (channel, this, chatAreaStackedWidget);
+	});
+
+	for (auto &channel: team.channels) {
+		teamList->addChannel (*channel, this, chatAreaStackedWidget);
+	}
+}
+
+void ChannelTree::setChatAreaStackedWidget (QStackedWidget* chatAreaStackedWidget)
+{
+	this->chatAreaStackedWidget = chatAreaStackedWidget;
 }
 
 void ChannelTree::showContextMenu (const QPoint& pos)
@@ -140,6 +172,12 @@ void ChannelTree::showContextMenu (const QPoint& pos)
 	ChannelTreeItem* pointedItem = static_cast<ChannelTreeItem*> (itemAt(pos));
 	pointedItem->showContextMenu (globalPos + QPoint (25, 15));
 }
+
+ChatArea* ChannelTree::getCurrentPage ()
+{
+	return static_cast<ChatArea*> (chatAreaStackedWidget->currentWidget());
+}
+
 
 } /* namespace Mattermost */
 

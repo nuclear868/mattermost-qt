@@ -38,13 +38,13 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 ,trayIcon (trayIcon)
 ,chooseEmojiDialog (this)
 ,backend (_backend)
-,currentPage (nullptr)
 ,currentTeamRestoredFromSettings (false)
 ,doDeinit (false)
 {
 	LOG_DEBUG ("MainWindow create start");
 
 	ui->setupUi(this);
+	ui->channelList->setChatAreaStackedWidget (ui->chatAreaStackedWidget);
 	ui->channelList->setFocus();
 
 	createMenu ();
@@ -77,7 +77,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	/*
 	 * Register for signals
 	 */
-	connect (ui->channelList, &QTreeWidget::currentItemChanged, this, &MainWindow::channelListWidget_itemClicked);
+	//connect (ui->channelList, &QTreeWidget::currentItemChanged, this, &MainWindow::channelListWidget_itemClicked);
 
 	//getAllUsers is called from onShowEvent()
 	connect (&backend, &Backend::onAllUsers, [this]() {
@@ -239,6 +239,8 @@ void MainWindow::changeEvent (QEvent* event)
 		if (isActiveWindow()) {
 			//qDebug() << "Activated";
 
+			ChatArea* currentPage = ui->channelList->getCurrentPage();
+
 			if (currentPage) {
 				currentPage->onMainWindowActivate ();
 
@@ -285,35 +287,6 @@ void MainWindow::initializationComplete ()
 	}
 }
 
-void MainWindow::channelListWidget_itemClicked (QTreeWidgetItem* item, QTreeWidgetItem*)
-{
-	ChatArea *chatArea = item->data(0, Qt::UserRole).value<ChatArea*>();
-
-	if (!chatArea) {
-		qCritical() << "chatArea is null";
-		return;
-	}
-
-	if (currentPage == chatArea) {
-		return;
-	}
-
-	if (currentPage) {
-		ui->chatAreaStackedWidget->removeWidget (currentPage);
-	}
-
-	qDebug() << "Item Activated: " << chatArea->channel.display_name;
-	ui->chatAreaStackedWidget->addWidget(chatArea);
-	currentPage = chatArea;
-	currentPage->onActivate ();
-
-#if 0
-	if (channelsWithNewPosts.remove (&currentPage->getChannel())) {
-		setNotificationsCountVisualization (channelsWithNewPosts.size());
-	}
-#endif
-}
-
 void MainWindow::messageNotify (const BackendChannel& channel, const BackendPost& post)
 {
 	//do not receive notifications for your own messages ;)
@@ -325,7 +298,7 @@ void MainWindow::messageNotify (const BackendChannel& channel, const BackendPost
 	 * If the Mattermost window is active (has focus) and the current channel is active,
 	 * do not add notifications. We assume that the user is watching the chat window
 	 */
-	if (isActiveWindow() && currentPage && &channel == &currentPage->getChannel()) {
+	if (isActiveWindow() && ui->channelList->isChannelActive (channel)) {
 		return;
 	}
 

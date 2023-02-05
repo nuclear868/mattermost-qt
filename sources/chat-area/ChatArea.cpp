@@ -300,10 +300,7 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 		qDebug () << "Delete day separator";
 	}
 
-
-	//ui->listWidget->adjustSize();
 	setUnreadMessagesCount (unreadMessagesCount);
-	//moveOnListTop ();
 }
 
 void ChatArea::appendChannelPost (BackendPost& post)
@@ -346,7 +343,6 @@ void ChatArea::handleUserTyping (const BackendUser& user)
 void ChatArea::onActivate ()
 {
 	ui->listWidget->scrollToUnreadPostsOrBottom ();
-	//ui->listWidget->adjustSize();
 
 	backend.setCurrentChannel (channel);
 	backend.markChannelAsViewed (channel);

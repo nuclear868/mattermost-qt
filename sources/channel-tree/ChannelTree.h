@@ -27,7 +27,7 @@
 #include <QVector>
 #include <QTreeWidget>
 
-
+class QStackedWidget;
 class QListWidget;
 class QTreeWidgetItem;
 
@@ -38,7 +38,9 @@ QT_END_NAMESPACE
 namespace Mattermost {
 
 class Backend;
+class BackendChannel;
 class BackendTeam;
+class ChatArea;
 class TeamItem;
 
 class ChannelTree: public QTreeWidget {
@@ -47,12 +49,17 @@ public:
 	ChannelTree (QWidget* parent = nullptr);
 	virtual ~ChannelTree ();
 public:
+	bool isChannelActive (const BackendChannel& channel);
+
 	void addTeam (Backend& backend, BackendTeam& team);
 	void addDirectChannelsList (Backend& backend);
 	void addGroupChannelsList (Backend& backend);
-	void removeTeam (BackendTeam& team);
+
+	void setChatAreaStackedWidget (QStackedWidget* chatAreaStackedWidget);
+	ChatArea* getCurrentPage ();
 private:
 	void showContextMenu (const QPoint& pos);
+	QStackedWidget *chatAreaStackedWidget;
 };
 
 } /* namespace Mattermost */

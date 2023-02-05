@@ -24,14 +24,13 @@
 
 #pragma once
 
-#include <list>
-#include <memory>
 #include "channel-tree/ChannelTreeItem.h"
 #include <QObject>
 
 class QListWidget;
 class QTreeWidgetItem;
 class QTreeWidget;
+class QStackedWidget;
 class ChannelItemWidget;
 
 QT_BEGIN_NAMESPACE
@@ -43,7 +42,6 @@ namespace Mattermost {
 class Backend;
 class BackendTeam;
 class BackendChannel;
-class ChatArea;
 class ChannelItem;
 
 class TeamItem: public QObject, public ChannelTreeItem {
@@ -52,14 +50,13 @@ public:
 	TeamItem (QTreeWidget& parent, Backend& backend, const QString& name, const QString& teamId);
 	virtual ~TeamItem ();
 public:
-	void addChannel (BackendChannel& channel, QWidget *parent);
+	void addChannel (BackendChannel& channel, QWidget *parent, QStackedWidget* chatAreaParent);
 	virtual ChannelItem* createChannelItem (Backend& backend, ChannelItemWidget* itemWidget) = 0;
 private:
 	int getChannelIndex (const BackendChannel& channel);
 public:
 	Backend&							backend;
 	QString								teamId;
-	std::list<std::unique_ptr<ChatArea>>	chatAreas;
 };
 
 } /* namespace Mattermost */

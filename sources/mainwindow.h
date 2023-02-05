@@ -78,15 +78,12 @@ public:
 private:
 	void createMenu ();
 	void reload ();
-private slots:
-	void channelListWidget_itemClicked(QTreeWidgetItem* item, QTreeWidgetItem*);
 private:
 	std::unique_ptr<Ui::MainWindow>		ui;
 	QSystemTrayIcon&					trayIcon;
 	ChooseEmojiDialogWrapper			chooseEmojiDialog;
 	QSet<const BackendChannel*>			channelsWithNewPosts;
 	Backend&							backend;
-	ChatArea*							currentPage;
 	bool								currentTeamRestoredFromSettings;
 	QMenu*								mainMenu;
 	SettingsWindow*						settingsWindow;

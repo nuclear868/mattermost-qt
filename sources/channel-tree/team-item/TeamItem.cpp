@@ -25,6 +25,7 @@
 #include "TeamItem.h"
 
 #include <QMenu>
+#include <QStackedWidget>
 #include "channel-tree/ChannelItemWidget.h"
 #include "channel-tree/ChannelItem.h"
 #include "chat-area/ChatArea.h"
@@ -47,7 +48,7 @@ TeamItem::TeamItem (QTreeWidget& parent, Backend& backend, const QString& name, 
 
 TeamItem::~TeamItem () = default;
 
-void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
+void TeamItem::addChannel (BackendChannel& channel, QWidget *parent, QStackedWidget* chatAreaParent)
 {
 	ChannelItemWidget* itemWidget = new ChannelItemWidget (parent);
 	itemWidget->setLabel (channel.display_name);
@@ -55,17 +56,18 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent)
 	ChannelItem* item = createChannelItem (backend, itemWidget);
 	insertChild (getChannelIndex (channel), item);
 
-	chatAreas.emplace_back(std::make_unique<ChatArea> (backend, channel, item, parent));
-	ChatArea* chatArea = chatAreas.back ().get();
+	ChatArea* chatArea = new ChatArea (backend, channel, item, (QWidget*)chatAreaParent);
+	chatAreaParent->addWidget(chatArea);
 
 	item->setData(0, Qt::UserRole, QVariant::fromValue (chatArea));
 
 	treeWidget()->setItemWidget (item, 0, itemWidget);
 
-	connect (&channel, &BackendChannel::onLeave, [this, &channel, item, &chatArea = chatAreas.back ()] {
+	connect (&channel, &BackendChannel::onLeave, [this, &channel, item, chatAreaParent, chatArea] {
 		qDebug() << "delete channel " << channel.name;
 
-		chatAreas.remove (chatArea);
+		chatAreaParent->removeWidget (chatArea);
+		delete (chatArea);
 		removeChild (item);
 		delete (item);
 	});
