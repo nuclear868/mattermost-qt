@@ -65,6 +65,8 @@ void DirectTeamItem::showContextMenu (const QPoint& pos)
 			//if the channel already exists, switch to it
 			const BackendChannel* existingChannel = backend.getStorage().getDirectChannelByUserId(user->id);
 			if (existingChannel) {
+#warning "implememet"
+#if 0
 				for (auto& chatArea: chatAreas) {
 					if (&chatArea->channel == existingChannel) {
 						qDebug() << "Open Direct channel requested with " << user->getDisplayName();
@@ -72,6 +74,7 @@ void DirectTeamItem::showContextMenu (const QPoint& pos)
 						return;
 					}
 				}
+#endif
 			} else {
 				qDebug() << "New Direct channel requested with " << user->getDisplayName();
 				backend.createDirectChannel (*user);
