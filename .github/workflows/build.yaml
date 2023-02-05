@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  
+jobs:
+  test:
+    name: fedora
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Setup Podman
+        run: |
+          sudo apt update
+          sudo apt-get -y install podman
+          podman pull fedora:latest
+      - name: Get source
+        uses: actions/checkout@v3
+        with:
+          path: 'mattermost-qt'
+      - name: Create container and build
+        run: |
+          {
+              echo 'FROM fedora:latest'
+              echo 'RUN dnf -y update'
+              echo 'RUN dnf -y install cmake gcc-c++ make'
+              echo 'RUN dnf -y install qt5-qtbase-devel qt5-qtwebsockets-devel'
+              echo 'RUN dnf clean all'
+              echo 'COPY mattermost-qt mattermost-qt'
+              echo 'WORKDIR /mattermost-qt/build'
+              echo 'RUN cmake ..'
+              echo 'RUN make' 
+          } > podmanfile
+          podman build --tag fedoralatest -f ./podmanfile
