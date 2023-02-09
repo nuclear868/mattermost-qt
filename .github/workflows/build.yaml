@@ -49,8 +49,7 @@ jobs:
           path: 'mattermost-qt'
       - name: Create build directory, setup and build
         run : |
-           ls
-           pwd
+           cd mattermost-qt
            mkdir build
            cd build
            cmake ..
