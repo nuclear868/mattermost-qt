@@ -1,4 +1,4 @@
-https://github.com/nuclear868/mattermost-qt/actions/workflows/build.yaml/badge.svg
+![Build status](https://github.com/nuclear868/mattermost-qt/actions/workflows/build.yaml/badge.svg)
 
 # mattermost-qt
 Mattermost native desktop client, using the QT framework
