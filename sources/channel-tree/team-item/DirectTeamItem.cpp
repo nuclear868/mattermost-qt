@@ -29,6 +29,7 @@
 #include "backend/Backend.h"
 #include "channel-tree/channel-item/DirectChannelItem.h"
 #include "channel-tree-dialogs/UserListDialog.h"
+#include "channel-tree/ChannelTree.h"
 
 namespace Mattermost {
 
@@ -65,16 +66,10 @@ void DirectTeamItem::showContextMenu (const QPoint& pos)
 			//if the channel already exists, switch to it
 			const BackendChannel* existingChannel = backend.getStorage().getDirectChannelByUserId(user->id);
 			if (existingChannel) {
-#warning "implememet"
-#if 0
-				for (auto& chatArea: chatAreas) {
-					if (&chatArea->channel == existingChannel) {
-						qDebug() << "Open Direct channel requested with " << user->getDisplayName();
-						treeWidget()->setCurrentItem (chatArea->treeItem);
-						return;
-					}
-				}
-#endif
+				qDebug() << "Open Direct channel requested with " << user->getDisplayName();
+
+				ChannelTree* treeWidget = static_cast<ChannelTree*> (this->treeWidget());
+				treeWidget->openChannel (existingChannel->id);
 			} else {
 				qDebug() << "New Direct channel requested with " << user->getDisplayName();
 				backend.createDirectChannel (*user);

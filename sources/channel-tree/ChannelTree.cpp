@@ -164,6 +164,28 @@ void ChannelTree::setChatAreaStackedWidget (QStackedWidget* chatAreaStackedWidge
 	this->chatAreaStackedWidget = chatAreaStackedWidget;
 }
 
+void ChannelTree::openChannel (QString channelID)
+{
+	auto it = channelToItemMap.find (channelID);
+
+	if (it == channelToItemMap.end()) {
+		qDebug() << "openChannel " << channelID << ": channel not found";
+		return;
+	}
+
+	setCurrentItem (it.value());
+}
+
+void ChannelTree::addChannelToItem (QString channelID, QTreeWidgetItem* item)
+{
+	channelToItemMap[channelID] = item;
+}
+
+void ChannelTree::removeChannelToItem (QString channelID)
+{
+	channelToItemMap.remove (channelID);
+}
+
 void ChannelTree::showContextMenu (const QPoint& pos)
 {
 	// Handle global position

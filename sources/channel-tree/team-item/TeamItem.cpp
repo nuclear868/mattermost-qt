@@ -30,6 +30,7 @@
 #include "channel-tree/ChannelItem.h"
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
+#include "channel-tree/ChannelTree.h"
 
 namespace Mattermost {
 
@@ -65,14 +66,18 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent, QStackedWid
 
 	connect (&channel, &BackendChannel::onLeave, [this, &channel, item, chatAreaParent, chatArea] {
 		qDebug() << "delete channel " << channel.name;
+		ChannelTree* treeWidget = static_cast<ChannelTree*> (this->treeWidget());
 
 		chatAreaParent->removeWidget (chatArea);
 		delete (chatArea);
 		removeChild (item);
 		delete (item);
+		treeWidget->removeChannelToItem (channel.id);
 	});
 
 	backend.retrieveChannelMembers (channel);
+	ChannelTree* treeWidget = static_cast<ChannelTree*> (this->treeWidget());
+	treeWidget->addChannelToItem (channel.id, item);
 }
 
 int TeamItem::getChannelIndex (const BackendChannel& channel)

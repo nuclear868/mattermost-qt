@@ -42,6 +42,7 @@ class BackendChannel;
 class BackendTeam;
 class ChatArea;
 class TeamItem;
+class ChannelItem;
 
 class ChannelTree: public QTreeWidget {
 	Q_OBJECT
@@ -57,9 +58,14 @@ public:
 
 	void setChatAreaStackedWidget (QStackedWidget* chatAreaStackedWidget);
 	ChatArea* getCurrentPage ();
+
+	void openChannel (QString channelID);
+	void addChannelToItem (QString channelID, QTreeWidgetItem* item);
+	void removeChannelToItem (QString channelID);
 private:
 	void showContextMenu (const QPoint& pos);
-	QStackedWidget *chatAreaStackedWidget;
+	QStackedWidget*						chatAreaStackedWidget;
+	QMap<QString, QTreeWidgetItem*>		channelToItemMap;
 };
 
 } /* namespace Mattermost */
