@@ -6,7 +6,7 @@ on:
   pull_request:
   
 jobs:
-  test:
+  test-fedora:
     name: fedora
     runs-on: ubuntu-latest
     
@@ -34,3 +34,23 @@ jobs:
               echo 'RUN make' 
           } > podmanfile
           podman build --tag fedoralatest -f ./podmanfile
+  test-ubuntu:        
+    name: ubuntu
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Setup dependencies
+        run: |
+          sudo apt update
+          sudo apt-get -y install cmake g++ libqt5websockets5-dev make qtbase5-dev
+      - name: Get source
+        uses: actions/checkout@v3
+        with:
+          path: 'mattermost-qt'
+      - name: Create build directory, setup and build
+        run : |
+           cd mattermost-qt
+           mkdir build
+           cd build
+           cmake ..
+           make
