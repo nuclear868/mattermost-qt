@@ -205,10 +205,26 @@ void WebSocketEventHandler::handleEvent (const UserLeaveTeamEvent& event)
 	BackendTeam* team = storage.getTeamById (event.team_id);
 	QString teamName = team ? team->name : event.team_id;
 
-	LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
-	emit (team->onLeave());
+	BackendUser* user = storage.getUserById (event.user_id);
+	QString userName = user ? user->getDisplayName() : event.user_id;
 
-	storage.eraseTeam (team->id);
+	LOG_DEBUG ("User " << event.user_id << " left team: " << teamName);
+
+	if (!team || !user) {
+		return;
+	}
+
+	//if the logged-in user is being removed, remove the team from the team list
+	if (user->id == storage.loginUser->id) {
+		for (auto &channel: team->channels) {
+			emit channel->onLeave ();
+		}
+
+		emit (team->onLeave());
+		storage.eraseTeam (team->id);
+	} else {
+#warning "TODO: Remove user from the team"
+	}
 	//printTeams ();
 }
 
@@ -223,12 +239,11 @@ void WebSocketEventHandler::handleEvent (const UserRemovedFromChannelEvent& even
 		return;
 	}
 
-	//if the logged-in user is being removed, remove the channel from the list
+	//if the logged-in user is being removed, remove the channel from the team's channel list
 	if (user->id == storage.loginUser->id) {
 		emit channel->onLeave ();
+		storage.eraseChannel (*channel);
 	}
-
-	storage.eraseChannel (*channel);
 }
 
 void WebSocketEventHandler::handleEvent (const ChannelCreatedEvent& event)

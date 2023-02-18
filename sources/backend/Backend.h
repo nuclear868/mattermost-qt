@@ -95,7 +95,7 @@ public:
 	//void retrieveOwnAllChannelMemberships (std::function<void()> callback);
 
 	//get team members (/teams/teamID/members)
-	void retrieveTeamMembers (BackendTeam& team);
+	void retrieveTeamMembers (BackendTeam& team, int page = 0);
 
 	//get a channel (/channels/channelID)
 	void retrieveChannel (BackendTeam& team, QString channelID);

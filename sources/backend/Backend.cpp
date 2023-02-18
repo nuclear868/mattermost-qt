@@ -439,7 +439,6 @@ void Backend::retrieveUserAvatar (QString userID)
 void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray&)> callback)
 {
 	NetworkRequest request ("files/" + fileID, true);
-	//request.setRawHeader("X-Requested-With", "XMLHttpRequest");
 
 	httpConnector.get (request, HttpResponseCallback ([this, fileID, callback](QVariant, QByteArray data) {
 		callback (data);
@@ -597,11 +596,14 @@ void Backend::retrieveOwnAllChannelMemberships (std::function<void ()> callback)
 }
 #endif
 
-void Backend::retrieveTeamMembers (BackendTeam& team)
+void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 {
-	NetworkRequest request ("teams/" + team.id + "/members");
+	static constexpr int itemsPerPage = 60;
+	NetworkRequest request ("teams/" + team.id + "/members?page=" + QString::number(page) + "&per_page=" + QString::number (itemsPerPage));
 
-	httpConnector.get(request, HttpResponseCallback ([this, &team] (const QJsonDocument& doc) {
+	//LOG_DEBUG ("retrieveTeamMembers " << team.display_name << " page " << page);
+
+	httpConnector.get(request, HttpResponseCallback ([this, &team, page] (const QJsonDocument& doc) {
 
 		auto root = doc.array();
 		for(const auto &itemRef: qAsConst(root)) {
@@ -610,7 +612,13 @@ void Backend::retrieveTeamMembers (BackendTeam& team)
 			team.members.append (std::move (member));
 		}
 
-		//LOG_DEBUG ("Team Members Count: " << team.members.size());
+		//LOG_DEBUG ("Team " << team.display_name << " page " << page << " Members Count: " << root.size());
+
+		//there may be more pages
+		if (root.size() == itemsPerPage) {
+			retrieveTeamMembers (team, page + 1);
+		}
+
 #if 0
 		for (auto& it: team.members) {
 			if (!it.user) {
