@@ -79,11 +79,6 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	if (!post.files.empty()) {
 		attachments = std::make_unique<PostAttachmentList> (backend, this);
 		for (BackendFile& file: post.files) {
-
-			if (!file.mini_preview.isEmpty()) {
-				chatArea->addFileToload (&file);
-			}
-
 			attachments->addFile (file, post.getDisplayAuthorName());
 		}
 		ui->verticalLayout->addWidget (attachments.get(), 0, Qt::AlignLeft);

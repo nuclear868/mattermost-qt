@@ -89,6 +89,9 @@ Backend::Backend(QObject *parent)
 			}
 		}
 	});
+
+	attachmentsCache.setCacheDirectory (QDir (QStandardPaths::writableLocation(QStandardPaths::CacheLocation)).filePath("attachments"));
+	attachmentsCache.setMaximumCacheSize (300 * 1024 * 1024);
 }
 
 void debugRequest (const QNetworkRequest& request, QByteArray data = QByteArray())
@@ -440,7 +443,31 @@ void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray
 {
 	NetworkRequest request ("files/" + fileID, true);
 
-	httpConnector.get (request, HttpResponseCallback ([this, fileID, callback](QVariant, QByteArray data) {
+	QIODevice* cachedFile = attachmentsCache.data (fileID);
+
+	if (cachedFile) {
+		qDebug() << "Retrieve File " << fileID << " done (from custom cache). Attachment cache size: " << attachmentsCache.cacheSize();
+
+		/**
+		 * Do not call callback in the same stack frame (same behavior like non-cached files)
+		 * so that the behavior related to widget resize, when the file is received, is the same
+		 */
+		QTimer::singleShot(1, [callback, cachedFile] {
+			callback (cachedFile->readAll());
+		});
+		return;
+	}
+
+	QNetworkCacheMetaData metaData;
+	metaData.setUrl(fileID);
+	QIODevice* cacheIO = attachmentsCache.prepare(metaData);
+
+	request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
+
+	httpConnector.get (request, HttpResponseCallback ([this, fileID, callback, cacheIO](QVariant, QByteArray data) {
+		qDebug() << "Retrieve File " << fileID << " done";
+		cacheIO->write (data);
+		attachmentsCache.insert (cacheIO);
 		callback (data);
 	}));
 }

@@ -74,8 +74,6 @@ public:
 	void onMainWindowActivate ();
 
 	QVBoxLayout& getAttachmentListParentWidget ();
-
-	void addFileToload (BackendFile* file);
 private:
 	void dragEnterEvent (QDragEnterEvent* event) override;
 	void dragMoveEvent (QDragMoveEvent* event) override;
@@ -90,7 +88,6 @@ public:
 	Backend& 						backend;
 	BackendChannel& 				channel;
 	ChannelItem* 					treeItem;
-	std::vector<BackendFile*>		filesToLoad;
 	QString 						lastReadPostId;
 	OutgoingPostCreator				outgoingPostCreator;
 

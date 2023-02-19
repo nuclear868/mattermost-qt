@@ -113,7 +113,6 @@ AttachedBinaryFile::AttachedBinaryFile (Backend& backend, const BackendFile& fil
 
 			tmpName.insert (dot, "XXXXXX");
 
-
 			tempFile.setFileTemplate (Config::tempDirectory().filePath (tmpName));
 			bool result = tempFile.open ();
 

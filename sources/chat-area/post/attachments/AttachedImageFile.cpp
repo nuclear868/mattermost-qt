@@ -25,11 +25,14 @@
 #include <QSettings>
 #include <QMenu>
 #include "backend/types/BackendFile.h"
+#include "backend/Backend.h"
 #include "Settings.h"
 
 namespace Mattermost {
 
-AttachedImageFile::AttachedImageFile(const BackendFile& file, QWidget *parent)
+std::map <const QWidget*, FilePreview*> AttachedImageFile::currentlyOpenFiles;
+
+AttachedImageFile::AttachedImageFile (Backend& backend, const BackendFile& file, const QString& authorName, QWidget *parent)
 :QWidget(parent)
 ,ui(new Ui::AttachedImageFile)
 {
@@ -39,54 +42,89 @@ AttachedImageFile::AttachedImageFile(const BackendFile& file, QWidget *parent)
     ui->imageName->setText (file.name);
     ui->imagePreview->setPixmap (QPixmap::fromImage(img));
 
-    if (file.contents.isEmpty()) {
-    	connect (&file, &BackendFile::onContentsAvailable, [&file, /*label, newItem, authorName, */this] (const QByteArray& fileContents){
+    backend.retrieveFile (file.id, [&file, authorName, this] (const QByteArray& fileContents){
 
+		QSettings settings;
+
+		int maxWidth = settings.value(DOWNLOAD_IMAGE_MAX_WIDTH, 500).toInt();
+		int maxHeight = settings.value(DOWNLOAD_IMAGE_MAX_HEIGHT, 500).toInt();
+
+		QImage img = QImage::fromData (fileContents);
+		if (img.width() > maxWidth) {
+			img = img.scaledToWidth (maxWidth, Qt::SmoothTransformation);
+		}
+
+		if (img.height() > maxHeight) {
+			img = img.scaledToHeight (maxHeight, Qt::SmoothTransformation);
+		}
+
+		ui->imagePreview->setPixmap (QPixmap::fromImage(img));
+		ui->imagePreview->adjustSize();
+
+		adjustSize();
+
+		filePreviewData = FilePreviewData {fileContents, file.name, authorName};
+
+		emit dimensionsChanged ();
+		//parentWidget()->adjustSize();
+	});
+
+	connect (this, &QWidget::customContextMenuRequested, [this, &backend, &file] (const QPoint& pos) {
+		QMenu menu (this);
+
+		menu.addAction("Save image", [this, &backend, &file] {
 			QSettings settings;
+			QDir downloadDir = settings.value(DOWNLOAD_LOCATION, QDir::currentPath()).toString();
+			QString saveFileDestination = QFileDialog::getSaveFileName (this, "Save image as... - Mattermost", downloadDir.filePath(file.name));
 
-			int maxWidth = settings.value(DOWNLOAD_IMAGE_MAX_WIDTH, 500).toInt();
-			int maxHeight = settings.value(DOWNLOAD_IMAGE_MAX_HEIGHT, 500).toInt();
-
-			QImage img = QImage::fromData (fileContents);
-			if (img.width() > maxWidth) {
-				img = img.scaledToWidth (maxWidth, Qt::SmoothTransformation);
+			//the user has pressed the cancel button
+			if (saveFileDestination.isEmpty()) {
+				return;
 			}
 
-			if (img.height() > maxHeight) {
-				img = img.scaledToHeight (maxHeight, Qt::SmoothTransformation);
-			}
-
-			ui->imagePreview->setPixmap (QPixmap::fromImage(img));
-			ui->imagePreview->adjustSize();
-
-			adjustSize();
-
-
-			connect (this, &QWidget::customContextMenuRequested, [this, fileContents, &file] (const QPoint& pos) {
-				QMenu menu (this);
-
-				menu.addAction("Save image", [this, fileContents, &file] {
-					QSettings settings;
-					QDir downloadDir = settings.value(DOWNLOAD_LOCATION, QDir::currentPath()).toString();
-					QString saveFileDestination = QFileDialog::getSaveFileName (this, "Save image as... - Mattermost", downloadDir.filePath(file.name));
-
-					QFile destFile (saveFileDestination);
-					destFile.open (QIODevice::WriteOnly);
-					destFile.write (fileContents);
-					destFile.close ();
-				});
-
-				menu.exec (mapToGlobal(pos) + QPoint (10, 0));
+			backend.retrieveFile (file.id, [&backend, saveFileDestination] (const QByteArray& fileContents) {
+				QFile destFile (saveFileDestination);
+				destFile.open (QIODevice::WriteOnly);
+				destFile.write (fileContents);
+				destFile.close ();
 			});
 
-			//parentWidget()->adjustSize();
-    	});
-    }
+		});
+
+		menu.exec (mapToGlobal(pos) + QPoint (10, 0));
+	});
 }
 
 AttachedImageFile::~AttachedImageFile()
 {
     delete ui;
+}
+
+void AttachedImageFile::mouseReleaseEvent (QMouseEvent*)
+{
+	qDebug() << "mouseRelease";
+	auto openFile = currentlyOpenFiles.find (this);
+
+	FilePreview* filePreview;
+
+	/*
+	 * If the file's Preview window is currently open, show it.
+	 * Otherwise, open a new Preview eindow
+	 */
+	if (openFile == currentlyOpenFiles.end()) {
+		auto it = currentlyOpenFiles.emplace (this, new FilePreview (filePreviewData, nullptr));
+		filePreview = it.first->second;
+		filePreview->setAttribute (Qt::WA_DeleteOnClose);
+		filePreview->show ();
+
+		connect (filePreview, &QDialog::rejected, [this] {
+				qDebug() << "Rejected";
+				currentlyOpenFiles.erase (this);
+		});
+	} else {
+		filePreview = openFile->second;
+		filePreview->raise ();
+	}
 }
 
 } /* namespace Mattermost */

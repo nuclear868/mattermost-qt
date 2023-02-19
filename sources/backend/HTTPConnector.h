@@ -30,7 +30,6 @@
 #include "backend/HttpResponseCallback.h"
 
 class QNetworkAccessManager;
-class QNetworkDiskCache;
 
 namespace Mattermost {
 
@@ -57,7 +56,6 @@ private:
 	virtual void setProcessReply (QNetworkReply* reply, std::function<void(QVariant,QByteArray,const QNetworkReply&)> responseHandler);
 private:
 	std::unique_ptr<QNetworkAccessManager> 	qnetworkManager;
-	QNetworkDiskCache						*diskCache;
 };
 
 } /* namespace Mattermost */

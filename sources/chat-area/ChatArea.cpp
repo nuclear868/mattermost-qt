@@ -346,43 +346,12 @@ void ChatArea::onActivate ()
 
 	backend.setCurrentChannel (channel);
 	backend.markChannelAsViewed (channel);
-
-	for (BackendFile* file: filesToLoad) {
-
-		if (!file->contents.isEmpty()) {
-			continue;
-		}
-
-		backend.retrieveFile (file->id, [file] (const QByteArray& data) {
-			file->contents = data;
-			emit file->onContentsAvailable (data);
-		});
-	}
 }
 
 void ChatArea::onMainWindowActivate ()
 {
 	setUnreadMessagesCount (0);
 	backend.markChannelAsViewed (channel);
-}
-
-void ChatArea::addFileToload (BackendFile* file)
-{
-	if (!treeItem->isSelected()) {
-		filesToLoad.push_back (file);
-		return;
-	}
-
-	//if the chat area is active, load files immediately"
-
-	if (!file->contents.isEmpty()) {
-		return;
-	}
-
-	backend.retrieveFile (file->id, [file] (const QByteArray& data) {
-		file->contents = data;
-		emit file->onContentsAvailable (data);
-	});
 }
 
 void ChatArea::moveOnListTop ()

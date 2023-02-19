@@ -27,6 +27,7 @@
 #include <QNetworkCookie>
 #include <QObject>
 #include <QList>
+#include <QNetworkDiskCache>
 
 #include "backend/types/BackendLoginData.h"
 #include "backend/HTTPConnector.h"
@@ -223,6 +224,7 @@ private:
     WebSocketEventHandler			webSocketEventHandler;
     WebSocketConnector				webSocketConnector;
     BackendLoginData				loginData;
+    QNetworkDiskCache				attachmentsCache;
     BackendChannel*					currentChannel;
     QTimer 							timeoutTimer;
     bool							isLoggedIn;

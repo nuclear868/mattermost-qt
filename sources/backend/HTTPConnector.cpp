@@ -36,22 +36,28 @@
 
 namespace Mattermost {
 
+static QNetworkDiskCache* createDiskCache ()
+{
+	QNetworkDiskCache* diskCache = new QNetworkDiskCache ();
+	diskCache->setCacheDirectory (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+	diskCache->setMaximumCacheSize (300 * 1024 * 1024);
+	return diskCache;
+}
+
 HTTPConnector::HTTPConnector ()
 :qnetworkManager (std::make_unique <QNetworkAccessManager> ())
-,diskCache (new QNetworkDiskCache)
 {
-	diskCache->setCacheDirectory (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
-	qnetworkManager->setCache (diskCache);
+	//qnetworkManager takes ownership over the disk cache
+	qnetworkManager->setCache (createDiskCache ());
 }
 
 HTTPConnector::~HTTPConnector () = default;
 
 void HTTPConnector::reset ()
 {
+	//qnetworkManager takes ownership over the disk cache
 	qnetworkManager.reset(new QNetworkAccessManager());
-	diskCache = new QNetworkDiskCache ();
-	diskCache->setCacheDirectory (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
-	qnetworkManager->setCache (diskCache);
+	qnetworkManager->setCache (createDiskCache ());
 }
 
 void HTTPConnector::get (const QNetworkRequest& request, HttpResponseCallback responseHandler)
@@ -86,17 +92,31 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 {
 	connect(reply, &QNetworkReply::finished, [this, reply, responseHandler]() {
 
+		//print whether the resource is obtained from the cache
+#if 0
+		QVariant fromCache = reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute);
+
+		if (fromCache.value<bool>()) {
+			qDebug () << "Reply " << reply->request().url() << " is from cache";
+		} else {
+			qDebug () << "Reply " << reply->request().url() << " is not from cache";
+		}
+#endif
+
 		QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
 		auto data = reply->readAll();
 		reply->deleteLater();
 
+		//print the cache size
+#if 0
 		QAbstractNetworkCache* cache = qnetworkManager->cache();
 
 		if (cache) {
-			//qDebug () << "Cache size: " << cache->cacheSize();
+			qDebug () << "Cache size: " << cache->cacheSize();
 		} else {
-			//qDebug () << "No Cache: ";
+			qDebug () << "No Cache: ";
 		}
+#endif
 
 		if (statusCode == 200 || statusCode == 201) {
 			return responseHandler (statusCode, qMove (data), *reply);

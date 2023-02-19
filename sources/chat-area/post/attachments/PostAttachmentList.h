@@ -31,10 +31,8 @@ class QListWidgetItem;
 
 namespace Mattermost {
 
-struct FilePreviewData;
 class Backend;
 class BackendFile;
-class FilePreview;
 
 class PostAttachmentList: public QWidget
 {
@@ -43,12 +41,11 @@ public:
     explicit PostAttachmentList (Backend& backend, QWidget *parent = nullptr);
     ~PostAttachmentList();
 public:
-    void addFile (const BackendFile& file, const QString& authorName);
+    void addFile (BackendFile& file, const QString& authorName);
+    void updateDimensions ();
 private:
-    std::list<FilePreviewData>								filesPreviewData;
-    static std::map <const FilePreviewData*, FilePreview*>	currentlyOpenFiles;
-    Backend& 												backend;
-    Ui::PostAttachmentList*								ui;
+    Backend& 						backend;
+    Ui::PostAttachmentList*			ui;
 };
 
 } /* namespace Mattermost */

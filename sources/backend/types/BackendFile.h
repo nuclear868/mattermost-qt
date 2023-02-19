@@ -25,17 +25,13 @@
 #pragma once
 
 #include <QJsonObject>
-#include <QObject>
 
 namespace Mattermost {
 
-class BackendFile: public QObject {
-	Q_OBJECT
+class BackendFile {
 public:
 	BackendFile (const QJsonObject& jsonObject);
 	virtual ~BackendFile ();
-signals:
-	void onContentsAvailable (const QByteArray& data);
 public:
 	QString				id;
 	QString				name;
@@ -43,7 +39,6 @@ public:
 	size_t				size;
 	QString				extension;
 	QByteArray			mini_preview;
-	QByteArray			contents;
 };
 
 } /* namespace Mattermost */

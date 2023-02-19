@@ -21,6 +21,8 @@
 #define ATTACHEDIMAGEFILE_H
 
 #include <QWidget>
+#include <map>
+#include "preview-window/FilePreview.h"
 
 namespace Ui {
 class AttachedImageFile;
@@ -28,17 +30,26 @@ class AttachedImageFile;
 
 namespace Mattermost {
 
+class Backend;
 class BackendFile;
+struct FilePreviewData;
+class FilePreview;
 
 class AttachedImageFile: public QWidget {
     Q_OBJECT
 
 public:
-    explicit AttachedImageFile (const BackendFile& file, QWidget *parent = nullptr);
+    explicit AttachedImageFile (Backend& backend, const BackendFile& file, const QString& authorName, QWidget *parent = nullptr);
     ~AttachedImageFile();
+private:
+    void mouseReleaseEvent(QMouseEvent *event) override;
+signals:
+	void dimensionsChanged ();
 
 private:
-    Ui::AttachedImageFile *ui;
+    Ui::AttachedImageFile*	ui;
+    FilePreviewData			filePreviewData;
+    static std::map <const QWidget*, FilePreview*>	currentlyOpenFiles;
 };
 
 } /* namespace Mattermost */
