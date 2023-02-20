@@ -382,16 +382,16 @@ void PostsListWidget::resizeEvent (QResizeEvent* event)
 		}
 
 		if (widget->heightForWidth(event->size().width()) != -1) {
-			item->setSizeHint(QSize (event->size().width(), widget->heightForWidth(event->size().width())));
+			item->setSizeHint(QSize (viewportSizeHint().width(), widget->heightForWidth(event->size().width())));
 			//qDebug() << "SetSizeHint " << event->size().width() << " " << widget->heightForWidth(event->size().width());
 		}
 	}
 
-	QListWidget::resizeEvent (event);
-
 	if (verticalScrollBar()->maximum() - verticalScrollBar()->value() < 10) {
 		scrollToBottom ();
 	}
+
+	QListWidget::resizeEvent (event);
 }
 
 void PostsListWidget::focusOutEvent (QFocusEvent* event)

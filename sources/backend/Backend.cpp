@@ -370,7 +370,9 @@ void Backend::retrieveTotalUsersCount (std::function<void(uint32_t)> callback)
 void Backend::retrieveAllUsers ()
 {
 	uint32_t usersPerPage = 200;
-	uint32_t totalPages = CONTAINER_COUNT (storage.totalUsersCount, usersPerPage);
+
+	//+1, because the total_users_count value does NOT tell the total count that this request will return
+	uint32_t totalPages = CONTAINER_COUNT (storage.totalUsersCount, usersPerPage) + 1;
 	static uint32_t obtainedPages;
 
 	for (uint32_t page = 0; page < totalPages; ++page) {

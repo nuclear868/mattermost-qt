@@ -342,10 +342,9 @@ void ChatArea::handleUserTyping (const BackendUser& user)
 
 void ChatArea::onActivate ()
 {
-	ui->listWidget->scrollToUnreadPostsOrBottom ();
-
 	backend.setCurrentChannel (channel);
 	backend.markChannelAsViewed (channel);
+	ui->listWidget->scrollToUnreadPostsOrBottom ();
 }
 
 void ChatArea::onMainWindowActivate ()

@@ -52,8 +52,8 @@ ChannelTree::ChannelTree (QWidget* parent)
 			return;
 		}
 
-		newPage->onActivate ();
 		chatAreaStackedWidget->setCurrentWidget (newPage);
+		newPage->onActivate ();
 
 		qDebug() << "Item Activated: " << newPage->channel.display_name;
 
