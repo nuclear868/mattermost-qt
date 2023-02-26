@@ -33,6 +33,7 @@
 #include <QStandardPaths>
 #include <QNetworkReply>
 #include "QByteArrayCreator.h"
+#include "log.h"
 
 namespace Mattermost {
 
@@ -72,6 +73,7 @@ void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& dat
 		request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 	}
 
+	//LOG_DEBUG ("POST " << request.url() << " " << request.rawHeaderList() << data);
 	QNetworkReply* reply = qnetworkManager->post (request, data);
 	setProcessReply (reply, std::move (responseHandler));
 }

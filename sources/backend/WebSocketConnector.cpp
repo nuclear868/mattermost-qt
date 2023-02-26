@@ -73,9 +73,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 		LOG_DEBUG ("WebSocket connected");
 		doHandshake ();
 
-		if (hasReconnect) {
-			emit onReconnect ();
-		}
+		emit onConnect (hasReconnect);
 
 		hasReconnect = false;
 		pingTimer.start (5000);
@@ -88,6 +86,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 
 	connect(&webSocket, &QWebSocket::disconnected, [this]{
 		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
+		emit onDisconnect ();
 
 		//if the token is empty, this means that the disconnect was forced
 		if (!token.isEmpty()) {

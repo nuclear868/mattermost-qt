@@ -63,13 +63,29 @@ Backend::Backend(QObject *parent)
 ,autoLoginEnabledFlag (true)
 ,nonFilledTeams (0)
 {
-	connect (&webSocketConnector, &WebSocketConnector::onReconnect, [this] {
-		LOG_DEBUG ("Reconnect - check for missed posts");
-		for (auto& it: storage.channels) {
-			retrieveChannelPosts (*it, 0, 25);
+	connect (&webSocketConnector, &WebSocketConnector::onConnect, [this] (bool isReconnect) {
+
+		emit onWebSocketConnect ();
+
+		if (isReconnect) {
+			LOG_DEBUG ("Reconnect - check for missed posts");
+
+			/**
+			 * Reset the HTTP connector, so that all waiting requests are cancelled.
+			 * Each element that has sent a request should verify if it has arrived
+			 * and resend it (using the onWebSocketDisconnect / onWebSocketConnect signal).
+			 * Without the httpconnector reset, there may be stuck requests
+			 */
+			httpConnector.reset ();
+
+			for (auto& it: storage.channels) {
+				retrieveChannelPosts (*it, 0, 25);
+			}
 		}
 	});
 
+	//these signals are proxied
+	connect (&webSocketConnector, &WebSocketConnector::onDisconnect, this, &Backend::onWebSocketDisconnect);
 	connect (&httpConnector, &HTTPConnector::onNetworkError, this, &Backend::onNetworkError);
 
 	connect (&httpConnector, &HTTPConnector::onHttpError, [this] (uint32_t errorNumber, const QString& errorText) {
@@ -448,11 +464,12 @@ void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray
 	QIODevice* cachedFile = attachmentsCache.data (fileID);
 
 	if (cachedFile) {
-		qDebug() << "Retrieve File " << fileID << " done (from custom cache). Attachment cache size: " << attachmentsCache.cacheSize();
+		//LOG_DEBUG ("Retrieve File " << fileID << " done (from custom cache). Attachment cache size: " << attachmentsCache.cacheSize());
 
 		/**
-		 * Do not call callback in the same stack frame (same behavior like non-cached files)
-		 * so that the behavior related to widget resize, when the file is received, is the same
+		 * Do not call callback in the same stack frame
+		 * so that the same behavior is achieved like non-cached files.
+		 * The behavior may matter in cases like widget resize, when the file is received
 		 */
 		QTimer::singleShot(1, [callback, cachedFile] {
 			callback (cachedFile->readAll());
@@ -467,7 +484,7 @@ void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray
 	request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
 
 	httpConnector.get (request, HttpResponseCallback ([this, fileID, callback, cacheIO](QVariant, QByteArray data) {
-		qDebug() << "Retrieve File " << fileID << " done";
+		//LOG_DEBUG ("Retrieve File " << fileID << " done");
 		cacheIO->write (data);
 		attachmentsCache.insert (cacheIO);
 		callback (data);
@@ -901,14 +918,12 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 	}));
 }
 
-void Backend::editPost (const QString& postID, const QString& message, const QList<QString>* attachments)
+void Backend::editPost (const QString& postID, const QString& message, const QList<QString>& attachments)
 {
 	QJsonArray files;
 
-	if (attachments) {
-		for (auto& id: *attachments) {
-			files.push_back (id);
-		}
+	for (auto& id: attachments) {
+		files.push_back (id);
 	}
 
 	QJsonObject  json;

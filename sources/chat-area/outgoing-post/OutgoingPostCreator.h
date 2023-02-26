@@ -25,6 +25,7 @@
 #pragma once
 
 #include <QObject>
+#include <QTimer>
 #include "fwd.h"
 
 class QDragEnterEvent;
@@ -32,6 +33,8 @@ class QDragMoveEvent;
 class QDropEvent;
 
 namespace Mattermost {
+
+struct OutgoingPostData;
 
 class OutgoingPostCreator: public QObject {
 	Q_OBJECT
@@ -42,7 +45,7 @@ public:
 public slots:
 	void onAttachButtonClick ();
 	void onPostReceived (BackendPost& post);
-	void sendPost ();
+	void sendPostButtonAction ();
 	void postEditInitiated (BackendPost& post);
 
 signals:
@@ -57,12 +60,18 @@ private:
 	void createAttachmentList ();
 	void updateSendButtonState ();
 	bool isCreatingPost ();
+	bool isWaitingForPostServerResponse ();
+
+	void prepareAndSendPost ();
+	void sendPost ();
 
 private:
-	ChatArea& 				chatArea;
-	const BackendPost*		postToEdit;
-	OutgoingAttachmentList*	attachmentList;
-	bool					waitingForNewPostToAppear;
+	ChatArea& 							chatArea;
+	QTimer								sendRetryTimer;
+	const BackendPost*					postToEdit;
+	OutgoingAttachmentList*				attachmentList;
+	std::unique_ptr<OutgoingPostData> 	outgoingPostData;
+	bool								isConnected;
 };
 
 } /* namespace Mattermost */

@@ -440,6 +440,11 @@ void ChatArea::goToPost (const BackendPost& post)
 	ui->listWidget->scrollToItem(ui->listWidget->item(pos), QAbstractItemView::PositionAtTop);
 }
 
+void ChatArea::setStatusLabelText (const QString& labelString)
+{
+	ui->label->setText (labelString);
+}
+
 void ChatArea::setTextEditWidgetHeight (int height)
 {
 	//set the size of the text input area only. The chat area will take the whole remaining part, because it has higher stretch factor

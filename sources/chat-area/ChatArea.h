@@ -62,6 +62,8 @@ public:
 	 */
 	void goToPost (const BackendPost& post);
 
+	void setStatusLabelText (const QString& labelString);
+
 	/**
 	 * Called when the chat area is being selected from the channels menu (so that it's contents is shown)
 	 */

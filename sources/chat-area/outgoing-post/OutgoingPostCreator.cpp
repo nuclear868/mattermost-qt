@@ -38,15 +38,24 @@
 
 namespace Mattermost {
 
+struct OutgoingPostData {
+	const BackendPost*	postToEdit;			//!< Post to be edited. If nullptr - start a new post
+	QString 			message;			//!< Message text
+	QList<QString>		attachmentPaths;	//!< List of file paths waiting to be attached
+	QList<QString>		attachmentIds;		//!< List of file paths already uploaded to the Mattermost server
+};
+
 OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea)
 :chatArea (chatArea)
 ,postToEdit (nullptr)
 ,attachmentList (nullptr)
-,waitingForNewPostToAppear (false)
+,isConnected (true)
 {
 	QTimer::singleShot (0, [this, chatAreaUi = chatArea.getUi()] {
-		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPost);
 
+		/**
+		 * the escape key erases currently entered text or cancels a message edit
+		 */
 		connect (chatAreaUi->textEdit, &MessageTextEditWidget::escapePressed, [this] {
 			auto* textEdit = this->chatArea.getUi()->textEdit;
 			textEdit->clear();
@@ -61,7 +70,8 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea)
 		/*
 		 * Send new post after pressing enter or clicking the 'Send' button
 		 */
-		connect (chatAreaUi->sendButton, &QPushButton::clicked, this, &OutgoingPostCreator::sendPost);
+		connect (chatAreaUi->sendButton, &QPushButton::clicked, this, &OutgoingPostCreator::sendPostButtonAction);
+		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPostButtonAction);
 
 		connect (chatAreaUi->attachButton, &QPushButton::clicked, this, &OutgoingPostCreator::onAttachButtonClick);
 
@@ -75,6 +85,23 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea)
 		});
 
 		updateSendButtonState();
+	});
+
+	auto& backend = chatArea.getBackend();
+
+	connect (&backend, &Backend::onWebSocketConnect, [this] {
+		isConnected = true;
+		updateSendButtonState();
+	});
+
+	connect (&backend, &Backend::onWebSocketDisconnect, [this] {
+		isConnected = false;
+		updateSendButtonState();
+	});
+
+	connect (&sendRetryTimer, &QTimer::timeout, [this] {
+		qDebug () << "Post send retry";
+		prepareAndSendPost ();
 	});
 }
 
@@ -112,66 +139,79 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 	postToEdit = &post;
 }
 
+void OutgoingPostCreator::sendPostButtonAction ()
+{
+	auto* textEdit = chatArea.getUi()->textEdit;
+	QString message = textEdit->toPlainText ();
+
+	//do not send empty messages
+	if (message.isEmpty() && !attachmentList) {
+		return;
+	}
+
+	outgoingPostData = std::make_unique<OutgoingPostData>();
+
+	outgoingPostData->message = message;
+	outgoingPostData->postToEdit = postToEdit;
+	postToEdit = nullptr;
+
+	sendRetryTimer.start (10000);
+
+	if (attachmentList) {
+		outgoingPostData->attachmentPaths = attachmentList->getAllFiles();
+		attachmentList->setDisableInput (true);
+	}
+
+	textEdit->setReadOnly (true);
+	updateSendButtonState ();
+	prepareAndSendPost ();
+	chatArea.setStatusLabelText ("Sending message...");
+}
+
+void OutgoingPostCreator::prepareAndSendPost ()
+{
+	auto& backend = chatArea.getBackend();
+	auto& channel = chatArea.getChannel();
+
+	if (outgoingPostData->attachmentPaths.isEmpty()) {
+		sendPost ();
+		return;
+	}
+
+	for (auto it = outgoingPostData->attachmentPaths.begin(); it != outgoingPostData->attachmentPaths.end(); ++it) {
+		auto& file = *it;
+		backend.uploadFile (channel, file, [this, &backend, &channel, it] (QString fileId) {
+
+			outgoingPostData->attachmentIds.push_back (fileId);
+			outgoingPostData->attachmentPaths.erase (it);
+			size_t uploadedFilesCount = outgoingPostData->attachmentIds.size();
+			size_t remainingFileCount = outgoingPostData->attachmentPaths.size();
+
+			chatArea.setStatusLabelText ("Attached file " + QString::number (uploadedFilesCount)
+					+ " of " + QString::number (uploadedFilesCount + remainingFileCount));
+
+			qDebug () << "Remaining file count: " << remainingFileCount;
+
+			if (remainingFileCount == 0) {
+				sendPost ();
+			}
+		});
+	}
+}
+
 void OutgoingPostCreator::sendPost ()
 {
 	auto& backend = chatArea.getBackend();
 	auto& channel = chatArea.getChannel();
 
-	auto* textEdit = chatArea.getUi()->textEdit;
-	QString message = textEdit->toPlainText ();
+	QString attachmentsLogStr (outgoingPostData->attachmentIds.isEmpty() ? "" : " (+attachments)");
 
-	//do not send empty messages
-	if (!attachmentList && message.isEmpty()) {
-		return;
-	}
-
-	if (!attachmentList) {
-		waitingForNewPostToAppear = true;
-		updateSendButtonState ();
-		if (postToEdit) {
-			backend.editPost (postToEdit->id, message, nullptr);
-			postToEdit = nullptr;
-			qDebug () << "Send post edit";
-			emit postEditFinished();
-		} else {
-			qDebug () << "Send post";
-			backend.addPost (channel, message);
-		}
-		return;
-	}
-
-	QList<QString> files = attachmentList->getAllFiles();
-
-	static QList<QString> fileIds;
-	static uint32_t filesCount;
-	filesCount = files.size();
-
-	fileIds.clear ();
-
-	for (auto& file: files) {
-		backend.uploadFile (channel, file, [this, &backend, &channel, message, textEdit] (QString fileId ){
-			--filesCount;
-			qDebug () << "Remaining file count: " << filesCount;
-			fileIds.push_back (fileId);
-
-			if (filesCount == 0) {
-				waitingForNewPostToAppear = true;
-				updateSendButtonState ();
-
-				if (postToEdit) {
-					backend.editPost (postToEdit->id, message, &fileIds);
-					postToEdit = nullptr;
-					qDebug () << "Send post edit (+attachments)";
-					emit postEditFinished();
-				} else {
-					qDebug () << "Send post";
-					backend.addPost (channel, message, fileIds);
-				}
-				delete (attachmentList);
-				attachmentList = nullptr;
-			}
-
-		});
+	if (outgoingPostData->postToEdit) {
+		qDebug () << "Send post edit" << attachmentsLogStr;
+		backend.editPost (outgoingPostData->postToEdit->id, outgoingPostData->message, outgoingPostData->attachmentIds);
+	} else {
+		qDebug () << "Send post" << attachmentsLogStr;
+		backend.addPost (channel, outgoingPostData->message, outgoingPostData->attachmentIds);
 	}
 }
 
@@ -191,6 +231,11 @@ void OutgoingPostCreator::onDragMoveEvent (QDragMoveEvent* event)
 
 void OutgoingPostCreator::onDropEvent (QDropEvent* event)
 {
+	if (isWaitingForPostServerResponse ()) {
+		qDebug() << "Cannot attach files while sending a post";
+		return;
+	}
+
 	createAttachmentList ();
 
 	for (auto& url: event->mimeData ()->urls()) {
@@ -201,10 +246,27 @@ void OutgoingPostCreator::onDropEvent (QDropEvent* event)
 
 void OutgoingPostCreator::onPostReceived (BackendPost& post)
 {
-	if (waitingForNewPostToAppear && post.isOwnPost()) {
-		waitingForNewPostToAppear = false;
+	if (outgoingPostData && post.isOwnPost()) {
+
+		sendRetryTimer.stop ();
+
+		chatArea.setStatusLabelText ("");
+
+		//reset the 'editing post' state
+		if (outgoingPostData->postToEdit) {
+			emit postEditFinished();
+		}
+
+		outgoingPostData.reset();
+
+		if (attachmentList) {
+			delete (attachmentList);
+			attachmentList = nullptr;
+		}
+
 		auto* textEdit = chatArea.getUi()->textEdit;
 		textEdit->clear();
+		textEdit->setReadOnly (false);
 		updateSendButtonState ();
 	}
 }
@@ -226,22 +288,46 @@ void OutgoingPostCreator::createAttachmentList ()
 
 void OutgoingPostCreator::updateSendButtonState ()
 {
-	bool buttonDisabled = false;
+	bool sendButtonEnabled = true;
+	QString tooltipText;
 
-	if (waitingForNewPostToAppear) {
-		buttonDisabled = true;
-	} else {
-		if (!isCreatingPost()) {
-			buttonDisabled = true;
+	if (!isConnected) { //no connection
+		tooltipText = "Server connection lost";
+
+		if (outgoingPostData) {
+			tooltipText += ", sending message";
 		}
+
+		sendButtonEnabled = false;
+	} else if (outgoingPostData) { //sending message in progress
+		sendButtonEnabled = false;
+		tooltipText = "Waiting for server response";
 	}
 
-	chatArea.getUi()->sendButton->setDisabled (buttonDisabled);
+	bool attachButtonEnabled = sendButtonEnabled;
+
+	chatArea.getUi()->attachButton->setDisabled (!attachButtonEnabled);
+	chatArea.getUi()->attachButton->setToolTip (tooltipText);
+
+	/**
+	 * Send button is disabled if the post text area is empty
+	 */
+	if (sendButtonEnabled && !isCreatingPost()) {
+		sendButtonEnabled = false;
+		tooltipText = "Cannot send empty message";
+	}
+
+	chatArea.getUi()->sendButton->setDisabled (!sendButtonEnabled);
+	chatArea.getUi()->sendButton->setToolTip (tooltipText);
 }
 
+/**
+ * returns true if the client is waiting for server response after sending or editing a post,
+ * or if the user is in the process of creating or editing a post (if there is typed text or attached files)
+ */
 bool OutgoingPostCreator::isCreatingPost ()
 {
-	if (waitingForNewPostToAppear) {
+	if (isWaitingForPostServerResponse ()) {
 		return true;
 	}
 
@@ -253,6 +339,14 @@ bool OutgoingPostCreator::isCreatingPost ()
 	}
 
 	return true;
+}
+
+/**
+ * returns true if the client is waiting for server response after sending or editing a post
+ */
+bool OutgoingPostCreator::isWaitingForPostServerResponse ()
+{
+	return outgoingPostData ? true : false;
 }
 
 } /* namespace Mattermost */
