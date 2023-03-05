@@ -63,6 +63,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			setUserAvatar (*user);
 		}
 
+		connect (user, &BackendUser::onStatusChanged, [this, user] {
+			ui->statusLabel->setText (user->status);
+		});
+
 		if (ui->statusLabel->text().isEmpty()) {
 			ui->statusLabel->setText (user->status);
 		}
@@ -363,8 +367,6 @@ void ChatArea::moveOnListTop ()
 		newItemWidget->setIcon (QIcon(thisItemWidget->getPixmap()));
 	}
 
-	qDebug() << "Move on top (" << parent->indexOfChild(treeItem) << ") -> 0";
-
 	//block signals, so that itemActivated is not called
 
 	tree->blockSignals (true);
@@ -382,8 +384,6 @@ void ChatArea::moveOnListTop ()
 	if (isCurrent) {
 		tree->setCurrentItem (child);
 	}
-
-	qDebug() << "Move on top done";
 }
 
 void ChatArea::setUnreadMessagesCount (uint32_t count)

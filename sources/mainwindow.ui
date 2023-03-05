@@ -102,7 +102,7 @@ QComboBox::drop-down {
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+       <item>
         <widget class="QLabel" name="usericon_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -127,19 +127,30 @@ QComboBox::drop-down {
          </property>
         </widget>
        </item>
-       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-        <widget class="QLabel" name="username_label">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">font-family: &quot;Open Sans&quot;, sans-serif;
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="usernameLabel">
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font-family: &quot;Open Sans&quot;, sans-serif;
 font-size: 16px;</string>
-         </property>
-        </widget>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="statusLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QToolButton" name="toolButton">

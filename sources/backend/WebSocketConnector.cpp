@@ -50,6 +50,7 @@ static const QMap<QString, void(*)(WebSocketConnector&, const QJsonObject&, cons
 	{"reaction_added",		handler<PostReactionAddedEvent>},
 	{"reaction_removed",	handler<PostReactionRemovedEvent>},
 	{"typing",				handler<TypingEvent>},
+	{"status_change", 		handler<StatusChangeEvent>},
 	{"direct_added", 		handler<NewDirectChannelEvent>}, 		//new direct channel created
 	{"user_added",			handler<UserAddedToChannelEvent>}, 		//user added to channel
 	{"added_to_team",		handler<UserAddedToTeamEvent>},			//user added to team
@@ -169,7 +170,11 @@ void WebSocketConnector::reset ()
 
 static bool printEvent (const QString& name)
 {
-	if (name == "channel_viewed" || name == "channel_updated" || name == "reaction_added" || name == "reaction_removed") {
+	if (	name == "channel_viewed" 	||
+			name == "channel_updated" 	||
+			name == "reaction_added" 	||
+			name == "status_change" 	||
+			name == "reaction_removed") {
 		return false;
 	}
 

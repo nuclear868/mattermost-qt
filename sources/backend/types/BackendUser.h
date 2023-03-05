@@ -50,6 +50,8 @@ signals:
 	 * or when the user changes it's avatar
 	 */
 	void onAvatarChanged ();
+
+	void onStatusChanged ();
 public:
 
 	QString getDisplayName () const;

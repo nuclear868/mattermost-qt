@@ -152,6 +152,19 @@ void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 	emit (channel->onUserTyping(*user));
 }
 
+void WebSocketEventHandler::handleEvent (const StatusChangeEvent& event)
+{
+	BackendUser* user = storage.getUserById (event.userId);
+
+	if (!user) {
+		return;
+	}
+
+	LOG_DEBUG ("User " << user->getDisplayName() << " is " << event.statusString);
+	user->status = event.statusString;
+	emit (user->onStatusChanged());
+}
+
 void WebSocketEventHandler::handleEvent (const NewDirectChannelEvent& event)
 {
 	LOG_DEBUG ("New Direct channel " << event.channelId << " created by: " << event.userId);
