@@ -22,19 +22,21 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
+#include "OutgoingPostCreator.h"
+
 #include <QDragMoveEvent>
 #include <QMimeData>
 #include <QDebug>
+#include <QPushButton>
+#include <QLabel>
 #include <QFileDialog>
-#include <QVBoxLayout>
-#include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
-#include "backend/types/BackendPost.h"
-#include "MessageTextEditWidget.h"
-#include "OutgoingPostCreator.h"
+#include "chat-area/PostsListWidget.h"
+#include "OutgoingPostPanel.h"
 #include "OutgoingAttachmentList.h"
 #include "choose-emoji-dialog/ChooseEmojiDialogWrapper.h"
-#include "../ui_ChatArea.h"
+
+#include "ui_OutgoingPostCreator.h"
 
 namespace Mattermost {
 
@@ -45,49 +47,72 @@ struct OutgoingPostData {
 	QList<QString>		attachmentIds;		//!< List of file paths already uploaded to the Mattermost server
 };
 
-OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea)
-:chatArea (chatArea)
+OutgoingPostCreator::OutgoingPostCreator(QWidget *parent)
+:QWidget(parent)
+,ui(new Ui::OutgoingPostCreator)
 ,postToEdit (nullptr)
 ,attachmentList (nullptr)
 ,isConnected (true)
 {
-	QTimer::singleShot (0, [this, chatAreaUi = chatArea.getUi()] {
+    ui->setupUi(this);
+}
 
-		/**
-		 * the escape key erases currently entered text or cancels a message edit
-		 */
-		connect (chatAreaUi->textEdit, &MessageTextEditWidget::escapePressed, [this] {
-			auto* textEdit = this->chatArea.getUi()->textEdit;
-			textEdit->clear();
-			postToEdit = nullptr;
-			postEditFinished ();
-		});
+void OutgoingPostCreator::init (Backend& backend, BackendChannel& channel, OutgoingPostPanel& panel, PostsListWidget& postsListWidget, QBoxLayout* attachmentParent)
+{
+	this->backend = &backend;
+	this->channel = &channel;
+	this->panel = &panel;
 
-		connect (chatAreaUi->textEdit, &MessageTextEditWidget::textChanged, [this, chatAreaUi] {
-			updateSendButtonState ();
-		});
-
-		/*
-		 * Send new post after pressing enter or clicking the 'Send' button
-		 */
-		connect (chatAreaUi->sendButton, &QPushButton::clicked, this, &OutgoingPostCreator::sendPostButtonAction);
-		connect (chatAreaUi->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPostButtonAction);
-
-		connect (chatAreaUi->attachButton, &QPushButton::clicked, this, &OutgoingPostCreator::onAttachButtonClick);
-
-		connect (chatAreaUi->addEmojiButton, &QPushButton::clicked, [this] {
-			showEmojiDialog ([this] (Emoji emoji){
-
-				auto* textEdit = this->chatArea.getUi()->textEdit;
-				textEdit->insertPlainText (" :" + emoji.name + ": ");
-				textEdit->setFocus ();
-			});
-		});
-
-		updateSendButtonState();
+	this->attachmentParent = attachmentParent;
+	/**
+	 * the escape key erases currently entered text or cancels a message edit
+	 */
+	connect (ui->textEdit, &MessageTextEditWidget::escapePressed, [this] {
+		ui->textEdit->clear();
+		postToEdit = nullptr;
+		postEditFinished ();
 	});
 
-	auto& backend = chatArea.getBackend();
+	//initiate editing of last post, after an up arrow is pressed
+	connect (ui->textEdit, &MessageTextEditWidget::upArrowPressed, [this, &postsListWidget] {
+		QListWidgetItem* post = postsListWidget.getLastOwnPost ();
+
+		if (post) {
+			postsListWidget.initiatePostEdit (*post);
+		}
+	});
+
+	//expand the text edit box so that it's entire text will be visible
+	connect (ui->textEdit, &MessageTextEditWidget::textChanged, [this] {
+		updateSendButtonState ();
+
+		int height = ui->textEdit->document()->size().toSize().height();
+
+		if (height > ui->textEdit->maximumHeight()) {
+			height = ui->textEdit->maximumHeight();
+		}
+
+		emit heightChanged (height);
+	});
+
+	/*
+	 * Send new post after pressing enter or clicking the 'Send' button
+	 */
+	connect (&panel.sendButton(), &QPushButton::clicked, this, &OutgoingPostCreator::sendPostButtonAction);
+	connect (ui->textEdit, &MessageTextEditWidget::enterPressed, this, &OutgoingPostCreator::sendPostButtonAction);
+
+	connect (&panel.attachButton(), &QPushButton::clicked, this, &OutgoingPostCreator::onAttachButtonClick);
+
+	connect (&panel.addEmojiButton(), &QPushButton::clicked, [this] {
+		showEmojiDialog ([this] (Emoji emoji){
+
+			auto* textEdit = ui->textEdit;
+			textEdit->insertPlainText (" :" + emoji.name + ": ");
+			textEdit->setFocus ();
+		});
+	});
+
+	updateSendButtonState();
 
 	connect (&backend, &Backend::onWebSocketConnect, [this] {
 		isConnected = true;
@@ -105,22 +130,25 @@ OutgoingPostCreator::OutgoingPostCreator (ChatArea& chatArea)
 	});
 }
 
-OutgoingPostCreator::~OutgoingPostCreator () = default;
+OutgoingPostCreator::~OutgoingPostCreator()
+{
+    delete ui;
+}
+
+void OutgoingPostCreator::setStatusLabelText (const QString& string)
+{
+	panel->label().setText (string);
+}
 
 void OutgoingPostCreator::onAttachButtonClick ()
 {
-	QStringList files = QFileDialog::getOpenFileNames (&chatArea, "Select File(s) to attach");
+	QStringList files = QFileDialog::getOpenFileNames (this, "Select File(s) to attach");
 
 	if (files.empty()) {
 		return;
 	}
 
-	createAttachmentList ();
-
-	for (auto& filename: files) {
-		qDebug() << filename;
-		attachmentList->addFile (filename);
-	}
+	createAttachmentList (files);
 }
 
 void OutgoingPostCreator::postEditInitiated (BackendPost& post)
@@ -131,18 +159,15 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 		return;
 	}
 
-	auto* textEdit = chatArea.getUi()->textEdit;
-
-	textEdit->setText (post.message);
-	textEdit->setFocus ();
-	textEdit->moveCursor (QTextCursor::End);
+	ui->textEdit->setText (post.message);
+	ui->textEdit->setFocus ();
+	ui->textEdit->moveCursor (QTextCursor::End);
 	postToEdit = &post;
 }
 
 void OutgoingPostCreator::sendPostButtonAction ()
 {
-	auto* textEdit = chatArea.getUi()->textEdit;
-	QString message = textEdit->toPlainText ();
+	QString message = ui->textEdit->toPlainText ();
 
 	//do not send empty messages
 	if (message.isEmpty() && !attachmentList) {
@@ -162,17 +187,14 @@ void OutgoingPostCreator::sendPostButtonAction ()
 		attachmentList->setDisableInput (true);
 	}
 
-	textEdit->setReadOnly (true);
+	ui->textEdit->setReadOnly (true);
 	updateSendButtonState ();
 	prepareAndSendPost ();
-	chatArea.setStatusLabelText ("Sending message...");
+	setStatusLabelText ("Sending message...");
 }
 
 void OutgoingPostCreator::prepareAndSendPost ()
 {
-	auto& backend = chatArea.getBackend();
-	auto& channel = chatArea.getChannel();
-
 	if (outgoingPostData->attachmentPaths.isEmpty()) {
 		sendPost ();
 		return;
@@ -180,14 +202,14 @@ void OutgoingPostCreator::prepareAndSendPost ()
 
 	for (auto it = outgoingPostData->attachmentPaths.begin(); it != outgoingPostData->attachmentPaths.end(); ++it) {
 		auto& file = *it;
-		backend.uploadFile (channel, file, [this, &backend, &channel, it] (QString fileId) {
+		backend->uploadFile (*channel, file, [this, it] (QString fileId) {
 
 			outgoingPostData->attachmentIds.push_back (fileId);
 			outgoingPostData->attachmentPaths.erase (it);
 			size_t uploadedFilesCount = outgoingPostData->attachmentIds.size();
 			size_t remainingFileCount = outgoingPostData->attachmentPaths.size();
 
-			chatArea.setStatusLabelText ("Attached file " + QString::number (uploadedFilesCount)
+			setStatusLabelText ("Attached file " + QString::number (uploadedFilesCount)
 					+ " of " + QString::number (uploadedFilesCount + remainingFileCount));
 
 			qDebug () << "Remaining file count: " << remainingFileCount;
@@ -201,17 +223,14 @@ void OutgoingPostCreator::prepareAndSendPost ()
 
 void OutgoingPostCreator::sendPost ()
 {
-	auto& backend = chatArea.getBackend();
-	auto& channel = chatArea.getChannel();
-
 	QString attachmentsLogStr (outgoingPostData->attachmentIds.isEmpty() ? "" : " (+attachments)");
 
 	if (outgoingPostData->postToEdit) {
 		qDebug () << "Send post edit" << attachmentsLogStr;
-		backend.editPost (outgoingPostData->postToEdit->id, outgoingPostData->message, outgoingPostData->attachmentIds);
+		backend->editPost (outgoingPostData->postToEdit->id, outgoingPostData->message, outgoingPostData->attachmentIds);
 	} else {
 		qDebug () << "Send post" << attachmentsLogStr;
-		backend.addPost (channel, outgoingPostData->message, outgoingPostData->attachmentIds);
+		backend->addPost (*channel, outgoingPostData->message, outgoingPostData->attachmentIds);
 	}
 }
 
@@ -236,12 +255,13 @@ void OutgoingPostCreator::onDropEvent (QDropEvent* event)
 		return;
 	}
 
-	createAttachmentList ();
+	QStringList files;
 
 	for (auto& url: event->mimeData ()->urls()) {
-		qDebug() << "Drop" << url;
-		attachmentList->addFile (url.toLocalFile());
+		files.push_back (url.toLocalFile());
 	}
+
+	createAttachmentList (files);
 }
 
 void OutgoingPostCreator::onPostReceived (BackendPost& post)
@@ -250,7 +270,7 @@ void OutgoingPostCreator::onPostReceived (BackendPost& post)
 
 		sendRetryTimer.stop ();
 
-		chatArea.setStatusLabelText ("");
+		setStatusLabelText ("");
 
 		//reset the 'editing post' state
 		if (outgoingPostData->postToEdit) {
@@ -264,25 +284,30 @@ void OutgoingPostCreator::onPostReceived (BackendPost& post)
 			attachmentList = nullptr;
 		}
 
-		auto* textEdit = chatArea.getUi()->textEdit;
-		textEdit->clear();
-		textEdit->setReadOnly (false);
+		ui->textEdit->clear();
+		ui->textEdit->setReadOnly (false);
 		updateSendButtonState ();
 	}
 }
 
-void OutgoingPostCreator::createAttachmentList ()
+void OutgoingPostCreator::createAttachmentList (QStringList& files)
 {
 	if (!attachmentList) {
-		attachmentList = new OutgoingAttachmentList (&chatArea);
-		chatArea.getAttachmentListParentWidget().insertWidget(2, attachmentList);
+		attachmentList = new OutgoingAttachmentList (this);
+
+		attachmentParent->insertWidget (0, attachmentList);
 		updateSendButtonState ();
 
 		connect (attachmentList, &OutgoingAttachmentList::deleted, [this] {
+			attachmentParent->removeWidget (attachmentList);
 			delete (attachmentList);
 			attachmentList = nullptr;
 			updateSendButtonState ();
 		});
+	}
+
+	for (auto& filename: files) {
+		attachmentList->addFile (filename);
 	}
 }
 
@@ -306,8 +331,8 @@ void OutgoingPostCreator::updateSendButtonState ()
 
 	bool attachButtonEnabled = sendButtonEnabled;
 
-	chatArea.getUi()->attachButton->setDisabled (!attachButtonEnabled);
-	chatArea.getUi()->attachButton->setToolTip (tooltipText);
+	panel->attachButton().setDisabled (!attachButtonEnabled);
+	panel->attachButton().setToolTip (tooltipText);
 
 	/**
 	 * Send button is disabled if the post text area is empty
@@ -317,8 +342,8 @@ void OutgoingPostCreator::updateSendButtonState ()
 		tooltipText = "Cannot send empty message";
 	}
 
-	chatArea.getUi()->sendButton->setDisabled (!sendButtonEnabled);
-	chatArea.getUi()->sendButton->setToolTip (tooltipText);
+	panel->sendButton().setDisabled (!sendButtonEnabled);
+	panel->sendButton().setToolTip (tooltipText);
 }
 
 /**
@@ -331,8 +356,7 @@ bool OutgoingPostCreator::isCreatingPost ()
 		return true;
 	}
 
-	auto* textEdit = chatArea.getUi()->textEdit;
-	QString message = textEdit->toPlainText ();
+	QString message = ui->textEdit->toPlainText ();
 
 	if (message.isEmpty() && !attachmentList) {
 		return false;

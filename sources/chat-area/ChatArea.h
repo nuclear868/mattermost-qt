@@ -62,8 +62,6 @@ public:
 	 */
 	void goToPost (const BackendPost& post);
 
-	void setStatusLabelText (const QString& labelString);
-
 	/**
 	 * Called when the chat area is being selected from the channels menu (so that it's contents is shown)
 	 */
@@ -74,8 +72,6 @@ public:
 	 * Called only if the chat area is the currently active one (so that it's contents is visible)
 	 */
 	void onMainWindowActivate ();
-
-	QVBoxLayout& getAttachmentListParentWidget ();
 private:
 	void dragEnterEvent (QDragEnterEvent* event) override;
 	void dragMoveEvent (QDragMoveEvent* event) override;
@@ -91,7 +87,6 @@ public:
 	BackendChannel& 				channel;
 	ChannelItem* 					treeItem;
 	QString 						lastReadPostId;
-	OutgoingPostCreator				outgoingPostCreator;
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;

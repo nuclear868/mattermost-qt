@@ -24,23 +24,36 @@
 
 #pragma once
 
-#include <QObject>
 #include <QTimer>
+#include <QWidget>
 #include "fwd.h"
 
 class QDragEnterEvent;
 class QDragMoveEvent;
 class QDropEvent;
+class QBoxLayout;
+
+namespace Ui {
+class OutgoingPostCreator;
+}
 
 namespace Mattermost {
 
 struct OutgoingPostData;
+class PostsListWidget;
+class OutgoingPostPanel;
 
-class OutgoingPostCreator: public QObject {
+class OutgoingPostCreator: public QWidget {
 	Q_OBJECT
 public:
-	OutgoingPostCreator (ChatArea& chatArea);
-	virtual ~OutgoingPostCreator ();
+	explicit OutgoingPostCreator (QWidget *parent = nullptr);
+	~OutgoingPostCreator();
+public:
+	void init (Backend& backend, BackendChannel& channel, OutgoingPostPanel& panel, PostsListWidget& postsListWidget, QBoxLayout* attachmentParent);
+	void onDragEnterEvent (QDragEnterEvent* event);
+	void onDragMoveEvent (QDragMoveEvent* event);
+	void onDropEvent (QDropEvent* event);
+	void setStatusLabelText (const QString& string);
 
 public slots:
 	void onAttachButtonClick ();
@@ -50,14 +63,11 @@ public slots:
 
 signals:
 	void postEditFinished ();
+	void heightChanged (int height);
 
-public:
-	void onDragEnterEvent (QDragEnterEvent* event);
-	void onDragMoveEvent (QDragMoveEvent* event);
-	void onDropEvent (QDropEvent* event);
 
 private:
-	void createAttachmentList ();
+	void createAttachmentList (QStringList& files);
 	void updateSendButtonState ();
 	bool isCreatingPost ();
 	bool isWaitingForPostServerResponse ();
@@ -66,12 +76,16 @@ private:
 	void sendPost ();
 
 private:
-	ChatArea& 							chatArea;
+    Ui::OutgoingPostCreator*			ui;
+	Backend*							backend;
+	BackendChannel*						channel;
+	OutgoingPostPanel*					panel;
 	QTimer								sendRetryTimer;
 	const BackendPost*					postToEdit;
 	OutgoingAttachmentList*				attachmentList;
 	std::unique_ptr<OutgoingPostData> 	outgoingPostData;
 	bool								isConnected;
+	QBoxLayout* 						attachmentParent;
 };
 
 } /* namespace Mattermost */

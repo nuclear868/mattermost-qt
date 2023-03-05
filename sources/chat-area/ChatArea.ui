@@ -15,25 +15,22 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="sizeConstraint">
-    <enum>QLayout::SetMaximumSize</enum>
+    <number>2</number>
    </property>
    <property name="leftMargin">
-    <number>0</number>
+    <number>2</number>
    </property>
    <property name="topMargin">
-    <number>0</number>
+    <number>2</number>
    </property>
    <property name="rightMargin">
-    <number>0</number>
+    <number>2</number>
    </property>
    <property name="bottomMargin">
-    <number>0</number>
+    <number>2</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="headerLayout">
      <property name="leftMargin">
       <number>6</number>
      </property>
@@ -139,7 +136,7 @@
      </property>
      <widget class="Mattermost::PostsListWidget" name="listWidget">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
@@ -163,166 +160,16 @@
        <enum>QListView::Adjust</enum>
       </property>
      </widget>
-     <widget class="QWidget" name="horizontalLayoutWidget_2">
-      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0">
-       <property name="spacing">
-        <number>4</number>
-       </property>
-       <property name="sizeConstraint">
-        <enum>QLayout::SetMaximumSize</enum>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="Mattermost::MessageTextEditWidget" name="textEdit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>2000</width>
-           <height>210</height>
-          </size>
-         </property>
-         <property name="sizeIncrement">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="contextMenuPolicy">
-          <enum>Qt::NoContextMenu</enum>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Sunken</enum>
-         </property>
-         <property name="midLineWidth">
-          <number>0</number>
-         </property>
-         <property name="acceptRichText">
-          <bool>false</bool>
-         </property>
-         <property name="placeholderText">
-          <string>Write a message</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <widget class="Mattermost::OutgoingPostCreator" name="outgoingPostCreator" native="true"/>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
+    <layout class="QVBoxLayout" name="footerLayout">
+     <property name="spacing">
       <number>0</number>
      </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
-      <number>6</number>
-     </property>
      <item>
-      <widget class="QLabel" name="label">
-       <property name="minimumSize">
-        <size>
-         <width>50</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="addEmojiButton">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Insert Emoji</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="attachButton">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Attach File</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="sendButton">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Send</string>
-       </property>
-      </widget>
+      <widget class="Mattermost::OutgoingPostPanel" name="outgoingPostPanel" native="true"/>
      </item>
     </layout>
    </item>
@@ -335,9 +182,16 @@
    <header>chat-area/PostsListWidget.h</header>
   </customwidget>
   <customwidget>
-   <class>Mattermost::MessageTextEditWidget</class>
-   <extends>QTextEdit</extends>
-   <header>chat-area/outgoing-post/MessageTextEditWidget.h</header>
+   <class>Mattermost::OutgoingPostCreator</class>
+   <extends>QWidget</extends>
+   <header>chat-area/outgoing-post/OutgoingPostCreator.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Mattermost::OutgoingPostPanel</class>
+   <extends>QWidget</extends>
+   <header>chat-area/outgoing-post/OutgoingPostPanel.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

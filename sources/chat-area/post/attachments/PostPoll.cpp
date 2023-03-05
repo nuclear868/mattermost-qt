@@ -109,6 +109,8 @@ PostPoll::PostPoll (Backend& backend, const BackendPost& post, BackendPoll& poll
 			font.setBold (true);
 			optionButtons[idx]->setFont (font);
 		}
+
+		adjustSize();
 	});
 }
 
