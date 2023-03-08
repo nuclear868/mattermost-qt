@@ -19,11 +19,16 @@
 
 #pragma once
 
+#include "build-config.h"
+
+#if BUILD_MULTIMEDIA
+
 #include <QWidget>
-#include <QTemporaryFile>
+#include <QVideoWidget>
+#include <QMediaPlayer>
 
 namespace Ui {
-class AttachedBinaryFile;
+class AttachedVideoFile;
 }
 
 namespace Mattermost {
@@ -31,19 +36,25 @@ namespace Mattermost {
 class Backend;
 class BackendFile;
 
-class AttachedBinaryFile: public QWidget {
+class AttachedVideoFile : public QWidget
+{
     Q_OBJECT
 
 public:
-    explicit AttachedBinaryFile (Backend& backend, const BackendFile& file, QWidget *parent = nullptr);
-    ~AttachedBinaryFile();
+    explicit AttachedVideoFile (Backend& backend, BackendFile& file, QWidget *parent = nullptr);
+    ~AttachedVideoFile();
+public:
+    void mousePressEvent(QMouseEvent *event)	override;
+
 private:
-    void setFileMimeIcon (const QString& filename);
-private:
-    Ui::AttachedBinaryFile 	*ui;
-    QTemporaryFile			tempFile;
-    QString					downloadedPath;
+    Ui::AttachedVideoFile*	ui;
+    Backend&				backend;
+    QMediaPlayer*			mediaPlayer;
+    QVideoWidget*			videoWidget;
+    BackendFile&			file;
+    bool					init;
 };
 
 } /* namespace Mattermost */
 
+#endif //BUILD_MULTIMEDIA

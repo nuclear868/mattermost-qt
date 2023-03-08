@@ -17,8 +17,7 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef ATTACHEDIMAGEFILE_H
-#define ATTACHEDIMAGEFILE_H
+#pragma once
 
 #include <QWidget>
 #include <map>
@@ -54,4 +53,3 @@ private:
 
 } /* namespace Mattermost */
 
-#endif // ATTACHEDIMAGEFILE_H
