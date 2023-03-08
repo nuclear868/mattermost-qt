@@ -75,6 +75,12 @@ private:
 	void prepareAndSendPost ();
 	void sendPost ();
 
+	template<typename T, typename S, typename R>
+	void connectLambda (T* senderInstance, S&& signal, R&& receiver)
+	{
+		signalConnections.emplace_back (connect (senderInstance, signal, receiver));
+	}
+
 private:
     Ui::OutgoingPostCreator*			ui;
 	Backend*							backend;
@@ -86,6 +92,7 @@ private:
 	std::unique_ptr<OutgoingPostData> 	outgoingPostData;
 	bool								isConnected;
 	QBoxLayout* 						attachmentParent;
+	std::vector<QMetaObject::Connection> signalConnections;
 };
 
 } /* namespace Mattermost */

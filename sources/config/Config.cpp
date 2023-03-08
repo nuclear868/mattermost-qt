@@ -23,12 +23,37 @@
  */
 
 #include <QStandardPaths>
+#include <QDebug>
 #include "Config.h"
 
 namespace Mattermost {
 
+#define PRINT_DIR(x) qDebug() << #x ": " << QStandardPaths::writableLocation(QStandardPaths::x)
+
 void Config::init ()
 {
+#if 0
+	PRINT_DIR (DesktopLocation);
+	PRINT_DIR (DocumentsLocation);
+	PRINT_DIR (FontsLocation);
+	PRINT_DIR (ApplicationsLocation);
+	PRINT_DIR (MusicLocation);
+	PRINT_DIR (MoviesLocation);
+	PRINT_DIR (PicturesLocation);
+	PRINT_DIR (TempLocation);
+	PRINT_DIR (HomeLocation);
+	PRINT_DIR (DataLocation);
+	PRINT_DIR (CacheLocation);
+	PRINT_DIR (GenericDataLocation);
+	PRINT_DIR (RuntimeLocation);
+	PRINT_DIR (ConfigLocation);
+	PRINT_DIR (DownloadLocation);
+	PRINT_DIR (GenericCacheLocation);
+	PRINT_DIR (GenericConfigLocation);
+	PRINT_DIR (AppDataLocation);
+	PRINT_DIR (AppConfigLocation);
+#endif
+
 	QDir tempDir (tempDirectory());
 
 	if (!tempDir.exists()) {

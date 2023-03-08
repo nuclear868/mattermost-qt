@@ -174,6 +174,7 @@ static bool printEvent (const QString& name)
 			name == "channel_updated" 	||
 			name == "reaction_added" 	||
 			name == "status_change" 	||
+			name == "posted" 			||
 			name == "reaction_removed") {
 		return false;
 	}

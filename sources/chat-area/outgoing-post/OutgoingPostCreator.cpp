@@ -114,12 +114,12 @@ void OutgoingPostCreator::init (Backend& backend, BackendChannel& channel, Outgo
 
 	updateSendButtonState();
 
-	connect (&backend, &Backend::onWebSocketConnect, [this] {
+	connectLambda (&backend, &Backend::onWebSocketConnect, [this] {
 		isConnected = true;
 		updateSendButtonState();
 	});
 
-	connect (&backend, &Backend::onWebSocketDisconnect, [this] {
+	connectLambda (&backend, &Backend::onWebSocketDisconnect, [this] {
 		isConnected = false;
 		updateSendButtonState();
 	});
@@ -132,7 +132,11 @@ void OutgoingPostCreator::init (Backend& backend, BackendChannel& channel, Outgo
 
 OutgoingPostCreator::~OutgoingPostCreator()
 {
-    delete ui;
+	for (auto& it: signalConnections) {
+		disconnect (it);
+	}
+
+	delete ui;
 }
 
 void OutgoingPostCreator::setStatusLabelText (const QString& string)
