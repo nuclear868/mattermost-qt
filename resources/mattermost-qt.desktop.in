@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=Mattermost-Qt
+Version=
+Comment=Mattermost desktop client
+Exec=@APPID@ %u
+Icon=@APPID@
+Type=Application
+Categories=Qt;Chat;
+StartupWMClass=@APPID@
+Terminal=false
+MimeType=
+X-GNOME-UsesNotifications=true
+Keywords=chat;communication;Mattermost;
+X-KDE-Keywords=Mattermost,chat,communication,
+

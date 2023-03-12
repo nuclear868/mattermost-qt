@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2022-2023 Lyubomir Filipov, mattermost-qt contributors -->
+<component type="desktop">
+	<id>@APPID@.desktop</id>
+	<metadata_license>FSFUL</metadata_license>
+	<launchable type="desktop-id">@APPID@.desktop</launchable>
+	<project_license>LGPL-3.0-or-later AND GPL-3.0-or-later</project_license>
+	<name>mattermost-qt</name>
+	<summary>Mattermost desktop client</summary>
+	<description>
+		<p>Mattermost native desktop client, using the Qt framework.</p>
+	</description>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://raw.githubusercontent.com/nuclear868/mattermost-qt/master/resources/login.png</image>
+			<caption>Screenshot of login with server,username and password fields</caption>
+		</screenshot>
+	</screenshots>
+	<languages>
+		<lang>en</lang>
+	</languages>
+	<content_rating type="oars-1.0">
+		<content_attribute id="social-chat">intense</content_attribute>
+	</content_rating>
+	<url type="homepage">https://github.com/nuclear868/mattermost-qt</url>
+	<update_contact>https://github.com/nuclear868/mattermost-qt</update_contact>
+	<releases>
+		<release date="2023-01-23" version="1.2"/>
+		<release date="2022-04-25" version="1.1"/>
+		<release date="2022-02-27" version="1.0"/>
+	</releases>
+	<developer_name>Lyubomir Filipov</developer_name>
+	<url type="bugtracker">https://github.com/nuclear868/mattermost-qt/issues</url>
+	<url type="help">https://github.com/nuclear868/mattermost-qt</url>
+	<provides>
+		<binary>@APPID@</binary>
+	</provides>
+</component>
