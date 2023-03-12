@@ -43,7 +43,8 @@ public:
 	void reset ();
 	void doHandshake ();
 signals:
-	void onReconnect ();
+	void onConnect (bool isReconnect);
+	void onDisconnect ();
 private:
 	void onNewPacket (const QString& string);
 	void doReconnect ();

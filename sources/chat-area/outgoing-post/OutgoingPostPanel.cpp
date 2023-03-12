@@ -1,4 +1,9 @@
 /**
+ * @file OutgoingPostPanel.cpp
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Mar 04, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,33 +22,41 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
-#pragma once
-
-#include <QWidget>
-#include <QTemporaryFile>
-
-namespace Ui {
-class AttachedBinaryFile;
-}
+#include "OutgoingPostPanel.h"
+#include "ui_OutgoingPostPanel.h"
 
 namespace Mattermost {
 
-class Backend;
-class BackendFile;
+OutgoingPostPanel::OutgoingPostPanel(QWidget *parent)
+:QWidget(parent)
+,ui(new Ui::OutgoingPostPanel)
+{
+    ui->setupUi(this);
+}
 
-class AttachedBinaryFile: public QWidget {
-    Q_OBJECT
+OutgoingPostPanel::~OutgoingPostPanel()
+{
+    delete ui;
+}
 
-public:
-    explicit AttachedBinaryFile (Backend& backend, const BackendFile& file, QWidget *parent = nullptr);
-    ~AttachedBinaryFile();
-private:
-    void setFileMimeIcon (const QString& filename);
-private:
-    Ui::AttachedBinaryFile 	*ui;
-    QTemporaryFile			tempFile;
-    QString					downloadedPath;
-};
+QPushButton& OutgoingPostPanel::attachButton ()
+{
+	return *ui->attachButton;
+}
+
+QPushButton& OutgoingPostPanel::addEmojiButton ()
+{
+	return *ui->addEmojiButton;
+}
+
+QPushButton& OutgoingPostPanel::sendButton ()
+{
+	return *ui->sendButton;
+}
+
+QLabel& OutgoingPostPanel::label ()
+{
+	return *ui->label;
+}
 
 } /* namespace Mattermost */
-

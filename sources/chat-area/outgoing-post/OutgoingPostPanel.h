@@ -1,4 +1,9 @@
 /**
+ * @file OutgoingPostPanel.h
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Mar 04, 2022
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -20,30 +25,29 @@
 #pragma once
 
 #include <QWidget>
-#include <QTemporaryFile>
+
+class QPushButton;
+class QLabel;
 
 namespace Ui {
-class AttachedBinaryFile;
+class OutgoingPostPanel;
 }
 
 namespace Mattermost {
 
-class Backend;
-class BackendFile;
-
-class AttachedBinaryFile: public QWidget {
+class OutgoingPostPanel: public QWidget {
     Q_OBJECT
-
 public:
-    explicit AttachedBinaryFile (Backend& backend, const BackendFile& file, QWidget *parent = nullptr);
-    ~AttachedBinaryFile();
+    explicit OutgoingPostPanel(QWidget *parent = nullptr);
+    ~OutgoingPostPanel();
+public:
+    QPushButton& attachButton();
+    QPushButton& addEmojiButton();
+    QPushButton& sendButton();
+    QLabel& label();
+
 private:
-    void setFileMimeIcon (const QString& filename);
-private:
-    Ui::AttachedBinaryFile 	*ui;
-    QTemporaryFile			tempFile;
-    QString					downloadedPath;
+    Ui::OutgoingPostPanel *ui;
 };
 
 } /* namespace Mattermost */
-

@@ -72,8 +72,6 @@ public:
 	 * Called only if the chat area is the currently active one (so that it's contents is visible)
 	 */
 	void onMainWindowActivate ();
-
-	QVBoxLayout& getAttachmentListParentWidget ();
 private:
 	void dragEnterEvent (QDragEnterEvent* event) override;
 	void dragMoveEvent (QDragMoveEvent* event) override;
@@ -89,7 +87,6 @@ public:
 	BackendChannel& 				channel;
 	ChannelItem* 					treeItem;
 	QString 						lastReadPostId;
-	OutgoingPostCreator				outgoingPostCreator;
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;

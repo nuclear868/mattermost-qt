@@ -50,6 +50,7 @@ static const QMap<QString, void(*)(WebSocketConnector&, const QJsonObject&, cons
 	{"reaction_added",		handler<PostReactionAddedEvent>},
 	{"reaction_removed",	handler<PostReactionRemovedEvent>},
 	{"typing",				handler<TypingEvent>},
+	{"status_change", 		handler<StatusChangeEvent>},
 	{"direct_added", 		handler<NewDirectChannelEvent>}, 		//new direct channel created
 	{"user_added",			handler<UserAddedToChannelEvent>}, 		//user added to channel
 	{"added_to_team",		handler<UserAddedToTeamEvent>},			//user added to team
@@ -73,9 +74,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 		LOG_DEBUG ("WebSocket connected");
 		doHandshake ();
 
-		if (hasReconnect) {
-			emit onReconnect ();
-		}
+		emit onConnect (hasReconnect);
 
 		hasReconnect = false;
 		pingTimer.start (5000);
@@ -88,6 +87,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 
 	connect(&webSocket, &QWebSocket::disconnected, [this]{
 		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
+		emit onDisconnect ();
 
 		//if the token is empty, this means that the disconnect was forced
 		if (!token.isEmpty()) {
@@ -170,7 +170,12 @@ void WebSocketConnector::reset ()
 
 static bool printEvent (const QString& name)
 {
-	if (name == "channel_viewed" || name == "channel_updated" || name == "reaction_added" || name == "reaction_removed") {
+	if (	name == "channel_viewed" 	||
+			name == "channel_updated" 	||
+			name == "reaction_added" 	||
+			name == "status_change" 	||
+			name == "posted" 			||
+			name == "reaction_removed") {
 		return false;
 	}
 

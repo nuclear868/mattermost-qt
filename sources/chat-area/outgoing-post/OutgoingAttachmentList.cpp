@@ -128,4 +128,11 @@ QList<QString> OutgoingAttachmentList::getAllFiles ()
 	return ret;
 }
 
+void OutgoingAttachmentList::setDisableInput (bool flag)
+{
+	for (int i = 0; i < topLevelItemCount(); ++i) {
+		itemWidget(topLevelItem (i), 2)->setDisabled (flag);
+	}
+}
+
 } /* namespace Mattermost */

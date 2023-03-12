@@ -33,6 +33,7 @@
 #include "events/PostReactionAddedEvent.h"
 #include "events/PostReactionRemovedEvent.h"
 #include "events/TypingEvent.h"
+#include "events/StatusChangeEvent.h"
 #include "events/NewDirectChannelEvent.h"
 #include "events/UserTeamEvent.h"
 #include "events/UserAddedToChannelEvent.h"
@@ -56,6 +57,7 @@ public:
 	void handleEvent (const PostReactionAddedEvent& event);
 	void handleEvent (const PostReactionRemovedEvent& event);
 	void handleEvent (const TypingEvent& event);
+	void handleEvent (const StatusChangeEvent& event);
 	void handleEvent (const NewDirectChannelEvent& event);
 	void handleEvent (const UserAddedToChannelEvent& event);
 	void handleEvent (const UserAddedToTeamEvent& event);

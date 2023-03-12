@@ -38,6 +38,8 @@ public:
 	QSize sizeHint () const override;
 
 	QList<QString> getAllFiles ();
+
+	void setDisableInput (bool flag);
 signals:
 	void deleted ();
 };

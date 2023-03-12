@@ -1,4 +1,9 @@
 /**
+ * @file StatusChangeEvent.cpp
+ * @brief
+ * @author Lyubomir Filipov
+ * @date Mar 5, 2023
+ *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
  * This file is part of Mattermost-QT.
@@ -17,33 +22,16 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
-#pragma once
-
-#include <QWidget>
-#include <QTemporaryFile>
-
-namespace Ui {
-class AttachedBinaryFile;
-}
+#include "StatusChangeEvent.h"
 
 namespace Mattermost {
 
-class Backend;
-class BackendFile;
+StatusChangeEvent::StatusChangeEvent (const QJsonObject& data, const QJsonObject&)
+:userId (data.value ("user_id").toString())
+,statusString (data.value ("status").toString())
+{
+}
 
-class AttachedBinaryFile: public QWidget {
-    Q_OBJECT
-
-public:
-    explicit AttachedBinaryFile (Backend& backend, const BackendFile& file, QWidget *parent = nullptr);
-    ~AttachedBinaryFile();
-private:
-    void setFileMimeIcon (const QString& filename);
-private:
-    Ui::AttachedBinaryFile 	*ui;
-    QTemporaryFile			tempFile;
-    QString					downloadedPath;
-};
+StatusChangeEvent::~StatusChangeEvent () = default;
 
 } /* namespace Mattermost */
-

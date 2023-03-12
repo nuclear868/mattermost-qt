@@ -28,11 +28,19 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -ggdb")
 #    endif()
 #endif()
 
+option(BUILD_MULTIMEDIA "Enable Multimedia" OFF)
+
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt5 COMPONENTS Network REQUIRED)
 find_package(Qt5 COMPONENTS WebSockets REQUIRED)
 
+if(BUILD_MULTIMEDIA)
+	find_package(Qt5 COMPONENTS Multimedia REQUIRED)
+	find_package(Qt5 COMPONENTS MultimediaWidgets REQUIRED)
+endif()
+
 include_directories(${Qt5Network_INCLUDE_DIRS} sources/)
+
 
 if(ANDROID)
   add_library(mattermost-client SHARED
@@ -80,4 +88,8 @@ if(UNIX)
 	install (FILES "${CMAKE_CURRENT_BINARY_DIR}/resources/mattermost-qt.desktop" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications" RENAME "${APPID}.desktop")
 	configure_file("resources/mattermost-qt.appdata.xml.in" "resources/mattermost-qt.appdata.xml" @ONLY)
 	install (FILES "${CMAKE_CURRENT_BINARY_DIR}/resources/mattermost-qt.appdata.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo" RENAME "${APPID}.appdata.xml")
+endif()
+
+if(BUILD_MULTIMEDIA)
+	target_link_libraries(qmattermost PRIVATE Qt5::Multimedia Qt5::MultimediaWidgets)
 endif()

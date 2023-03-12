@@ -24,45 +24,75 @@
 
 #pragma once
 
-#include <QObject>
+#include <QTimer>
+#include <QWidget>
 #include "fwd.h"
 
 class QDragEnterEvent;
 class QDragMoveEvent;
 class QDropEvent;
+class QBoxLayout;
+
+namespace Ui {
+class OutgoingPostCreator;
+}
 
 namespace Mattermost {
 
-class OutgoingPostCreator: public QObject {
+struct OutgoingPostData;
+class PostsListWidget;
+class OutgoingPostPanel;
+
+class OutgoingPostCreator: public QWidget {
 	Q_OBJECT
 public:
-	OutgoingPostCreator (ChatArea& chatArea);
-	virtual ~OutgoingPostCreator ();
+	explicit OutgoingPostCreator (QWidget *parent = nullptr);
+	~OutgoingPostCreator();
+public:
+	void init (Backend& backend, BackendChannel& channel, OutgoingPostPanel& panel, PostsListWidget& postsListWidget, QBoxLayout* attachmentParent);
+	void onDragEnterEvent (QDragEnterEvent* event);
+	void onDragMoveEvent (QDragMoveEvent* event);
+	void onDropEvent (QDropEvent* event);
+	void setStatusLabelText (const QString& string);
 
 public slots:
 	void onAttachButtonClick ();
 	void onPostReceived (BackendPost& post);
-	void sendPost ();
+	void sendPostButtonAction ();
 	void postEditInitiated (BackendPost& post);
 
 signals:
 	void postEditFinished ();
+	void heightChanged (int height);
 
-public:
-	void onDragEnterEvent (QDragEnterEvent* event);
-	void onDragMoveEvent (QDragMoveEvent* event);
-	void onDropEvent (QDropEvent* event);
 
 private:
-	void createAttachmentList ();
+	void createAttachmentList (QStringList& files);
 	void updateSendButtonState ();
 	bool isCreatingPost ();
+	bool isWaitingForPostServerResponse ();
+
+	void prepareAndSendPost ();
+	void sendPost ();
+
+	template<typename T, typename S, typename R>
+	void connectLambda (T* senderInstance, S&& signal, R&& receiver)
+	{
+		signalConnections.emplace_back (connect (senderInstance, signal, receiver));
+	}
 
 private:
-	ChatArea& 				chatArea;
-	const BackendPost*		postToEdit;
-	OutgoingAttachmentList*	attachmentList;
-	bool					waitingForNewPostToAppear;
+    Ui::OutgoingPostCreator*			ui;
+	Backend*							backend;
+	BackendChannel*						channel;
+	OutgoingPostPanel*					panel;
+	QTimer								sendRetryTimer;
+	const BackendPost*					postToEdit;
+	OutgoingAttachmentList*				attachmentList;
+	std::unique_ptr<OutgoingPostData> 	outgoingPostData;
+	bool								isConnected;
+	QBoxLayout* 						attachmentParent;
+	std::vector<QMetaObject::Connection> signalConnections;
 };
 
 } /* namespace Mattermost */

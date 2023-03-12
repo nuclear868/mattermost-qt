@@ -34,15 +34,16 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 ,backend (backend)
 ,channel (channel)
 ,treeItem (treeItem)
-,outgoingPostCreator (*this)
 ,unreadMessagesCount (0)
-,texteditDefaultHeight (80)
+,texteditDefaultHeight (70)
 ,gettingOlderPosts (false)
 {
 	//accept drag&drop attachments
 	setAcceptDrops(true);
 
 	ui->setupUi(this);
+
+	ui->outgoingPostCreator->init (backend, channel, *ui->outgoingPostPanel, *ui->listWidget, ui->footerLayout);
 	ui->listWidget->backend = &backend;
 
 	ui->titleLabel->setText (channel.display_name);
@@ -61,6 +62,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		if (!user->avatar.isEmpty()) {
 			setUserAvatar (*user);
 		}
+
+		connect (user, &BackendUser::onStatusChanged, [this, user] {
+			ui->statusLabel->setText (user->status);
+		});
 
 		if (ui->statusLabel->text().isEmpty()) {
 			ui->statusLabel->setText (user->status);
@@ -101,8 +106,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
 
 	//let the post creator know that the last sent / edited post has appeared so that the input box can be cleared
-	connect (&channel, &BackendChannel::onNewPost, &outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
-	connect (&channel, &BackendChannel::onPostEdited, &outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
+	connect (&channel, &BackendChannel::onNewPost, ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
+	connect (&channel, &BackendChannel::onPostEdited, ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
 
@@ -124,20 +129,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 	});
 
-
-	//initiate editing of last post, after an up arrow is pressed
-	connect (ui->textEdit, &MessageTextEditWidget::upArrowPressed, [this] {
-		QListWidgetItem* post = ui->listWidget->getLastOwnPost ();
-
-		if (post) {
-			ui->listWidget->initiatePostEdit (*post);
-		}
-	});
-
 	//initiate editing of post, when edit is selected from the context menu
-	connect (ui->listWidget, &PostsListWidget::postEditInitiated, &outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
+	connect (ui->listWidget, &PostsListWidget::postEditInitiated, ui->outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
 
-	connect (&outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
+	connect (ui->outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
 
 	connect (&channel, &BackendChannel::onPostDeleted, [this] (const QString& postId) {
 		PostWidget* postWidget = ui->listWidget->findPost (postId);
@@ -152,17 +147,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		texteditDefaultHeight = ui->splitter->sizes()[1];
 	});
 
-	connect (ui->textEdit, &MessageTextEditWidget::textChanged, [this] {
-		QSize size = ui->textEdit->document()->size().toSize();
-
-		int height = size.height() + 10;
+	connect (ui->outgoingPostCreator, &OutgoingPostCreator::heightChanged, [this] (int height) {
 
 		if (height < texteditDefaultHeight) {
 			height = texteditDefaultHeight;
-		}
-
-		if (height > ui->textEdit->maximumHeight()) {
-			height = ui->textEdit->maximumHeight();
 		}
 
 		setTextEditWidgetHeight (height);
@@ -379,8 +367,6 @@ void ChatArea::moveOnListTop ()
 		newItemWidget->setIcon (QIcon(thisItemWidget->getPixmap()));
 	}
 
-	qDebug() << "Move on top (" << parent->indexOfChild(treeItem) << ") -> 0";
-
 	//block signals, so that itemActivated is not called
 
 	tree->blockSignals (true);
@@ -398,8 +384,6 @@ void ChatArea::moveOnListTop ()
 	if (isCurrent) {
 		tree->setCurrentItem (child);
 	}
-
-	qDebug() << "Move on top done";
 }
 
 void ChatArea::setUnreadMessagesCount (uint32_t count)
@@ -415,22 +399,17 @@ void ChatArea::setUnreadMessagesCount (uint32_t count)
 
 void ChatArea::dragEnterEvent (QDragEnterEvent* event)
 {
-	outgoingPostCreator.onDragEnterEvent (event);
+	ui->outgoingPostCreator->onDragEnterEvent (event);
 }
 
 void ChatArea::dragMoveEvent (QDragMoveEvent* event)
 {
-	outgoingPostCreator.onDragMoveEvent (event);
+	ui->outgoingPostCreator->onDragMoveEvent (event);
 }
 
 void ChatArea::dropEvent (QDropEvent* event)
 {
-	outgoingPostCreator.onDropEvent (event);
-}
-
-QVBoxLayout& ChatArea::getAttachmentListParentWidget ()
-{
-	return *ui->verticalLayout;
+	ui->outgoingPostCreator->onDropEvent (event);
 }
 
 void ChatArea::goToPost (const BackendPost& post)

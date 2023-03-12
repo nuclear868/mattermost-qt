@@ -25,6 +25,7 @@
 #include <QListWidgetItem>
 #include "AttachedBinaryFile.h"
 #include "AttachedImageFile.h"
+#include "AttachedVideoFile.h"
 #include "../PostWidget.h"
 #include "backend/types/BackendFile.h"
 
@@ -51,6 +52,11 @@ void PostAttachmentList::addFile (BackendFile& file, const QString& authorName)
 
 	bool sizeKnown = true;
 
+#if BUILD_MULTIMEDIA
+	if (file.name.endsWith(".mp4", Qt::CaseInsensitive) || file.name.endsWith(".mov", Qt::CaseInsensitive)) {
+		fileWidget = new AttachedVideoFile (backend, file, this);
+	} else
+#endif
 	if (file.mini_preview.isEmpty()) {
 		fileWidget = new AttachedBinaryFile (backend, file, this);
 	} else {

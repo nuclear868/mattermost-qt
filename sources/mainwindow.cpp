@@ -57,7 +57,11 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 		return;
 	}
 
-	ui->username_label->setText (currentUser.username);
+	connect (&currentUser, &BackendUser::onStatusChanged, [this, &currentUser] {
+		ui->statusLabel->setText (currentUser.status);
+	});
+
+	ui->usernameLabel->setText (currentUser.username);
 
 	connect (&currentUser, &BackendUser::onAvatarChanged, [this, &currentUser] {
 		LOG_DEBUG ("Got User Image");

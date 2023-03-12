@@ -124,10 +124,10 @@ public:
 	void editChannelProperties (BackendChannel& channel, const BackendChannelProperties& newProperties);
 
 	//add new post in a channel (/posts)
-	void addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments = QList<QString> (), const QString& rootID = "");
+	void addPost (BackendChannel& channel, const QString& message, const QList<QString>& attachments, const QString& rootID = "");
 
 	//edit post (/posts/{post_id}/patch)
-	void editPost (const QString& postID, const QString& message, const QList<QString>* attachments);
+	void editPost (const QString& postID, const QString& message, const QList<QString>& attachments);
 
 	//delete a post (/posts/{post_id})
 	void deletePost (const QString postID);
@@ -214,6 +214,9 @@ signals:
 
     void onNetworkError (uint32_t errorNumber, const QString& errorText);
     void onHttpError (uint32_t errorNumber, const QString& errorText);
+
+    void onWebSocketConnect ();
+    void onWebSocketDisconnect ();
 private:
     void loginSuccess (const QJsonDocument& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
 private:
