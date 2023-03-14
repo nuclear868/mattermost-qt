@@ -15,6 +15,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -ggdb")
 
+set(APPID "mattermost-qt")
+
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.
 # They need to be set before the find_package(Qt5 ...) call.
@@ -41,7 +43,6 @@ endif()
 
 include_directories(${Qt5Network_INCLUDE_DIRS} sources/)
 
-
 if(ANDROID)
   add_library(mattermost-client SHARED
     main.cpp
@@ -57,32 +58,35 @@ if(ANDROID)
   )
 else()
   file(GLOB_RECURSE SOURCES sources/*.cpp)
-  add_executable(qmattermost
+  add_executable(${APPID}
     ${SOURCES}
     resource.qrc
   )
   
   if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-	set_property(TARGET qmattermost PROPERTY WIN32_EXECUTABLE true)
+	set_property(TARGET ${APPID} PROPERTY WIN32_EXECUTABLE true)
   endif()
   
 endif()
 
 add_subdirectory (tools)
 
-target_link_libraries(qmattermost PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets)
+target_link_libraries (${APPID} PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets)
 
 if(UNIX)
-	set(APPID "mattermost-qt")
-	install (TARGETS qmattermost RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-	install (FILES "resources/MattermostQtLogo16.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/16x16/apps" RENAME "${APPID}.png")
-	install (FILES "resources/MattermostQtLogo32.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/32x32/apps" RENAME "${APPID}.png")
-	install (FILES "resources/MattermostQtLogo64.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/64x64/apps" RENAME "${APPID}.png")
-        install (FILES "resources/MattermostQtLogo128.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps" RENAME "${APPID}.png")
-	install (FILES "resources/MattermostQtLogo256.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps" RENAME "${APPID}.png")
-        install (FILES "resources/MattermostQtLogo512.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/512x512/apps" RENAME "${APPID}.png")
-	install (FILES "resources/MattermostQtLogo1024.png" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/1024x1024/apps" RENAME "${APPID}.png")
-	install (FILES "resources/MattermostQtLogoPlain.svg" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps" RENAME "${APPID}.svg")
+	include(GNUInstallDirs)
+	set(SRC_ICONS_DIR "resources/icons/application-dark")
+	set(DST_ICONS_DIR "${CMAKE_INSTALL_DATAROOTDIR}/icons")
+
+	install (TARGETS "${APPID}" RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-16.png" DESTINATION "${DST_ICONS_DIR}/hicolor/16x16/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-32.png" DESTINATION "${DST_ICONS_DIR}/hicolor/32x32/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-64.png" DESTINATION "${DST_ICONS_DIR}/hicolor/64x64/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-128.png" DESTINATION "${DST_ICONS_DIR}/hicolor/128x128/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-256.png" DESTINATION "${DST_ICONS_DIR}/hicolor/256x256/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-512.png" DESTINATION "${DST_ICONS_DIR}/hicolor/512x512/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}-1024.png" DESTINATION "${DST_ICONS_DIR}/hicolor/1024x1024/apps" RENAME "${APPID}.png")
+	install (FILES "${SRC_ICONS_DIR}/${APPID}.svg" DESTINATION "${DST_ICONS_DIR}/hicolor/scalable/apps" RENAME "${APPID}.svg")
 
 	configure_file("resources/mattermost-qt.desktop.in" "resources/mattermost-qt.desktop" @ONLY)
 	install (FILES "${CMAKE_CURRENT_BINARY_DIR}/resources/mattermost-qt.desktop" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications" RENAME "${APPID}.desktop")
