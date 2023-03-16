@@ -33,6 +33,7 @@
 #include "backend/Backend.h"
 #include "chat-area/PostsListWidget.h"
 #include "OutgoingPostPanel.h"
+#include "NewPollDialog.h"
 #include "OutgoingAttachmentList.h"
 #include "choose-emoji-dialog/ChooseEmojiDialogWrapper.h"
 
@@ -41,10 +42,11 @@
 namespace Mattermost {
 
 struct OutgoingPostData {
-	const BackendPost*	postToEdit;			//!< Post to be edited. If nullptr - start a new post
-	QString 			message;			//!< Message text
-	QList<QString>		attachmentPaths;	//!< List of file paths waiting to be attached
-	QList<QString>		attachmentIds;		//!< List of file paths already uploaded to the Mattermost server
+	const BackendPost*					postToEdit;			//!< Post to be edited. If nullptr - start a new post
+	std::unique_ptr<BackendNewPollData> pollData;			//!< Poll data, used when creating a poll
+	QString 							message;			//!< Message text
+	QList<QString>						attachmentPaths;	//!< List of file paths waiting to be attached
+	QList<QString>						attachmentIds;		//!< List of file paths already uploaded to the Mattermost server
 };
 
 OutgoingPostCreator::OutgoingPostCreator(QWidget *parent)
@@ -169,6 +171,8 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 	postToEdit = &post;
 }
 
+static NewPollDialog* newPollDialog;
+
 void OutgoingPostCreator::sendPostButtonAction ()
 {
 	QString message = ui->textEdit->toPlainText ();
@@ -178,19 +182,39 @@ void OutgoingPostCreator::sendPostButtonAction ()
 		return;
 	}
 
+	if (message == "/poll") {
+		newPollDialog = new NewPollDialog (this);
+
+		connect (newPollDialog, &QDialog::accepted, [this] {
+
+			outgoingPostData = std::make_unique<OutgoingPostData>();
+			outgoingPostData->pollData = std::make_unique<BackendNewPollData> (newPollDialog->getData ());
+
+			sendRetryTimer.start (10000);
+			ui->textEdit->setReadOnly (true);
+			updateSendButtonState ();
+			prepareAndSendPost ();
+			setStatusLabelText ("Sending message...");
+
+		});
+
+		newPollDialog->show();
+		return;
+	}
+
 	outgoingPostData = std::make_unique<OutgoingPostData>();
 
 	outgoingPostData->message = message;
 	outgoingPostData->postToEdit = postToEdit;
 	postToEdit = nullptr;
 
-	sendRetryTimer.start (10000);
 
 	if (attachmentList) {
 		outgoingPostData->attachmentPaths = attachmentList->getAllFiles();
 		attachmentList->setDisableInput (true);
 	}
 
+	sendRetryTimer.start (10000);
 	ui->textEdit->setReadOnly (true);
 	updateSendButtonState ();
 	prepareAndSendPost ();
@@ -232,6 +256,8 @@ void OutgoingPostCreator::sendPost ()
 	if (outgoingPostData->postToEdit) {
 		qDebug () << "Send post edit" << attachmentsLogStr;
 		backend->editPost (outgoingPostData->postToEdit->id, outgoingPostData->message, outgoingPostData->attachmentIds);
+	} else if (outgoingPostData->pollData) {
+		backend->addPoll (*channel, *outgoingPostData->pollData);
 	} else {
 		qDebug () << "Send post" << attachmentsLogStr;
 		backend->addPost (*channel, outgoingPostData->message, outgoingPostData->attachmentIds);
@@ -270,7 +296,7 @@ void OutgoingPostCreator::onDropEvent (QDropEvent* event)
 
 void OutgoingPostCreator::onPostReceived (BackendPost& post)
 {
-	if (outgoingPostData && post.isOwnPost()) {
+	if (outgoingPostData && (post.isOwnPost() || post.isOwnPollPost())) {
 
 		sendRetryTimer.stop ();
 

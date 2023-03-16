@@ -95,6 +95,19 @@ bool BackendPost::isOwnPost () const
 	return author->isLoginUser;
 }
 
+bool BackendPost::isOwnPollPost () const
+{
+	//non-poll posts are not considered here
+	if (!poll) {
+		return false;
+	}
+
+#warning "fix"
+	return true;
+	//BackendUser* user =
+	//return poll->authorName
+}
+
 /**
  * Get the author name to be displayed in chat windows, dialogs, etc.
  * This differs from author name, in cases like polls - where the post author is a bot

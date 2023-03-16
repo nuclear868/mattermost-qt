@@ -42,6 +42,7 @@
 
 #include "NetworkRequest.h"
 #include "types/BackendPoll.h"
+#include "types/BackendNewPollData.h"
 #include "emoji/EmojiInfo.h"
 #include "log.h"
 
@@ -291,7 +292,7 @@ void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> c
 		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
 
 		BackendUser *user = storage.addUser (doc.object());
-		retrieveUserAvatar (user->id);
+		retrieveUserAvatar (user->id, user->update_at);
 		callback (*user);
 	}));
 }
@@ -407,7 +408,7 @@ void Backend::retrieveAllUsers ()
 
 			for (const auto &itemRef: doc.array()) {
 				BackendUser *user = storage.addUser (itemRef.toObject());
-				retrieveUserAvatar (user->id);
+				retrieveUserAvatar (user->id, user->update_at);
 				userIds.push_back (user->id);
 			}
 
@@ -436,7 +437,7 @@ void Backend::retrieveAllUsers ()
 	}
 }
 
-void Backend::retrieveUserAvatar (QString userID)
+void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
 
@@ -964,7 +965,51 @@ void Backend::pinPost (const QString postID)
 
 }
 
-void Mattermost::Backend::addPostReaction (const QString& postID, const QString& emojiName)
+void Backend::addPoll (BackendChannel& channel, const BackendNewPollData& pollData)
+{
+	NetworkRequest request ("actions/dialogs/submit");
+
+	QJsonObject json {
+		{"callback_id", ""},
+		{"channel_id", channel.id},
+		{"state", ""},
+		{"url", "/plugins/com.github.matterpoll.matterpoll/api/v1/polls/create"},
+		{"team_id", channel.team->id}
+	};
+
+	auto submission = QJsonObject {
+		{"question", pollData.question}
+	};
+
+	for (int i = 0; i < pollData.options.size(); ++i) {
+		submission.insert ("option" + QString::number(i + 1), pollData.options[i]);
+	}
+
+	if (pollData.isAnonymous) {
+		submission.insert ("setting-anonymous", true);
+	}
+
+	if (pollData.showProgress) {
+		submission.insert ("setting-progress", true);
+	}
+
+	if (pollData.allowAddOptions) {
+		submission.insert ("setting-public-add-option", true);
+	}
+
+	json.insert ("submission", submission);
+
+	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+#if 0
+		QJsonDocument doc = QJsonDocument::fromJson(data);
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+	}));
+	return;
+}
+
+void Backend::addPostReaction (const QString& postID, const QString& emojiName)
 {
 	QJsonObject json {
 		{"user_id", getLoginUser().id},

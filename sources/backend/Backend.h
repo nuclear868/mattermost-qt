@@ -38,6 +38,8 @@
 
 namespace Mattermost {
 
+class BackendNewPollData;
+
 class Backend: public QObject
 {
     Q_OBJECT
@@ -75,7 +77,7 @@ public:
 	void retrieveAllUsers ();
 
 	//get user's avatar image (/users/userID/image). Emits BackendUser::onAvatarChanged
-	void retrieveUserAvatar (QString userID);
+	void retrieveUserAvatar (QString userID, uint64_t lastUpdateTime = 0);
 
 	//get file (files/fileID)
 	void retrieveFile (QString fileID, std::function<void(const QByteArray&)> callback);
@@ -134,6 +136,9 @@ public:
 
 	//pin a post (/posts/{post_id}/pin)
 	void pinPost (const QString postID);
+
+	//add a poll (/actions/dialogs/submit /plugins/com.github.matterpoll.matterpoll/api/v1/polls/create)
+	void addPoll (BackendChannel& channel, const BackendNewPollData& pollData);
 
 	//add a reaction to a post (/reactions)
 	void addPostReaction (const QString& postID, const QString& emojiName);
@@ -233,6 +238,7 @@ private:
     bool							isLoggedIn;
     bool							autoLoginEnabledFlag;
     uint32_t						nonFilledTeams;
+    uint64_t						lastStartTime;
 };
 
 } /* namespace Mattermost */
