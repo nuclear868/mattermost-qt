@@ -64,6 +64,9 @@
      <property name="contextMenuPolicy">
       <enum>Qt::NoContextMenu</enum>
      </property>
+     <property name="acceptRichText">
+      <bool>false</bool>
+     </property>
      <property name="placeholderText">
       <string>Write a message</string>
      </property>

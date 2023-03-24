@@ -36,7 +36,7 @@ namespace Mattermost {
 class NewPollDialog: public QDialog {
     Q_OBJECT
 public:
-    explicit NewPollDialog(QWidget *parent = nullptr);
+    explicit NewPollDialog (QWidget *parent, BackendNewPollData initialPollData);
     ~NewPollDialog();
 public:
     BackendNewPollData getData ();

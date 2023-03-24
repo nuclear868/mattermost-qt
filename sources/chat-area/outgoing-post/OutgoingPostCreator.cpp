@@ -26,6 +26,7 @@
 
 #include <QDragMoveEvent>
 #include <QMimeData>
+#include <QMessageBox>
 #include <QDebug>
 #include <QPushButton>
 #include <QLabel>
@@ -173,6 +174,25 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 
 static NewPollDialog* newPollDialog;
 
+static QStringRef getStringInsideQuotes (const QString& str, int& nextPos)
+{
+	int firstQuoute = str.indexOf('"', nextPos);
+
+	if (firstQuoute == -1) {
+		return QStringRef();
+	}
+
+	int lastQuote = str.indexOf('"', firstQuoute + 1);
+
+	if (lastQuote == -1) {
+		return QStringRef();
+	}
+
+	nextPos = lastQuote + 1;
+
+	return QStringRef (&str, firstQuoute + 1, lastQuote - firstQuoute - 1);
+}
+
 void OutgoingPostCreator::sendPostButtonAction ()
 {
 	QString message = ui->textEdit->toPlainText ();
@@ -182,19 +202,53 @@ void OutgoingPostCreator::sendPostButtonAction ()
 		return;
 	}
 
-	if (message == "/poll") {
-		newPollDialog = new NewPollDialog (this);
+	//if the message is a poll, open a poll dialog
+	if (message.startsWith ("/poll")) {
+
+		if (postToEdit) {
+			QMessageBox::warning (this, "Error", "Cannot replace a non-poll message with a poll. Either delete the post or add the poll as a new post", QMessageBox::Ok);
+			return;
+		}
+
+		//Parse the string and fill initial poll data with any parameters from it
+		BackendNewPollData initialPollData;
+
+		int startPos = 6;
+		QStringRef str (getStringInsideQuotes (message, startPos));
+		qDebug () << "got " << str << " pos " << startPos;
+
+		if (!str.isEmpty()) {
+			initialPollData.question = str.toString();
+		}
+
+		str = getStringInsideQuotes (message, startPos);
+		qDebug () << "got " << str << " pos " << startPos;
+
+		while (!str.isEmpty()) {
+			initialPollData.options.push_back (str.toString());
+			str = getStringInsideQuotes (message, startPos);
+			qDebug () << "got " << str << " pos " << startPos;
+		}
+
+		if (message.indexOf ("--progress", startPos) != -1) {
+			initialPollData.showProgress = true;
+		}
+
+		if (message.indexOf ("--anonymous", startPos) != -1) {
+			initialPollData.isAnonymous = true;
+		}
+
+		if (message.indexOf ("--public-add-option", startPos) != -1) {
+			initialPollData.allowAddOptions = true;
+		}
+
+		newPollDialog = new NewPollDialog (this, initialPollData);
 
 		connect (newPollDialog, &QDialog::accepted, [this] {
 
 			outgoingPostData = std::make_unique<OutgoingPostData>();
 			outgoingPostData->pollData = std::make_unique<BackendNewPollData> (newPollDialog->getData ());
-
-			sendRetryTimer.start (10000);
-			ui->textEdit->setReadOnly (true);
-			updateSendButtonState ();
-			prepareAndSendPost ();
-			setStatusLabelText ("Sending message...");
+			startSendPostSequence ();
 
 		});
 
@@ -208,12 +262,19 @@ void OutgoingPostCreator::sendPostButtonAction ()
 	outgoingPostData->postToEdit = postToEdit;
 	postToEdit = nullptr;
 
-
 	if (attachmentList) {
 		outgoingPostData->attachmentPaths = attachmentList->getAllFiles();
 		attachmentList->setDisableInput (true);
 	}
 
+	startSendPostSequence ();
+}
+
+/**
+ * Call all things that should happen (one time) before sending a post
+ */
+void OutgoingPostCreator::startSendPostSequence ()
+{
 	sendRetryTimer.start (10000);
 	ui->textEdit->setReadOnly (true);
 	updateSendButtonState ();
@@ -221,6 +282,12 @@ void OutgoingPostCreator::sendPostButtonAction ()
 	setStatusLabelText ("Sending message...");
 }
 
+
+/**
+ * Sends a post. If the post has attachments, they will be uploaded separately to the server.
+ * The post will be sent when all attachments are uploaded
+ * This function can be called from a timer, when retrying post sending
+ */
 void OutgoingPostCreator::prepareAndSendPost ()
 {
 	if (outgoingPostData->attachmentPaths.isEmpty()) {
@@ -249,6 +316,10 @@ void OutgoingPostCreator::prepareAndSendPost ()
 	}
 }
 
+/**
+ * Immediately sends the packet for the already prepared post.
+ * The post can be either a new post, a post edit or a poll
+ */
 void OutgoingPostCreator::sendPost ()
 {
 	QString attachmentsLogStr (outgoingPostData->attachmentIds.isEmpty() ? "" : " (+attachments)");

@@ -72,6 +72,7 @@ private:
 	bool isCreatingPost ();
 	bool isWaitingForPostServerResponse ();
 
+	void startSendPostSequence ();
 	void prepareAndSendPost ();
 	void sendPost ();
 

@@ -28,18 +28,35 @@
 
 namespace Mattermost {
 
-NewPollDialog::NewPollDialog(QWidget *parent)
+NewPollDialog::NewPollDialog(QWidget *parent, BackendNewPollData initialPollData)
 :QDialog(parent)
 ,ui(new Ui::NewPollDialog)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 
-    connect (ui->questionValue, &QLineEdit::textChanged, this, &NewPollDialog::validateInput);
-    connect (ui->option1Value, &QLineEdit::textChanged, this, &NewPollDialog::validateInput);
-    connect (ui->option2Value, &QLineEdit::textChanged, this, &NewPollDialog::validateInput);
-    validateInput ();
-    setAttribute(Qt::WA_DeleteOnClose);
+	connect (ui->questionValue, &QLineEdit::textChanged, this, &NewPollDialog::validateInput);
+	connect (ui->option1Value, &QLineEdit::textChanged, this, &NewPollDialog::validateInput);
+	connect (ui->option2Value, &QLineEdit::textChanged, this, &NewPollDialog::validateInput);
 
+
+	ui->questionValue->setText (initialPollData.question);
+
+	QLineEdit* optionsLineEditArr[] = { ui->option1Value, ui->option2Value, ui->option3Value };
+
+	for (int i = 0; i < initialPollData.options.size(); ++i) {
+		optionsLineEditArr[i]->setText (initialPollData.options[i]);
+	}
+
+	if (initialPollData.isAnonymous) {
+		ui->checkBoxAnonymous->setChecked(true);
+	}
+
+	if (initialPollData.showProgress) {
+		ui->checkBoxProgress->setChecked(true);
+	}
+
+	validateInput ();
+	setAttribute(Qt::WA_DeleteOnClose);
 }
 
 NewPollDialog::~NewPollDialog()

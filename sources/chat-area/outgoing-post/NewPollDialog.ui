@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>351</height>
+    <height>417</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -69,6 +69,9 @@
    </item>
    <item>
     <widget class="QCheckBox" name="checkBoxAnonymous">
+     <property name="toolTip">
+      <string>Don't show who voted for what when the poll ends</string>
+     </property>
      <property name="text">
       <string>Anonymous</string>
      </property>
@@ -76,6 +79,9 @@
    </item>
    <item>
     <widget class="QCheckBox" name="checkBoxProgress">
+     <property name="toolTip">
+      <string>During the poll, show how many votes each answer option got</string>
+     </property>
      <property name="text">
       <string>Progress</string>
      </property>
@@ -83,8 +89,11 @@
    </item>
    <item>
     <widget class="QCheckBox" name="checkBoxAllowAdditional">
-     <property name="text">
+     <property name="toolTip">
       <string>Allow all users to add additional options</string>
+     </property>
+     <property name="text">
+      <string>Allow adding additional options</string>
      </property>
     </widget>
    </item>
