@@ -99,7 +99,6 @@ BackendPost* BackendChannel::addPost (const QJsonObject& postObject)
 	posts.emplace_back (postObject, storage);
 
 	BackendPost* newPost = &posts.back ();
-	newPost->author = storage.getUserById (newPost->user_id);
 	postIdToPost[newPost->id] = newPost;
 	return newPost;
 }
@@ -110,8 +109,7 @@ void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPo
 	 * Add a post.
 	 * And add added post to the list of new posts
 	 */
-	BackendPost* newPost = &*posts.emplace(position, postObject, storage);
-	newPost->author = storage.getUserById (newPost->user_id);
+	BackendPost* newPost = &*posts.emplace (position, postObject, storage);
 	postIdToPost[newPost->id] = newPost;
 
 	currentChunk.postsToAdd.emplace_front (newPost);
@@ -172,7 +170,9 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 	QVector<QPair<QString, QString>> rootIdAndPostList;
 
-	//search local posts from newest to oldest
+	/* Position to add new posts (if any)
+	 * local posts are searched from newest to oldest
+	 */
 	std::list<BackendPost>::reverse_iterator currentLocalPost = posts.rbegin();
 
 #warning "Handle case of deleted post, that is not deleted locally"
@@ -180,25 +180,32 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 	bool initialLoad = (posts.empty());
 	bool lastPostWasSkipped = false;
 
-	int i = 0;
-
 	for (const auto& newPostEl: orderArray) {
 
-		++i;
-
-		QString newPostId = newPostEl.toString();
-
-		//if a post is deleted, it will exist locally, but will not exist in the list of received post
+		/*
+		 * Skip deleted posts.
+		 * if a post is deleted, it will exist locally (with 'message deleted' text), but will not exist in the list of received posts.
+		 * Deleted posts are not affected. They will not be present after client restart
+		 */
 		while (currentLocalPost != posts.rend() && currentLocalPost->isDeleted) {
 			++currentLocalPost;
 		}
 
-		//end of local posts list. Save the current missing post sequence and add all missing posts
+		QString newPostId = newPostEl.toString();
+
+		/*
+		 * end of local posts list. Save the current missing post sequence and add all missing posts.
+		 * This is the case when scrolling up and getting older posts.
+		 */
 		if (currentLocalPost == posts.rend()) {
 			addPost (postsObject.find (newPostId).value().toObject(), posts.begin (), currentNewPostsChunk, rootIdAndPostList, initialLoad);
 			++currentLocalPost;
 			continue;
 		}
+
+		/*
+		 * Compare new posts with existing ones. If there is a new post, mark it for adding.
+		 */
 
 		//post already exists. No need to be added. Save the current missing posts chunk and start a new one
 		if (currentLocalPost->id == newPostId) {
@@ -252,6 +259,19 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 	}
 
 	emit onNewPosts (allNewPosts);
+}
+
+void BackendChannel::addPinnedPosts (const QJsonArray& orderArray, const QJsonObject& postsObject)
+{
+	for (const auto& newPostEl: orderArray) {
+		QString newPostId = newPostEl.toString();
+
+		pinnedPosts.emplace_back (postsObject.find (newPostId).value().toObject(), storage);
+	}
+
+	if (!pinnedPosts.empty()) {
+		emit onPinnedPostsReceived ();
+	}
 }
 
 void BackendChannel::editPost (BackendPost& newPost)

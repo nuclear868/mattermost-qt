@@ -31,6 +31,7 @@ class ChatArea;
 
 class QListWidgetItem;
 class QVBoxLayout;
+class QDockWidget;
 
 namespace Mattermost {
 
@@ -68,11 +69,20 @@ public:
 	void onActivate ();
 
 	/**
+	 * Called when the chat area is being unselected from the channels menu
+	 * (so that other chatArea is being activated)
+	 */
+	void onDeactivate ();
+
+	/**
 	 * Called when the main Mattermost window is being activated (gains focus).
 	 * Called only if the chat area is the currently active one (so that it's contents is visible)
 	 */
 	void onMainWindowActivate ();
+
+	void onMove (QPoint pos);
 private:
+	void resizeEvent (QResizeEvent* event)		override;
 	void dragEnterEvent (QDragEnterEvent* event) override;
 	void dragMoveEvent (QDragMoveEvent* event) override;
 	void dropEvent (QDropEvent* event) override;
@@ -87,6 +97,7 @@ public:
 	BackendChannel& 				channel;
 	ChannelItem* 					treeItem;
 	QString 						lastReadPostId;
+	QDockWidget*					pinnedPostsDockWidget;
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;

@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <QListWidget>
 #include <QTimer>
+#include "ResizableListWidget.h"
 #include "post/PostWidget.h"
 
 namespace Mattermost {
@@ -39,7 +39,7 @@ enum id {
 };
 }
 
-class PostsListWidget: public QListWidget {
+class PostsListWidget: public ResizableListWidget {
 	Q_OBJECT
 public:
 	explicit PostsListWidget (QWidget* parent);
@@ -59,6 +59,12 @@ public:
 	QListWidgetItem* getLastOwnPost () const;
 	void initiatePostEdit (QListWidgetItem& postItem);
 	void postEditFinished ();
+
+	/**
+	 * If the widget is near the bottom when being resized,
+	 * keep it at the bottom
+	 */
+	void resizeToBottom ();
 	Backend*						backend;
 signals:
 	void postEditInitiated (BackendPost& post);
@@ -68,7 +74,6 @@ private:
 
 	void copySelectedItemsToClipboard (PostWidget::FormatType formatType);
 	void keyPressEvent (QKeyEvent* event)		override;
-	void resizeEvent (QResizeEvent* event)		override;
 	void focusOutEvent (QFocusEvent* event)		override;
 	void showContextMenu (const QPoint &pos);
 private:

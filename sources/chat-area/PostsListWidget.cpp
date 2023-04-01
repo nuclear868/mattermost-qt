@@ -39,7 +39,7 @@
 namespace Mattermost {
 
 PostsListWidget::PostsListWidget (QWidget* parent)
-:QListWidget (parent)
+:ResizableListWidget (parent)
 ,backend (nullptr)
 ,newMessagesSeparator (nullptr)
 ,lastOwnPost (nullptr)
@@ -369,29 +369,11 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	menuShown = false;
 }
 
-void PostsListWidget::resizeEvent (QResizeEvent* event)
+void PostsListWidget::resizeToBottom ()
 {
-	qDebug() << "ResizeEvent " << event->size();
-	for (int i = 0; i < count(); ++i) {
-		QListWidgetItem* item = this->item(i);
-		QWidget* widget = (QWidget*)itemWidget (item);
-
-		if (!widget) {
-			qDebug() << "ResizeEvent: Item has null widget";
-			return;
-		}
-
-		if (widget->heightForWidth(event->size().width()) != -1) {
-			item->setSizeHint(QSize (viewportSizeHint().width(), widget->heightForWidth(event->size().width())));
-			//qDebug() << "SetSizeHint " << event->size().width() << " " << widget->heightForWidth(event->size().width());
-		}
-	}
-
 	if (verticalScrollBar()->maximum() - verticalScrollBar()->value() < 10) {
 		scrollToBottom ();
 	}
-
-	QListWidget::resizeEvent (event);
 }
 
 void PostsListWidget::focusOutEvent (QFocusEvent* event)

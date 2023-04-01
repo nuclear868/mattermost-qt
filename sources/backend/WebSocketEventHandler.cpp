@@ -86,7 +86,9 @@ void WebSocketEventHandler::handleEvent (const PostEditedEvent& event)
 
 	QString channelName = channel ? channel->name : event.channelId;
 
+	//temporary post object. Used only to apply it's properties to the existing post, after edit
 	BackendPost post (event.postObject, storage);
+
 	channel->editPost (post);
 
 #if 0

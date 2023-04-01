@@ -80,6 +80,7 @@ public:
 
 	void prependPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void addPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
+	void addPinnedPosts (const QJsonArray& orderArray, const QJsonObject& postsObject);
 	void editPost (BackendPost& newPost);
 	void addPostReaction (QString postId, QString userId, QString emojiName);
 	void removePostReaction (QString postId, QString userId, QString emojiName);
@@ -104,6 +105,12 @@ signals:
 	 * @param posts Collection of the missing posts only
 	 */
 	void onNewPosts (const ChannelNewPosts& collection);
+
+	/**
+	 * Called when pinned posts are received.
+	 * Either after init or after WebSocket disconnect.
+	 */
+	void onPinnedPostsReceived ();
 
 	/**
 	 * Called when a new post has arrived in the channel
@@ -172,6 +179,7 @@ public:
 
     QMap<QString, BackendPost*>		postIdToPost;
     std::list<BackendPost>			posts;
+    std::list<BackendPost>			pinnedPosts;
 };
 
 } /* namespace Mattermost */

@@ -82,6 +82,10 @@ Backend::Backend(QObject *parent)
 			for (auto& it: storage.channels) {
 				retrieveChannelPosts (*it, 0, 25);
 			}
+
+			for (auto& it: storage.channels) {
+				retrieveChannelPinnedPosts (*it);
+			}
 		}
 	});
 
@@ -441,6 +445,8 @@ void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
 
+	//LOG_DEBUG ("getUserImage request");
+
 	httpConnector.get (request, HttpResponseCallback ([this, userID] (QVariant, QByteArray data) {
 
 		//LOG_DEBUG ("getUserImage reply");
@@ -730,10 +736,11 @@ void Backend::retrieveDirectChannel (QString channelID)
 void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPage)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(page) + "&per_page=" + QString::number(perPage));
+    //LOG_DEBUG ("retrieveChannelPosts request for " << channel.display_name << " (" << channel.id << ")");
 
     httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
 
-		LOG_DEBUG ("retrieveChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
+		//LOG_DEBUG ("retrieveChannelPosts reply for " << channel.display_name << " (" << channel.id << ")");
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -742,6 +749,23 @@ void Backend::retrieveChannelPosts (BackendChannel& channel, int page, int perPa
 
 		QJsonObject root = doc.object();
 		channel.addPosts (root.value("order").toArray(), root.value("posts").toObject());
+		retrieveChannelPinnedPosts (channel);
+    }));
+}
+
+void Backend::retrieveChannelPinnedPosts (BackendChannel& channel)
+{
+    NetworkRequest request ("channels/" + channel.id + "/pinned");
+    //LOG_DEBUG ("retrieveChannelPinnedPosts request for " << channel.display_name << " (" << channel.id << ")");
+
+    httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
+
+		//LOG_DEBUG ("retrieveChannelPinnedPosts reply for " << channel.display_name << " (" << channel.id << ")");
+		//QString jsonString = doc.toJson(QJsonDocument::Indented);
+		//std::cout << jsonString.toStdString() << std::endl;
+
+		QJsonObject root = doc.object();
+		channel.addPinnedPosts (root.value("order").toArray(), root.value("posts").toObject());
     }));
 }
 

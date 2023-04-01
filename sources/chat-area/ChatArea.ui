@@ -109,6 +109,17 @@
       </layout>
      </item>
      <item>
+      <widget class="QPushButton" name="pinnedPostsButton">
+       <property name="text">
+        <string>View Pinned Posts</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../resource.qrc">
+         <normaloff>:/img/pushpin.png</normaloff>:/img/pushpin.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -194,6 +205,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

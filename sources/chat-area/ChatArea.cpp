@@ -19,11 +19,13 @@
 
 #include "ChatArea.h"
 
+#include <QDockWidget>
 #include "channel-tree/ChannelItem.h"
 #include "ui_ChatArea.h"
 #include "post/PostWidget.h"
 #include "backend/Backend.h"
 #include "channel-tree/ChannelItemWidget.h"
+#include "PinnedPostsList.h"
 #include "log.h"
 
 namespace Mattermost {
@@ -34,6 +36,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 ,backend (backend)
 ,channel (channel)
 ,treeItem (treeItem)
+,pinnedPostsDockWidget (nullptr)
 ,unreadMessagesCount (0)
 ,texteditDefaultHeight (70)
 ,gettingOlderPosts (false)
@@ -103,6 +106,17 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
 
+	connect (&channel, &BackendChannel::onPinnedPostsReceived, [this] () {
+		ui->pinnedPostsButton->show();
+		uint32_t pinnedPostCount = this->channel.pinnedPosts.size();
+		const char* pinnedPostsString[2] = {
+			" pinned post",
+			" pinned posts"
+		};
+
+		ui->pinnedPostsButton->setText (QString::number (pinnedPostCount) + pinnedPostsString[pinnedPostCount > 1]);
+	});
+
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
 
 	//let the post creator know that the last sent / edited post has appeared so that the input box can be cleared
@@ -164,6 +178,38 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			backend.retrieveChannelOlderPosts (channel, 40);
 		}
 	});
+
+	connect (ui->pinnedPostsButton, &QPushButton::clicked, [this] {
+
+		if (pinnedPostsDockWidget) {
+			delete (pinnedPostsDockWidget);
+			pinnedPostsDockWidget = nullptr;
+			return;
+		}
+
+		pinnedPostsDockWidget = new QDockWidget (this);
+		pinnedPostsDockWidget->setFloating(true);
+		pinnedPostsDockWidget->setFeatures(QDockWidget::DockWidgetMovable);
+		auto pinnedPostsList = new PinnedPostsList (this);
+		pinnedPostsDockWidget->setWidget (pinnedPostsList);
+
+		for (auto& post: this->channel.pinnedPosts) {
+			pinnedPostsList->addPost (new PostWidget (this->backend, post, ui->listWidget, this, nullptr));
+		}
+
+		//disable title bar
+		pinnedPostsDockWidget->setTitleBarWidget(new QWidget());
+
+		pinnedPostsDockWidget->move (mapToGlobal(ui->pinnedPostsButton->pos()) + QPoint (0,40));
+		pinnedPostsDockWidget->setFixedWidth (geometry().size().width() - ui->pinnedPostsButton->pos().x() - 30);
+		pinnedPostsDockWidget->setFixedHeight (300);
+
+		ui->headerLayout->addWidget(pinnedPostsDockWidget);
+
+	});
+
+	//hide the pinned posts button by default. It will be shown if the channel has pinned posts
+	ui->pinnedPostsButton->hide();
 }
 
 ChatArea::~ChatArea()
@@ -335,10 +381,27 @@ void ChatArea::onActivate ()
 	ui->listWidget->scrollToUnreadPostsOrBottom ();
 }
 
+void ChatArea::onDeactivate ()
+{
+	if (pinnedPostsDockWidget) {
+		delete pinnedPostsDockWidget;
+		pinnedPostsDockWidget = nullptr;
+	}
+}
+
 void ChatArea::onMainWindowActivate ()
 {
 	setUnreadMessagesCount (0);
 	backend.markChannelAsViewed (channel);
+}
+
+void ChatArea::onMove (QPoint pos)
+{
+	if (!pinnedPostsDockWidget) {
+		return;
+	}
+
+	pinnedPostsDockWidget->move (mapToGlobal(ui->pinnedPostsButton->pos()) + QPoint (0,40));
 }
 
 void ChatArea::moveOnListTop ()
@@ -395,6 +458,13 @@ void ChatArea::setUnreadMessagesCount (uint32_t count)
 	} else {
 		treeItem->setText(1, QString::number(count));
 	}
+}
+
+void ChatArea::resizeEvent (QResizeEvent* event)
+{
+	//if the listWidget is near bottom of the posts list, keep it at bottom
+	ui->listWidget->resizeToBottom();
+	QWidget::resizeEvent (event);
 }
 
 void ChatArea::dragEnterEvent (QDragEnterEvent* event)

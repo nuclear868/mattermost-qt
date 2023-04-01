@@ -34,7 +34,6 @@ namespace Mattermost {
 
 BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
 :rootPost (nullptr)
-,author (nullptr)
 ,isDeleted (false)
 {
 	id = jsonObject.value("id").toString();
@@ -44,6 +43,7 @@ BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
 	delete_at = jsonObject.value("delete_at").toVariant().toULongLong();
 	is_pinned = jsonObject.value("is_pinned").toBool();
 	user_id = jsonObject.value("user_id").toString();
+	author = storage.getUserById (user_id);
 	channel_id = jsonObject.value("channel_id").toString();
 	root_id = jsonObject.value("root_id").toString();
 	parent_id = jsonObject.value("parent_id").toString();

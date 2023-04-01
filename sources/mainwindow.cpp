@@ -226,6 +226,20 @@ void MainWindow::createMenu ()
 	ui->toolButton->setMenu(mainMenu);
 }
 
+void MainWindow::moveEvent (QMoveEvent*)
+{
+	ChatArea* currentPage = ui->channelList->getCurrentPage();
+
+	if (currentPage) {
+		currentPage->onMove (pos());
+	}
+}
+
+void MainWindow::dragMoveEvent (QDragMoveEvent*)
+{
+	qDebug() << "dragMove " << mapToGlobal(pos());
+}
+
 void MainWindow::reload ()
 {
 	QTimer::singleShot(0, [this] {

@@ -104,8 +104,11 @@ public:
 	void retrieveChannel (BackendTeam& team, QString channelID);
 	void retrieveDirectChannel (QString channelID);
 
-	//get posts in a channel (/channels/ID/posts)
+	//get posts in a channel (/channels/{channel_id}/posts)
 	void retrieveChannelPosts (BackendChannel& channel, int page, int perPage);
+
+	//get channel's pinned posts (/channels/{channel_id}/pinned)
+	void retrieveChannelPinnedPosts (BackendChannel& channel);
 
 	//get older posts in a channel (before the first one) (/channels/ID/posts)
 	void retrieveChannelOlderPosts (BackendChannel& channel, int perPage);

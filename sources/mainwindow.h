@@ -75,6 +75,9 @@ public:
 	 */
 	void unreadMessagesNotify (const BackendChannel& channel);
 	void setNotificationsCountVisualization (uint32_t notificationsCount);
+
+	void moveEvent (QMoveEvent* event) override;
+	void dragMoveEvent (QDragMoveEvent* event) override;
 private:
 	void createMenu ();
 	void reload ();
