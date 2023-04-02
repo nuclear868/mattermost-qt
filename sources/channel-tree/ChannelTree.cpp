@@ -193,7 +193,10 @@ void ChannelTree::showContextMenu (const QPoint& pos)
 	QPoint globalPos = mapToGlobal(pos);
 
 	ChannelTreeItem* pointedItem = static_cast<ChannelTreeItem*> (itemAt(pos));
-	pointedItem->showContextMenu (globalPos + QPoint (25, 15));
+
+	if (pointedItem) {
+		pointedItem->showContextMenu (globalPos + QPoint (25, 15));
+	}
 }
 
 ChatArea* ChannelTree::getCurrentPage ()

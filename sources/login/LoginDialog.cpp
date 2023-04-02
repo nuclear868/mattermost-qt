@@ -51,6 +51,7 @@ LoginDialog::LoginDialog (QWidget *parent, Backend& backend)
 
 	QIcon icon (":/icons/img/icon0.ico");
 	ui->icon->setPixmap (icon.pixmap (QSize (64, 64)));
+	ui->loginInProgressLabel->hide();
 
 	//if all data is available in the settings, use it for the login
 	if (backend.autoLoginEnabled() && loginData.areAllFieldsFilled()) {
@@ -85,6 +86,7 @@ void LoginDialog::loginToServer (const BackendLoginData& loginData)
     ui->password_lineEdit->setEnabled(false);
     ui->login_pushButton->setEnabled(false);
     ui->error_label->clear();
+    ui->loginInProgressLabel->show();
 
     LOG_DEBUG ("LoginDialog login");
     backend.login (loginData, [this, loginData = loginData] (const QString& token) mutable {
@@ -111,6 +113,7 @@ void LoginDialog::onNetworkError (uint32_t errorNumber, const QString& errorText
 {
 	qCritical() << "Net error: " << errorNumber << ": " << errorText;
     setError ("Network Error: " + errorText);
+    ui->loginInProgressLabel->hide();
 }
 
 void LoginDialog::onHttpError (uint32_t errorNumber, const QString& errorText)
@@ -120,6 +123,7 @@ void LoginDialog::onHttpError (uint32_t errorNumber, const QString& errorText)
 	} else {
 		setError ("HTTP Error " + QString::number(errorNumber) + ": "  + errorText);
 	}
+	ui->loginInProgressLabel->hide();
 }
 
 void LoginDialog::setError (const QString& errorStr)

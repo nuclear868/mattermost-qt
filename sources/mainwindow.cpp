@@ -228,6 +228,7 @@ void MainWindow::createMenu ()
 
 void MainWindow::moveEvent (QMoveEvent*)
 {
+
 	ChatArea* currentPage = ui->channelList->getCurrentPage();
 
 	if (currentPage) {
