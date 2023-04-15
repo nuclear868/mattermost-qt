@@ -17,11 +17,10 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
-#ifndef USERDIALOG_H
-#define USERDIALOG_H
+#pragma once
 
-#include <map>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include "fwd.h"
 
 namespace Ui {
@@ -30,20 +29,30 @@ class FilterListDialog;
 
 namespace Mattermost {
 
-class FilterListDialog : public QDialog
+struct FilterListDialogConfig {
+	QString 									title;
+	QString 									description;
+	QString 									filterLabelText;
+	QFlags<QDialogButtonBox::StandardButton>	buttons;
+	QString										disabledItemTooltip;
+};
+
+class FilterListDialog: public QDialog
 {
     Q_OBJECT
 
 public:
     FilterListDialog (QWidget *parent);
     ~FilterListDialog();
+public:
+    void create (const FilterListDialogConfig& cfg);
 private:
     void applyFilter (const QString& filter);
-    virtual void showContextMenu (const QPoint& pos) = 0;
+    virtual void showContextMenu (const QPoint& pos, QVariant&& selectedItemData) = 0;
+    virtual void setItemCountLabel (uint32_t count) = 0;
 protected:
     Ui::FilterListDialog *ui;
 };
 
 } /* namespace Mattermost */
 
-#endif // USERDIALOG_H

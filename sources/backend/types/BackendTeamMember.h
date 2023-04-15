@@ -28,23 +28,25 @@
 #include <QVariant>
 #include "BackendUser.h"
 
+class QJsonObject;
+
 namespace Mattermost {
+
+class Storage;
+class BackendUser;
 
 class BackendTeamMember {
 public:
-	BackendTeamMember (const QJsonObject& jsonObject);
+	BackendTeamMember (const Storage& storage, const QJsonObject& jsonObject);
 	virtual ~BackendTeamMember ();
 public:
-	uint64_t		delete_at;
-	QString			explicit_roles;
-	QString			roles;
-	bool			scheme_admin;
-	bool			scheme_guest;
-	bool			scheme_user;
-	QString			team_id;
-	QString			user_id;
-
-	BackendUser*	user;
+	QString getDisplayUsername () const;
+public:
+	uint64_t			delete_at;
+	QString				explicit_roles;
+	QString				roles;
+	const BackendUser*	user;
+	bool				isAdmin;
 };
 
 } /* namespace Mattermost */

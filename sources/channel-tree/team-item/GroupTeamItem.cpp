@@ -28,7 +28,7 @@
 #include "channel-tree/channel-item/GroupChannelItem.h"
 #include "backend/Backend.h"
 #include "channel-tree-dialogs/TeamChannelsListDialog.h"
-#include "channel-tree-dialogs/UserListDialogForTeam.h"
+#include "channel-tree-dialogs/UserListDialog.h"
 
 namespace Mattermost {
 
@@ -50,29 +50,19 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 			return;
 		}
 
-		std::vector<const BackendUser*> teamMembers;
-
-		for (auto& it: team->members) {
-
-			if (!it.user) {
-				qDebug () << "user " << it.user_id << " is nullptr";
-				continue;
-			}
-
-			teamMembers.push_back (it.user);
-		}
-		qDebug() << "View Team members " << team->members.size();
-
-		UserListDialogConfig dialogCfg {
+		FilterListDialogConfig dialogCfg {
 			"Team Members - Mattermost",
-			"Members of team '" + team->display_name + "':"
+			"Members of team '" + team->display_name + "':",
+			"Filter users by name:",
+			QDialogButtonBox::Close
 		};
 
-		UserListDialogForTeam* dialog = new UserListDialogForTeam (dialogCfg, teamMembers, treeWidget());
+		qDebug() << "View Team members " << team->members.size();
+		ViewTeamMembersDialog* dialog = new ViewTeamMembersDialog (dialogCfg, team->members, treeWidget());
 		dialog->show ();
 	});
 
-	myMenu.addAction ("Add new members to the team", [this] {
+	myMenu.addAction ("Add user to the team", [this] {
 
 		BackendTeam* team = backend.getStorage().getTeamById(teamId);
 
@@ -85,9 +75,12 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 
 		QSet<const BackendUser*> teamMembers = team->getAllMembers();
 
-		UserListDialogConfig dialogCfg {
+		FilterListDialogConfig dialogCfg {
 			"Add user to team - Mattermost",
-			"Select a user to add to the '" + team->display_name + "' team:"
+			"Select a user to add to the '" + team->display_name + "' team:",
+			"Filter users by name:",
+			QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+			" is already added to the team"
 		};
 
 		UserListDialog* dialog = new UserListDialog (dialogCfg, availableUsers, &teamMembers, treeWidget());
@@ -106,12 +99,20 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 	});
 
 	myMenu.addAction ("View Public Channels", [this] {
-			BackendTeam* team = backend.getStorage().getTeamById(teamId);
+		BackendTeam* team = backend.getStorage().getTeamById(teamId);
 
-			backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
-				TeamChannelsListDialog* dialog = new TeamChannelsListDialog (backend, team->display_name, channels, treeWidget());
-				dialog->show ();
-			});
+		backend.retrieveTeamPublicChannels (team->id, [this, team] (std::list<BackendChannel>& channels) {
+
+			FilterListDialogConfig dialogCfg {
+				"Public Channels - Mattermost",
+				"Public Channels in team '" + team->display_name + "':",
+				"Filter channels by name:",
+				QDialogButtonBox::Close
+			};
+
+			TeamChannelsListDialog* dialog = new TeamChannelsListDialog (backend, dialogCfg, channels, treeWidget());
+			dialog->show ();
+		});
 	});
 
 	myMenu.exec (pos);

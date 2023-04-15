@@ -18,6 +18,8 @@
  */
 
 #include "FilterListDialog.h"
+
+#include <QDebug>
 #include "ui_FilterListDialog.h"
 
 namespace Mattermost {
@@ -26,10 +28,29 @@ FilterListDialog::FilterListDialog (QWidget* parent)
 :QDialog(parent)
 ,ui(new Ui::FilterListDialog)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 
-    connect (ui->treeWidget, &QTreeWidget::customContextMenuRequested, this, &FilterListDialog::showContextMenu);
-    connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &FilterListDialog::applyFilter);
+	connect (ui->tableWidget, &QWidget::customContextMenuRequested, [this] (const QPoint& pos) {
+
+		QTableWidgetItem* pointedItem = ui->tableWidget->itemAt (pos);
+
+		if (!pointedItem) {
+			qDebug() << "No pointed item at " << pos;
+			return;
+		}
+
+		//only the first item from the row contains a pointer to the item-specific data
+		QTableWidgetItem* pointedFirstItem = ui->tableWidget->item (pointedItem->row(), 0);
+
+		if (!pointedFirstItem) {
+			qDebug() << "No pointed name item at " << pos;
+			return;
+		}
+
+		showContextMenu (pos, pointedFirstItem->data (Qt::UserRole));
+	});
+
+connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &FilterListDialog::applyFilter);
 }
 
 FilterListDialog::~FilterListDialog()
@@ -37,22 +58,34 @@ FilterListDialog::~FilterListDialog()
     delete ui;
 }
 
+void FilterListDialog::create (const FilterListDialogConfig& cfg)
+{
+	setWindowTitle (cfg.title);
+	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", cfg.description.toStdString().c_str(), nullptr));
+	ui->filterUsersLabel->setText (cfg.filterLabelText);
+
+	if (cfg.buttons != 0) {
+		ui->buttonBox->setStandardButtons (cfg.buttons);
+	}
+}
+
 void FilterListDialog::applyFilter (const QString& text)
 {
-	uint32_t usersCount = 0;
+	uint32_t count = 0;
 
-	for (int row = 0; row < ui->treeWidget->topLevelItemCount(); ++row) {
-		QTreeWidgetItem* item = ui->treeWidget->topLevelItem (row);
+	for (int row = 0; row < ui->tableWidget->rowCount(); ++row) {
+		QTableWidgetItem* item = ui->tableWidget->item (row, 0);
 
-		if (item->text(0).contains(text, Qt::CaseInsensitive)) {
-			item->setHidden(false);
-			++usersCount;
+		if (item->text ().contains(text, Qt::CaseInsensitive)) {
+			ui->tableWidget->showRow (row);
+			++count;
 		} else {
-			item->setHidden(true);
+			ui->tableWidget->hideRow (row);
 		}
 	}
 
-	ui->usersCountLabel->setText(QString::number(usersCount) + " users");
+	setItemCountLabel (count);
 }
+
 
 } /* namespace Mattermost */

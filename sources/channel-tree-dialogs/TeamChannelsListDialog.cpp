@@ -43,57 +43,73 @@ auto nameComparator = [] (const BackendChannel* const& lhs, const BackendChannel
 
 }
 
-TeamChannelsListDialog::TeamChannelsListDialog (Backend& backend, const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent)
+TeamChannelsListDialog::TeamChannelsListDialog (Backend& backend, FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, QWidget *parent)
 :FilterListDialog (parent)
 ,backend (backend)
 {
+	create (cfg, channels, {"Channel Name", "Channel Header"});
+}
+
+TeamChannelsListDialog::~TeamChannelsListDialog () = default;
+
+void TeamChannelsListDialog::create (const FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, const QStringList& columnNames)
+{
+	FilterListDialog::create (cfg);
+
+	//2 columns: Channel Name and Channel Header
+	ui->tableWidget->setColumnCount (columnNames.size());
+	for (int i = 0; i < columnNames.size(); ++i) {
+		ui->tableWidget->setHorizontalHeaderItem(i, new QTableWidgetItem(columnNames[i]));
+
+		if (i > 0) {
+			ui->tableWidget->horizontalHeader()->setSectionResizeMode (i, QHeaderView::ResizeToContents);
+		}
+	}
+
 	std::set<const BackendChannel*, decltype (nameComparator)> set (nameComparator);
 
 	for (auto& it: channels) {
 		set.insert (&it);
 	}
 
+	ui->tableWidget->setRowCount (set.size());
 	uint32_t channelsCount = 0;
+
 	for (auto& channel: set) {
 
-		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << channel->display_name << channel->header);
-//		QImage img = QImage::fromData (user->avatar);
-//		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar)).scaled(32, 32)));
-		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendChannel*)channel));
-		ui->treeWidget->addTopLevelItem (item);
+		QTableWidgetItem* nameItem = new QTableWidgetItem (channel->display_name);
+		ui->tableWidget->setItem (channelsCount, 0, nameItem);
+		nameItem->setData (Qt::UserRole, QVariant::fromValue ((BackendChannel*)channel));
+
+		QTableWidgetItem* headerItem = new QTableWidgetItem (channel->header);
+		ui->tableWidget->setItem (channelsCount, 1, headerItem);
 		++channelsCount;
 	}
 
-	setWindowTitle("Public Channels - Mattermost");
-	ui->selectUserLabel->setText ("Public Channels in team '" + teamName + "':");
-	ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::ResizeToContents);
-	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::Stretch);
-	ui->usersCountLabel->setText(QString::number(channelsCount) + " channels");
-	ui->filterUsersLabel->setText("Filter channels by name");
+	ui->tableWidget->horizontalHeader()->setSectionResizeMode (0, QHeaderView::ResizeToContents);
+	ui->tableWidget->horizontalHeader()->setSectionResizeMode (1, QHeaderView::Stretch);
+	ui->tableWidget->resizeRowsToContents();
 
-	ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+	setItemCountLabel (channelsCount);
+	connect (ui->tableWidget->horizontalHeader(), &QHeaderView::sectionResized, ui->tableWidget, &QTableWidget::resizeRowsToContents);
 }
 
-TeamChannelsListDialog::~TeamChannelsListDialog ()
+void TeamChannelsListDialog::setItemCountLabel (uint32_t count)
 {
-	// TODO Auto-generated destructor stub
+	ui->usersCountLabel->setText(QString::number(count) + (count == 1 ? " channel" : " channels"));
 }
 
-void TeamChannelsListDialog::showContextMenu (const QPoint& pos)
+void TeamChannelsListDialog::showContextMenu (const QPoint& pos, QVariant&& selectedItemData)
 {
 	// Create menu and insert some actions
 	QMenu myMenu;
 
-	// Handle global position
-	QPoint globalPos = ui->treeWidget->mapToGlobal(pos);
+	BackendChannel *channel = selectedItemData.value<BackendChannel*>();
 
-	QTreeWidgetItem* pointedItem = ui->treeWidget->itemAt(pos);
-
-	if (!pointedItem) {
+	if (!channel) {
+		qDebug() << "No channel at pointed item at " << pos;
 		return;
 	}
-
-	BackendChannel *channel = pointedItem->data(0, Qt::UserRole).value<BackendChannel*>();
 
 	//direct channel
 	myMenu.addAction ("Join this channel", [this, channel] {
@@ -108,6 +124,8 @@ void TeamChannelsListDialog::showContextMenu (const QPoint& pos)
 		dialog->show ();
 	});
 
+	// Handle global position
+	QPoint globalPos = ui->tableWidget->mapToGlobal(pos);
 	myMenu.exec (globalPos + QPoint (15, 35));
 }
 

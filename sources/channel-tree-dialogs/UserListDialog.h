@@ -29,31 +29,37 @@
 
 namespace Mattermost {
 
-class UserListDialogEntry {
-	BackendUser* 	user;
-	bool			isAvailableForChoose;
-};
-
-struct UserListDialogConfig {
-	QString title;
-	QString description;
-};
+class BackendTeamMember;
+class BackendChannelMember;
+class UserListEntry;
 
 class UserListDialog: public FilterListDialog {
 public:
-	UserListDialog (const UserListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
-	UserListDialog (const UserListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
+	//"Add direct channel"
+	UserListDialog (const FilterListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
+
+	//"View Channel members"
+	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendChannelMember>& allTeamMembers, QWidget *parent);
+
+	//"View Team members"
+	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendTeamMember>& allTeamMembers, QWidget *parent);
+
+	UserListDialog (const FilterListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
 	virtual ~UserListDialog ();
 public:
     const BackendUser* getSelectedUser ();
-    void showContextMenu (const QPoint& pos)	override;
+    void showContextMenu (const QPoint& pos, QVariant&& selectedItemData)	override;
+    void setItemCountLabel (uint32_t count) 								override;
 private:
 
     struct NameComparator {
     	bool operator () (const BackendUser* const& lhs, const BackendUser* const& rhs);
     };
-    void create (const std::set<const BackendUser*, NameComparator>& users, const QSet<const BackendUser*>* alreadyExistingUsers);
+    void create (const FilterListDialogConfig& cfg, const std::set<UserListEntry>& users, const QStringList& columnNames);
 
 };
+
+using ViewTeamMembersDialog = UserListDialog;
+using ViewChannelMembersDialog = UserListDialog;
 
 } /* namespace Mattermost */

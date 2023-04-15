@@ -164,8 +164,11 @@ public:
 	//leave a channel (/channels/{channel_id}/members/{user_id})
 	void leaveChannel (const BackendChannel& channel);
 
-	//add a user to a channel (/teams/{team_id}/members)
+	//add a user to a team (/teams/{team_id}/members)
 	void addUserToTeam (const BackendTeam& team, const QString& userID);
+
+	//remove a user from a team (/teams/{team_id}/members/{user_id})
+	void removeUserFromTeam (const BackendTeam& team, const QString& userID);
 
 	//send a submit dialog response. In most cases, dialogs are handled by the UI
 	void sendSubmitDialog (const QJsonDocument& json);

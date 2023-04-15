@@ -31,10 +31,14 @@ namespace Mattermost {
 
 class TeamChannelsListDialog: public FilterListDialog {
 public:
-	TeamChannelsListDialog (Backend& backend, const QString& teamName, const std::list<BackendChannel>& channels, QWidget *parent = nullptr);
+	TeamChannelsListDialog (Backend& backend, FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, QWidget *parent);
 	virtual ~TeamChannelsListDialog ();
 public:
-	void showContextMenu (const QPoint& pos)	override;
+	void showContextMenu (const QPoint& pos, QVariant&& selectedItemData)	override;
+	void setItemCountLabel (uint32_t count) 								override;
+private:
+	void create (const FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, const QStringList& columnNames);
+private:
 	Backend& backend;
 };
 

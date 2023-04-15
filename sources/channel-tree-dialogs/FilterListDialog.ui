@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>500</height>
+    <width>800</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Select a user - Mattermost</string>
+   <string>Title</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -21,7 +21,7 @@
        <item>
         <widget class="QLabel" name="selectUserLabel">
          <property name="text">
-          <string>Select a user to start direct message with</string>
+          <string>label</string>
          </property>
         </widget>
        </item>
@@ -35,32 +35,34 @@
       </layout>
      </item>
      <item>
-      <widget class="QTreeWidget" name="treeWidget">
+      <widget class="QTableWidget" name="tableWidget">
        <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
        </property>
-       <property name="columnCount">
-        <number>2</number>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
        </property>
-       <attribute name="headerStretchLastSection">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="showGrid">
+        <bool>false</bool>
+       </property>
+       <attribute name="verticalHeaderVisible">
         <bool>false</bool>
        </attribute>
-       <column>
-        <property name="text">
-         <string>Name</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Status</string>
-        </property>
-       </column>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="filterUsersLabel">
        <property name="text">
-        <string>Filter users by name</string>
+        <string>label</string>
        </property>
       </widget>
      </item>

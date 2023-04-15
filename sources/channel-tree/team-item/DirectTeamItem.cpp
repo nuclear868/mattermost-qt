@@ -47,9 +47,12 @@ void DirectTeamItem::showContextMenu (const QPoint& pos)
 		qDebug() << "Add direct channel ";
 		QSet<const BackendUser*> allDirectChannelUsers = backend.getStorage().directChannels.getAllMembers();
 
-		UserListDialogConfig dialogCfg {
-			"New Direct Channel - Mattermost",
-			"Select a user to start direct message channel with:"
+		FilterListDialogConfig dialogCfg {
+			"Add direct channel - Mattermost",
+			"Select a user to start direct channel with:",
+			"Filter users by name:",
+			QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+			" is already added"
 		};
 
 		UserListDialog* dialog = new UserListDialog (dialogCfg, backend.getStorage().getAllUsers(), &allDirectChannelUsers, treeWidget());

@@ -66,7 +66,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 ,hasReconnect (false)
 {
 	connect (&webSocket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), [this] (QAbstractSocket::SocketError error){
-		qDebug() << "WebSocket error " << error << " " << webSocket.errorString();
+		LOG_DEBUG ("WebSocket error " << error << " " << webSocket.errorString());
 		doReconnect ();
 	});
 
@@ -86,7 +86,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 	});
 
 	connect(&webSocket, &QWebSocket::disconnected, [this]{
-		LOG_DEBUG ("WebSocket disconnected: " << webSocket.closeCode() << " " << webSocket.closeReason());
+		LOG_DEBUG ("WebSocket disconnected. Code: " << webSocket.closeCode() << " " << webSocket.closeReason());
 		emit onDisconnect ();
 
 		//if the token is empty, this means that the disconnect was forced

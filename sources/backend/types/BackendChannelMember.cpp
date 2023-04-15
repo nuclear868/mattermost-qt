@@ -23,17 +23,24 @@
  */
 
 #include "BackendChannelMember.h"
-#include <QVariant>
+
+#include "backend/Storage.h"
+#include "log.h"
 
 namespace Mattermost {
 
-BackendChannelMember::BackendChannelMember (const QJsonObject& jsonObject)
-:user (nullptr)
+BackendChannelMember::BackendChannelMember (const Storage& storage, const QJsonObject& jsonObject)
+:last_viewed_at (jsonObject.value("last_viewed_at").toVariant().toULongLong())
+,msg_count (jsonObject.value("msg_count").toVariant().toULongLong())
+,mention_count (jsonObject.value("mention_count").toVariant().toULongLong())
+,user (storage.getUserById (jsonObject.value("user_id").toString()))
+,isAdmin (jsonObject.value("scheme_admin").toBool())
 {
-	last_viewed_at = jsonObject.value("last_viewed_at").toVariant().toULongLong();
-	msg_count = jsonObject.value("msg_count").toVariant().toULongLong();
-	mention_count = jsonObject.value("mention_count").toVariant().toULongLong();
-	user_id = jsonObject.value("user_id").toString();
+	QString userID = jsonObject.value("user_id").toString();
+
+	if (!user) {
+		LOG_DEBUG ("BackendTeamMember: null user " << userID);
+	}
 }
 
 BackendChannelMember::~BackendChannelMember () = default;

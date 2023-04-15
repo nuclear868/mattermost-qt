@@ -658,10 +658,18 @@ void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 
 	httpConnector.get(request, HttpResponseCallback ([this, &team, page] (const QJsonDocument& doc) {
 
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "retrieveTeamMembers reply: " <<  jsonString.toStdString() << std::endl;
+#endif
 		auto root = doc.array();
-		for(const auto &itemRef: qAsConst(root)) {
-			BackendTeamMember member (itemRef.toObject());
-			member.user = storage.getUserById(member.user_id);
+		for (const auto &itemRef: qAsConst(root)) {
+			BackendTeamMember member (storage, itemRef.toObject());
+
+			if (member.isAdmin) {
+				std::cout << team.display_name.toStdString() << ": User " << member.getDisplayUsername().toStdString() << " is admin\n";
+			}
+
 			team.members.append (std::move (member));
 		}
 
@@ -821,10 +829,13 @@ void Backend::retrieveChannelMembers (BackendChannel& channel)
 
 		//LOG_DEBUG ("retrieveChannelMembers reply");
 
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "retrieveChannelMembers reply: " <<  jsonString.toStdString() << std::endl;
+#endif
 		auto root = doc.array();
-		for(const auto &itemRef: qAsConst(root)) {
-			BackendChannelMember member (itemRef.toObject());
-			member.user = storage.getUserById(member.user_id);
+		for (const auto &itemRef: qAsConst(root)) {
+			BackendChannelMember member (storage, itemRef.toObject());
 			channel.members.append (std::move (member));
 		}
 
@@ -1168,6 +1179,14 @@ void Backend::addUserToTeam (const BackendTeam& team, const QString& userID)
 
 	}));
 }
+
+void Backend::removeUserFromTeam (const BackendTeam& team, const QString& userID)
+{
+	NetworkRequest request ("teams/" + team.id + "/members/" + userID);
+
+	httpConnector.del (request);
+}
+
 
 void Backend::sendSubmitDialog (const QJsonDocument& json)
 {

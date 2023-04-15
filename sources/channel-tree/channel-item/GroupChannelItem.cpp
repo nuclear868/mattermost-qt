@@ -26,10 +26,11 @@
 
 #include <QMenu>
 #include <QMessageBox>
+#include <QDialogButtonBox>
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
 #include "info-dialogs/ChannelInfoDialog.h"
-#include "channel-tree-dialogs/UserListDialogForTeam.h"
+#include "channel-tree-dialogs/UserListDialog.h"
 #include "channel-tree-dialogs/EditChannelPropertiesDialog.h"
 
 namespace Mattermost {
@@ -50,35 +51,24 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 	myMenu.addAction ("View Channel members", [this, &channel] {
 		qDebug() << "View Channel members ";
 
-		std::vector<const BackendUser*> channelMembers;
-
-		for (auto& it: channel.members) {
-
-			if (!it.user) {
-				qDebug () << "user " << it.user_id << " is nullptr";
-				continue;
-			}
-
-			channelMembers.push_back (it.user);
-		}
-
-		UserListDialogConfig dialogCfg {
-			"Team Members - Mattermost",
-			"Members of channel '" + channel.display_name + "':"
+		FilterListDialogConfig dialogCfg {
+			"Channel Members - Mattermost",
+			"Members of channel '" + channel.display_name + "':",
+			"Filter users by name:",
+			{QDialogButtonBox::Close}
 		};
 
-		UserListDialogForTeam* dialog = new UserListDialogForTeam (dialogCfg, channelMembers, treeWidget());
+		ViewChannelMembersDialog* dialog = new ViewChannelMembersDialog (dialogCfg, channel.members, treeWidget());
 		dialog->show ();
 	});
 
-	myMenu.addAction ("Add new members to the channel", [this, &channel] {
+	myMenu.addAction ("Add user to the channel", [this, &channel] {
 
 		std::vector<const BackendUser*> availableUsers;
 
 		for (auto& member: channel.team->members) {
 
 			if (!member.user) {
-				qDebug() << "null user with id " << member.user_id;
 				continue;
 			}
 
@@ -87,9 +77,12 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 
 		QSet<const BackendUser*> channelMembers = channel.getAllMembers();
 
-		UserListDialogConfig dialogCfg {
+		FilterListDialogConfig dialogCfg {
 			"Add user to channel - Mattermost",
-			"Select a user to add to the '" + channel.display_name + "' channel:"
+			"Select a user to add to the '" + channel.display_name + "' channel:",
+			"Filter users by name:",
+			QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+			" is already added to the channel"
 		};
 
 		UserListDialog* dialog = new UserListDialog (dialogCfg, availableUsers, &channelMembers, treeWidget());

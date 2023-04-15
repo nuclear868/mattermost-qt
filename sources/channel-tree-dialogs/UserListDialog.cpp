@@ -26,7 +26,11 @@
 
 #include <set>
 #include <QMenu>
+#include <QDebug>
+#include <QDateTime>
 #include "backend/types/BackendUser.h"
+#include "backend/types/BackendTeamMember.h"
+#include "backend/types/BackendChannelMember.h"
 #include "info-dialogs/UserProfileDialog.h"
 #include "ui_FilterListDialog.h"
 
@@ -38,109 +42,262 @@ bool UserListDialog::NameComparator::operator () (const BackendUser*const& lhs, 
 	return lhs->username < rhs->username;
 }
 
-UserListDialog::UserListDialog (const UserListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
-:FilterListDialog (parent)
+
+struct UserListEntry {
+public:
+
+	enum fields {
+		userName,
+		userStatus,
+		userMessageCount,
+	};
+
+	UserListEntry (const BackendTeamMember& teamMember);
+	UserListEntry (const BackendChannelMember& teamMember);
+	UserListEntry (const BackendUser* user, bool disabledItem = false);
+	bool operator < (const UserListEntry& other) const
+	{
+		return fields[userName] < other.fields[userName];
+	}
+public:
+	const QByteArray*		userAvatar;
+	QVariant				dataPointer;
+
+	std::array<QString, 4> 	fields;
+	bool					disabledItem;
+	bool					highlight;
+};
+
+
+inline UserListEntry::UserListEntry (const BackendUser* user, bool disabledItem)
+:disabledItem (disabledItem)
+,highlight (false)
 {
-	setWindowTitle (cfg.title);
-	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", cfg.description.toStdString().c_str(), nullptr));
-
-	std::set<const BackendUser*, NameComparator> set;
-
-	for (auto& it: allUsers) {
-		set.insert (&it.second);
+	if (!user) {
+		return;
 	}
 
+	fields[userName] = user->getDisplayName();
 
-	create (set, alreadyExistingUsers);
+	if (!user->nickname.isEmpty()) {
+		fields[userName] += " (" + user->nickname + ")";
+	}
+
+	userAvatar = &user->avatar;
+	fields[userStatus] = user->status;
+	dataPointer = QVariant::fromValue ((BackendUser*)user);
+
 }
 
-UserListDialog::UserListDialog (const UserListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
+inline UserListEntry::UserListEntry (const BackendTeamMember& teamMember)
+:UserListEntry (teamMember.user)
+{
+	if (teamMember.isAdmin) {
+		highlight = true;
+	}
+}
+
+static QString timeToString (uint64_t timestamp)
+{
+	QDate currentDate = QDateTime::currentDateTime().date();
+	QDateTime targetTime = QDateTime::fromMSecsSinceEpoch (timestamp);
+	QDate targetDate = targetTime.date();
+
+	QString format;
+
+	if (currentDate.year() != targetDate.year()) {
+		format = "dd MMM yyyy, hh:mm:ss";
+	} else {
+		format = "dd MMM, hh:mm:ss";
+	}
+
+	return targetTime.toString (format);
+}
+
+inline UserListEntry::UserListEntry (const BackendChannelMember& channelMember)
+:UserListEntry (channelMember.user)
+{
+//	QString timeString;
+//	int64_t diffSeconds = (QDateTime::currentMSecsSinceEpoch() - channelMember.last_viewed_at) / 1000;
+//
+//
+//	int64_t secondsInDay = 3600 * 24;
+//	int64_t secondsInHour = 3600;
+//	int64_t secondsInMinute = 60;
+//
+//
+//	if (diffSeconds > secondsInDay) {
+//		int64_t days = diffSeconds / secondsInDay;
+//		timeString += QString::number (days) + " days, ";
+//		diffSeconds %= days * secondsInDay;
+//	}
+//
+//	if (diffSeconds > secondsInHour) {
+//		int64_t hours = diffSeconds / secondsInHour;
+//		timeString += QString::number (hours) + " hours";
+//		diffSeconds %= hours * secondsInHour;
+//	}
+//
+//	if (diffSeconds > secondsInMinute) {
+//		int64_t minutes = diffSeconds / secondsInMinute;
+//		timeString += QString::number (minutes) + " minutes";
+//		diffSeconds %= minutes * secondsInMinute;
+//	}
+
+	fields[userMessageCount] = timeToString (channelMember.last_viewed_at);
+
+	if (channelMember.isAdmin) {
+		highlight = true;
+	}
+}
+
+UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
 :FilterListDialog (parent)
 {
-	setWindowTitle (cfg.title);
-	ui->selectUserLabel->setText(QCoreApplication::translate("FilterListDialog", cfg.description.toStdString().c_str(), nullptr));
+	std::set<UserListEntry> entrySet;
 
-    std::set<const BackendUser*, NameComparator> set;
+	for (auto& it: allUsers) {
+		bool isAlreadyExisting = alreadyExistingUsers->find (&it.second) != alreadyExistingUsers->end();
+		entrySet.emplace (&it.second, isAlreadyExisting);
+	}
 
-    for (auto& it: allUsers) {
-    	set.insert (it);
-    }
+	create (cfg, entrySet, {"Full Name", "Status"});
+}
 
-    create (set, alreadyExistingUsers);
+UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendTeamMember>& allTeamMembers, QWidget* parent)
+:FilterListDialog (parent)
+{
+	std::set<UserListEntry> entrySet;
+
+	for (auto& it: allTeamMembers) {
+		if (it.user) {
+			entrySet.emplace (it);
+		}
+	}
+
+	create (cfg, entrySet, {"Full Name", "Status"});
+}
+
+UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendChannelMember>& allChannelMembers, QWidget* parent)
+:FilterListDialog (parent)
+{
+	std::set<UserListEntry> entrySet;
+
+	for (auto& it: allChannelMembers) {
+		if (it.user) {
+			entrySet.emplace (it);
+		}
+	}
+
+	create (cfg, entrySet, {"Full Name", "Status", "Channel was last viewed"});
+}
+
+UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
+:FilterListDialog (parent)
+{
+    std::set<UserListEntry> entrySet;
+
+	for (auto& it: allUsers) {
+		bool isAlreadyExisting = alreadyExistingUsers->find (it) != alreadyExistingUsers->end();
+		entrySet.emplace (it, isAlreadyExisting);
+	}
+
+    create (cfg, entrySet, {"Full Name", "Status"});
 }
 
 UserListDialog::~UserListDialog () = default;
 
 const BackendUser* UserListDialog::getSelectedUser ()
 {
-	auto selection = ui->treeWidget->selectedItems();
+	auto selection = ui->tableWidget->selectedItems();
 
 	if (selection.size() == 0) {
 		return nullptr;
 	}
 
-	return selection.first()->data(0, Qt::UserRole).value<BackendUser*>();
+	return selection.first()->data(Qt::UserRole).value<BackendUser*>();
 }
 
-void UserListDialog::showContextMenu (const QPoint& pos)
+void UserListDialog::create (const FilterListDialogConfig& cfg, const std::set<UserListEntry>& users, const QStringList& columnNames)
+{
+	FilterListDialog::create (cfg);
+
+	//2 columns: name (with image) and status
+	ui->tableWidget->setColumnCount (columnNames.size());
+	for (int i = 0; i < columnNames.size(); ++i) {
+		ui->tableWidget->setHorizontalHeaderItem(i, new QTableWidgetItem(columnNames[i]));
+
+		if (i > 0) {
+			ui->tableWidget->horizontalHeader()->setSectionResizeMode (i, QHeaderView::ResizeToContents);
+		}
+	}
+
+	ui->tableWidget->setRowCount (users.size());
+	uint32_t usersCount = 0;
+
+	for (const UserListEntry& entry: users) {
+
+		QTableWidgetItem* nameItem = new QTableWidgetItem (QIcon(QPixmap::fromImage(QImage::fromData (*entry.userAvatar))), entry.fields[0]);
+		nameItem->setData (Qt::UserRole, entry.dataPointer);
+		ui->tableWidget->setItem (usersCount, 0, nameItem);
+
+		/**
+		 * Mark entries for already existing users, so that they can be distinguished. They will be still selectable.
+		 */
+		if (entry.disabledItem) {
+			nameItem->setForeground (QBrush (QColor (150,150,150)));
+			nameItem->setToolTip (entry.fields[0] + cfg.disabledItemTooltip);
+		}
+
+		/**
+		 * Highlight entry (for example, for users with admin roles)
+		 */
+		if (entry.highlight) {
+			QFont font (nameItem->font());
+			font.setBold(true);
+			nameItem->setFont(font);
+		}
+
+		for (int fi = 1; fi < columnNames.size(); ++fi) {
+			ui->tableWidget->setItem (usersCount, fi, new QTableWidgetItem (entry.fields[fi]));
+		}
+
+		++usersCount;
+	}
+
+	ui->tableWidget->setIconSize(QSize (24,24));
+	ui->tableWidget->horizontalHeader()->setSectionResizeMode (0, QHeaderView::Stretch);
+
+	setItemCountLabel (usersCount);
+}
+
+void UserListDialog::setItemCountLabel (uint32_t count)
+{
+	ui->usersCountLabel->setText(QString::number(count) + (count == 1 ? " user" : " users"));
+}
+
+void UserListDialog::showContextMenu (const QPoint& pos, QVariant&& selectedItemData)
 {
 	// Create menu and insert some actions
 	QMenu myMenu;
 
-	// Handle global position
-	QPoint globalPos = ui->treeWidget->mapToGlobal(pos);
+	BackendUser *user = selectedItemData.value<BackendUser*>();
 
-	QTreeWidgetItem* pointedItem = ui->treeWidget->itemAt(pos);
-
-	if (!pointedItem) {
+	if (!user) {
+		qDebug() << "No user at pointed item at " << pos;
 		return;
 	}
-
-	BackendUser *user = pointedItem->data(0, Qt::UserRole).value<BackendUser*>();
 
 	//direct channel
 	myMenu.addAction ("View Profile", [this, user] {
 	//	qDebug() << "View Profile for " << user->getDisplayName();
-		UserProfileDialog* dialog = new UserProfileDialog (*user, ui->treeWidget);
+		UserProfileDialog* dialog = new UserProfileDialog (*user, ui->tableWidget);
 		dialog->show ();
 	});
 
+	// Handle global position
+	QPoint globalPos = ui->tableWidget->mapToGlobal (pos);
 	myMenu.exec (globalPos + QPoint (15, 35));
-}
-
-void UserListDialog::create (const std::set<const BackendUser*, UserListDialog::NameComparator>& users, const QSet<const BackendUser*>* alreadyExistingUsers)
-{
-	uint32_t usersCount = 0;
-	for (const BackendUser* user: users) {
-		QString displayName (user->getDisplayName());
-
-		if (!user->nickname.isEmpty()) {
-			displayName += " (" + user->nickname + ")";
-		}
-
-		QTreeWidgetItem* item = new QTreeWidgetItem (ui->treeWidget, QStringList() << displayName << user->status);
-		QImage img = QImage::fromData (user->avatar);
-		item->setIcon (0, QIcon(QPixmap::fromImage(QImage::fromData (user->avatar))));
-		item->setData (0, Qt::UserRole, QVariant::fromValue ((BackendUser*)user));
-
-		/**
-		 * Mark already existing users in italic
-		 */
-		if (alreadyExistingUsers && alreadyExistingUsers->find (user) != alreadyExistingUsers->end()) {
-
-			QFont font (item->font(0));
-			font.setItalic (true);
-			item->setFont (0, font);
-		}
-
-		ui->treeWidget->addTopLevelItem (item);
-		++usersCount;
-	}
-
-	ui->treeWidget->setIconSize(QSize (24,24));
-	ui->treeWidget->header()->setSectionResizeMode (0, QHeaderView::Stretch);
-	ui->treeWidget->header()->setSectionResizeMode (1, QHeaderView::ResizeToContents);
-	ui->usersCountLabel->setText(QString::number(usersCount) + " users");
 }
 
 } /* namespace Mattermost */

@@ -28,18 +28,19 @@
 
 namespace Mattermost {
 
+class Storage;
 class BackendUser;
 
 class BackendChannelMember {
 public:
-	BackendChannelMember (const QJsonObject& jsonObject);
+	BackendChannelMember (const Storage& storage, const QJsonObject& jsonObject);
 	virtual ~BackendChannelMember ();
 public:
-	BackendUser*	user;
-	uint64_t		last_viewed_at;
-	uint32_t		msg_count;
-	uint32_t		mention_count;
-	QString			user_id;
+	uint64_t			last_viewed_at;
+	uint32_t			msg_count;
+	uint32_t			mention_count;
+	const BackendUser*	user;
+	bool				isAdmin;
 };
 
 } /* namespace Mattermost */
