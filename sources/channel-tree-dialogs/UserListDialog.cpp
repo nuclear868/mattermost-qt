@@ -25,6 +25,7 @@
 #include "UserListDialog.h"
 
 #include <set>
+#include <array>
 #include <QMenu>
 #include <QDebug>
 #include <QDateTime>
