@@ -75,7 +75,6 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent, QStackedWid
 		treeWidget->removeChannelToItem (channel.id);
 	});
 
-	backend.retrieveChannelMembers (channel);
 	ChannelTree* treeWidget = static_cast<ChannelTree*> (this->treeWidget());
 	treeWidget->addChannelToItem (channel.id, item);
 }

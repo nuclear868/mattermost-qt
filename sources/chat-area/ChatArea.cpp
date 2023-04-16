@@ -25,6 +25,7 @@
 #include "post/PostWidget.h"
 #include "backend/Backend.h"
 #include "channel-tree/ChannelItemWidget.h"
+#include "channel-tree-dialogs/UserListDialog.h"
 #include "PinnedPostsList.h"
 #include "log.h"
 
@@ -73,6 +74,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		if (ui->statusLabel->text().isEmpty()) {
 			ui->statusLabel->setText (user->status);
 		}
+
 	} else {
 		ui->userAvatar->clear();
 		ui->userAvatar->hide();
@@ -90,6 +92,13 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 		backend.retrieveChannelPosts (channel, 0, 25);
 	});
+
+	if (!user) {
+		backend.retrieveChannelMembers (this->channel, [this] {
+			ui->usersButton->show ();
+			ui->usersButton->setText (QString::number (this->channel.members.size()) + " members");
+		});
+	}
 
 	connect (&channel, &BackendChannel::onViewed, [this] {
 		LOG_DEBUG ("Channel viewed: " << this->channel.name);
@@ -179,6 +188,18 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 	});
 
+	connect (ui->usersButton, &QPushButton::clicked, [this] {
+		FilterListDialogConfig dialogCfg {
+			"Channel Members - Mattermost",
+			"Members of channel '" + this->channel.display_name + "':",
+			"Filter users by name:",
+			{QDialogButtonBox::Close}
+		};
+
+		ViewChannelMembersDialog* dialog = new ViewChannelMembersDialog (dialogCfg, this->channel.members, this);
+		dialog->show ();
+	});
+
 	connect (ui->pinnedPostsButton, &QPushButton::clicked, [this] {
 
 		if (pinnedPostsDockWidget) {
@@ -210,6 +231,9 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 	//hide the pinned posts button by default. It will be shown if the channel has pinned posts
 	ui->pinnedPostsButton->hide();
+
+	//hide the users button. It will be shown when the channel members list is retrieved
+	ui->usersButton->hide();
 }
 
 ChatArea::~ChatArea()

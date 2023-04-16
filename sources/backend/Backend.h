@@ -117,7 +117,7 @@ public:
 	void retrieveChannelUnreadPost (BackendChannel& channel, std::function<void(const QString&)> responseHandler);
 
 	//get channel members (/channels/{channel_id}/members)
-	void retrieveChannelMembers (BackendChannel& channel);
+	void retrieveChannelMembers (BackendChannel& channel, std::function<void ()> callback);
 
 	//get poll metadata (/plugins/com.github.matterpoll.matterpoll/api/v1/polls/{poll_id}/metadata)
 	void retrievePollMetadata (BackendPoll& poll);

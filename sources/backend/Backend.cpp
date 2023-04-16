@@ -666,9 +666,11 @@ void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 		for (const auto &itemRef: qAsConst(root)) {
 			BackendTeamMember member (storage, itemRef.toObject());
 
+#if 0
 			if (member.isAdmin) {
 				std::cout << team.display_name.toStdString() << ": User " << member.getDisplayUsername().toStdString() << " is admin\n";
 			}
+#endif
 
 			team.members.append (std::move (member));
 		}
@@ -799,9 +801,9 @@ void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<
 {
 	NetworkRequest request ("users/me/channels/" + channel.id + "/posts/unread?limit_before=0&limit_after=1");
 
-    httpConnector.get (request, HttpResponseCallback ([this, &channel, responseHandler](const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([this, &channel, responseHandler](const QJsonDocument& doc) {
 
-    	//LOG_DEBUG ("getChannelUnreadPost reply for " << channel.display_name << " (" << channel.id << ")");
+		//LOG_DEBUG ("retrieveChannelUnreadPost reply for " << channel.display_name << " (" << channel.id << ")");
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -821,11 +823,11 @@ void Backend::retrieveChannelUnreadPost (BackendChannel& channel, std::function<
     }));
 }
 
-void Backend::retrieveChannelMembers (BackendChannel& channel)
+void Backend::retrieveChannelMembers (BackendChannel& channel, std::function<void ()> callback)
 {
 	NetworkRequest request ("channels/" + channel.id + "/members");
 
-	httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([this, &channel, callback](const QJsonDocument& doc) {
 
 		//LOG_DEBUG ("retrieveChannelMembers reply");
 
@@ -849,6 +851,7 @@ void Backend::retrieveChannelMembers (BackendChannel& channel)
 			}
 		}
 #endif
+		callback ();
 	}));
 }
 

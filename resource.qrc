@@ -15,5 +15,6 @@
         <file>img/arrow_expanded.png</file>
         <file>img/mattermost-emoji.png</file>
         <file>img/pushpin.png</file>
+        <file>img/user-icon.png</file>
     </qresource>
 </RCC>

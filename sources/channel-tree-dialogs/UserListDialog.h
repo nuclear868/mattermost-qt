@@ -39,7 +39,7 @@ public:
 	UserListDialog (const FilterListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
 
 	//"View Channel members"
-	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendChannelMember>& allTeamMembers, QWidget *parent);
+	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendChannelMember>& allChannelMembers, QWidget *parent);
 
 	//"View Team members"
 	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendTeamMember>& allTeamMembers, QWidget *parent);
