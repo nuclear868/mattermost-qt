@@ -284,7 +284,7 @@ void Backend::logout (std::function<void ()> callback)
 	}));
 }
 
-void Backend::retrieveUser (QString userID, std::function<void (BackendUser&)> callback)
+void Backend::retrieveUser (QString userID, std::function<void (const BackendUser&)> callback)
 {
 	NetworkRequest request ("users/" + userID);
 
@@ -838,7 +838,9 @@ void Backend::retrieveChannelMembers (BackendChannel& channel, std::function<voi
 		auto root = doc.array();
 		for (const auto &itemRef: qAsConst(root)) {
 			BackendChannelMember member (storage, itemRef.toObject());
-			channel.members.append (std::move (member));
+			if (member.user) {
+				channel.members.insert (member.user->id, std::move (member));
+			}
 		}
 
 		//LOG_DEBUG ("Channel Members Count: " << channel.members.size());
@@ -854,6 +856,38 @@ void Backend::retrieveChannelMembers (BackendChannel& channel, std::function<voi
 		callback ();
 	}));
 }
+
+void Backend::retrieveChannelMember (BackendChannel& channel, const BackendUser& user, std::function<void ()> callback)
+{
+	NetworkRequest request ("channels/" + channel.id + "/members/" + user.id);
+
+	httpConnector.get (request, HttpResponseCallback ([this, &channel, callback](const QJsonDocument& doc) {
+
+		//LOG_DEBUG ("retrieveChannelMember reply");
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "retrieveChannelMembers reply: " <<  jsonString.toStdString() << std::endl;
+#endif
+		BackendChannelMember member (storage, doc.object());
+		if (member.user) {
+			channel.members.insert (member.user->id, std::move (member));
+		}
+
+		//LOG_DEBUG ("Channel Members Count: " << channel.members.size());
+#if 0
+		for (auto& it: team.members) {
+			if (!it.user) {
+				std::cout << "\t" << it.user_id.toStdString() << " (no user) " << std::endl;
+			} else {
+				std::cout << "\t" << it.user_id.toStdString() << " " << it.user->username.toStdString() << std::endl;
+			}
+		}
+#endif
+		callback ();
+	}));
+}
+
 
 void Backend::retrievePollMetadata (BackendPoll& poll)
 {
@@ -1151,6 +1185,14 @@ void Backend::addUserToChannel (const BackendChannel& channel, const QString& us
 	}));
 }
 
+void Backend::removeUserFromChannel (const BackendChannel& channel, const QString& userID)
+{
+	NetworkRequest request ("channels/" + channel.id + "/members/" + userID);
+	httpConnector.del (request);
+
+	//there is no need of response callback, because a webSocket event 'user_removed' will come
+}
+
 void Backend::joinChannel (const BackendChannel& channel)
 {
 	return addUserToChannel (channel, getLoginUser().id);
@@ -1158,9 +1200,7 @@ void Backend::joinChannel (const BackendChannel& channel)
 
 void Backend::leaveChannel (const BackendChannel& channel)
 {
-	NetworkRequest request ("channels/" + channel.id + "/members/" + getLoginUser().id);
-
-	httpConnector.del (request);
+	return removeUserFromChannel (channel, getLoginUser().id);
 }
 
 void Backend::addUserToTeam (const BackendTeam& team, const QString& userID)

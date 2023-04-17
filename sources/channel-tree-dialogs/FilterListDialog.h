@@ -23,6 +23,8 @@
 #include <QDialogButtonBox>
 #include "fwd.h"
 
+class QMenu;
+
 namespace Ui {
 class FilterListDialog;
 }
@@ -48,7 +50,7 @@ public:
     void create (const FilterListDialogConfig& cfg);
 private:
     void applyFilter (const QString& filter);
-    virtual void showContextMenu (const QPoint& pos, QVariant&& selectedItemData) = 0;
+    virtual void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData) = 0;
     virtual void setItemCountLabel (uint32_t count) = 0;
 protected:
     Ui::FilterListDialog *ui;

@@ -30,7 +30,7 @@
 #include "chat-area/ChatArea.h"
 #include "backend/Backend.h"
 #include "info-dialogs/ChannelInfoDialog.h"
-#include "channel-tree-dialogs/UserListDialog.h"
+#include "channel-tree-dialogs/ViewChannelMembersListDialog.h"
 #include "channel-tree-dialogs/EditChannelPropertiesDialog.h"
 
 namespace Mattermost {
@@ -50,15 +50,7 @@ void GroupChannelItem::showContextMenu (const QPoint& pos)
 
 	myMenu.addAction ("View Channel members", [this, &channel] {
 		qDebug() << "View Channel members ";
-
-		FilterListDialogConfig dialogCfg {
-			"Channel Members - Mattermost",
-			"Members of channel '" + channel.display_name + "':",
-			"Filter users by name:",
-			{QDialogButtonBox::Close}
-		};
-
-		ViewChannelMembersDialog* dialog = new ViewChannelMembersDialog (dialogCfg, channel.members, treeWidget());
+		ViewChannelMembersListDialog* dialog = new ViewChannelMembersListDialog (backend, channel, treeWidget());
 		dialog->show ();
 	});
 

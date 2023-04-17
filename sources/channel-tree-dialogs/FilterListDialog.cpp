@@ -20,6 +20,7 @@
 #include "FilterListDialog.h"
 
 #include <QDebug>
+#include <QMenu>
 #include "ui_FilterListDialog.h"
 
 namespace Mattermost {
@@ -47,7 +48,16 @@ FilterListDialog::FilterListDialog (QWidget* parent)
 			return;
 		}
 
-		showContextMenu (pos, pointedFirstItem->data (Qt::UserRole));
+		// Create menu and insert some actions
+		QMenu menu;
+
+		addContextMenuActions (menu, pointedFirstItem->data (Qt::UserRole));
+
+		if (!menu.isEmpty()) {
+			// Handle global position
+			QPoint globalPos = ui->tableWidget->mapToGlobal (pos);
+			menu.exec (globalPos + QPoint (15, 35));
+		}
 	});
 
 connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &FilterListDialog::applyFilter);

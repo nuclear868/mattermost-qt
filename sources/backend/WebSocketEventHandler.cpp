@@ -177,20 +177,36 @@ void WebSocketEventHandler::handleEvent (const UserAddedToChannelEvent& event)
 {
 	BackendTeam* team = storage.getTeamById (event.teamId);
 	QString teamName = team ? team->name : event.teamId;
+	LOG_DEBUG ("User " << event.userId << " added to channel " << event.channelId << " of team " << teamName);
 
 	BackendChannel* channel = storage.getChannelById (event.channelId);
 
-	//new channel?
-	if (team && !channel) {
+	if (team && !channel) { //new channel
 		backend.retrieveChannel (*team, event.channelId);
 	}
 
+
 	BackendUser* user = storage.getUserById (event.userId);
-	if (!user) {
-		backend.retrieveUser (event.userId, [] (BackendUser&){});
+
+	auto addChannelMemberFn = [this, channel] (const BackendUser& user) {
+		/**
+		 * if the channel does not exist, do not notify.
+		 * When the channel is retrieved, it will contain the new user
+		 */
+		if (channel) {
+
+			backend.retrieveChannelMember (*channel, user, [channel, &user] {
+				emit (channel->onUserAdded (user));
+			});
+		}
+	};
+
+	if (!user) { //new user
+		backend.retrieveUser (event.userId, addChannelMemberFn);
+	} else {
+		addChannelMemberFn (*user);
 	}
 
-	LOG_DEBUG ("User " << event.userId << " added to channel " << event.channelId << " of team " << teamName);
 }
 
 void WebSocketEventHandler::handleEvent (const UserAddedToTeamEvent& event)
@@ -258,6 +274,9 @@ void WebSocketEventHandler::handleEvent (const UserRemovedFromChannelEvent& even
 	if (user->id == storage.loginUser->id) {
 		emit channel->onLeave ();
 		storage.eraseChannel (*channel);
+	} else {
+		channel->members.remove (user->id);
+		emit (channel->onUserRemoved (*user));
 	}
 }
 

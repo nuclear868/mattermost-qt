@@ -167,7 +167,7 @@
          <item>
           <widget class="QPushButton" name="usersButton">
            <property name="text">
-            <string>N users</string>
+            <string>N members</string>
            </property>
            <property name="icon">
             <iconset resource="../../resource.qrc">

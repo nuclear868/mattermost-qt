@@ -25,7 +25,6 @@
 #pragma once
 
 #include <QVariant>
-#include <list>
 #include "BackendPost.h"
 #include "BackendChannelMember.h"
 #include "BackendChannelProperties.h"
@@ -84,7 +83,6 @@ public:
 	void editPost (BackendPost& newPost);
 	void addPostReaction (QString postId, QString userId, QString emojiName);
 	void removePostReaction (QString postId, QString userId, QString emojiName);
-
 signals:
 
 	/**
@@ -150,9 +148,19 @@ signals:
 	void onMissedPosts ();
 
 	/**
-	 * Called when the user is removed from the channel, or has left the channel
+	 * Called when the logged-in user is removed from the channel, or has left the channel
 	 */
 	void onLeave ();
+
+	/**
+	 * Called when a user has been added to the channel
+	 */
+	void onUserAdded (const BackendUser& user);
+
+	/**
+	 * Called when a user (other than the logged-in user) has been removed from the channel
+	 */
+	void onUserRemoved (const BackendUser& user);
 private:
 	void addPost (const QJsonObject& postObject, std::list<BackendPost>::iterator position, ChannelNewPostsChunk& currentChunk, QVector<QPair<QString, QString>>& rootIdAndPostList, bool initialLoad);
 	BackendPost* findPostById (QString postID);
@@ -172,7 +180,7 @@ public:
     int								total_msg_count;
     int								extra_update_at;
     const BackendUser*				creator;
-    QList<BackendChannelMember> 	members;
+    QMap<QString, BackendChannelMember> 		members;
     QVariant						scheme_id;
     QVariant						props;
     uint32_t						referenceCount;

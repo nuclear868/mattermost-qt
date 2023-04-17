@@ -35,42 +35,9 @@
 #include "info-dialogs/UserProfileDialog.h"
 #include "ui_FilterListDialog.h"
 
-
 namespace Mattermost {
 
-bool UserListDialog::NameComparator::operator () (const BackendUser*const& lhs, const BackendUser*const& rhs)
-{
-	return lhs->username < rhs->username;
-}
-
-
-struct UserListEntry {
-public:
-
-	enum fields {
-		userName,
-		userStatus,
-		userMessageCount,
-	};
-
-	UserListEntry (const BackendTeamMember& teamMember);
-	UserListEntry (const BackendChannelMember& teamMember);
-	UserListEntry (const BackendUser* user, bool disabledItem = false);
-	bool operator < (const UserListEntry& other) const
-	{
-		return fields[userName] < other.fields[userName];
-	}
-public:
-	const QByteArray*		userAvatar;
-	QVariant				dataPointer;
-
-	std::array<QString, 4> 	fields;
-	bool					disabledItem;
-	bool					highlight;
-};
-
-
-inline UserListEntry::UserListEntry (const BackendUser* user, bool disabledItem)
+UserListEntry::UserListEntry (const BackendUser* user, bool disabledItem)
 :disabledItem (disabledItem)
 ,highlight (false)
 {
@@ -90,7 +57,7 @@ inline UserListEntry::UserListEntry (const BackendUser* user, bool disabledItem)
 
 }
 
-inline UserListEntry::UserListEntry (const BackendTeamMember& teamMember)
+UserListEntry::UserListEntry (const BackendTeamMember& teamMember)
 :UserListEntry (teamMember.user)
 {
 	if (teamMember.isAdmin) {
@@ -115,7 +82,7 @@ static QString timeToString (uint64_t timestamp)
 	return targetTime.toString (format);
 }
 
-inline UserListEntry::UserListEntry (const BackendChannelMember& channelMember)
+UserListEntry::UserListEntry (const BackendChannelMember& channelMember)
 :UserListEntry (channelMember.user)
 {
 //	QString timeString;
@@ -163,34 +130,6 @@ UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const std::ma
 	}
 
 	create (cfg, entrySet, {"Full Name", "Status"});
-}
-
-UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendTeamMember>& allTeamMembers, QWidget* parent)
-:FilterListDialog (parent)
-{
-	std::set<UserListEntry> entrySet;
-
-	for (auto& it: allTeamMembers) {
-		if (it.user) {
-			entrySet.emplace (it);
-		}
-	}
-
-	create (cfg, entrySet, {"Full Name", "Status"});
-}
-
-UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendChannelMember>& allChannelMembers, QWidget* parent)
-:FilterListDialog (parent)
-{
-	std::set<UserListEntry> entrySet;
-
-	for (auto& it: allChannelMembers) {
-		if (it.user) {
-			entrySet.emplace (it);
-		}
-	}
-
-	create (cfg, entrySet, {"Full Name", "Status", "Channel was last viewed"});
 }
 
 UserListDialog::UserListDialog (const FilterListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget* parent)
@@ -277,28 +216,21 @@ void UserListDialog::setItemCountLabel (uint32_t count)
 	ui->usersCountLabel->setText(QString::number(count) + (count == 1 ? " user" : " users"));
 }
 
-void UserListDialog::showContextMenu (const QPoint& pos, QVariant&& selectedItemData)
+void UserListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)
 {
-	// Create menu and insert some actions
-	QMenu myMenu;
-
 	BackendUser *user = selectedItemData.value<BackendUser*>();
 
 	if (!user) {
-		qDebug() << "No user at pointed item at " << pos;
+		qDebug() << "No user at pointed item";
 		return;
 	}
 
 	//direct channel
-	myMenu.addAction ("View Profile", [this, user] {
+	menu.addAction ("View Profile", [this, user] {
 	//	qDebug() << "View Profile for " << user->getDisplayName();
 		UserProfileDialog* dialog = new UserProfileDialog (*user, ui->tableWidget);
 		dialog->show ();
 	});
-
-	// Handle global position
-	QPoint globalPos = ui->tableWidget->mapToGlobal (pos);
-	myMenu.exec (globalPos + QPoint (15, 35));
 }
 
 } /* namespace Mattermost */

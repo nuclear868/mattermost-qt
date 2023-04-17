@@ -1,8 +1,8 @@
 /**
- * @file TeamChannelsListDialog.h
- * @brief
+ * @file ViewChannelMembersListDialog.h
+ * @brief 'View Channel Members' context menu item dialog
  * @author Lyubomir Filipov
- * @date Apr 16, 2022
+ * @date Apr 17, 2023
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -24,22 +24,21 @@
 
 #pragma once
 
-#include <list>
-#include "FilterListDialog.h"
+#include "UserListDialog.h"
 
 namespace Mattermost {
 
-class TeamChannelsListDialog: public FilterListDialog {
+class BackendChannel;
+
+class ViewChannelMembersListDialog: public UserListDialog {
 public:
-	TeamChannelsListDialog (Backend& backend, FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, QWidget *parent);
-	virtual ~TeamChannelsListDialog ();
-public:
-	void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)	override;
-	void setItemCountLabel (uint32_t count) 								override;
+	ViewChannelMembersListDialog (Backend& backend, const BackendChannel& channel, QWidget *parent);
+	virtual ~ViewChannelMembersListDialog ();
 private:
-	void create (const FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, const QStringList& columnNames);
+	void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)		override;
 private:
-	Backend& backend;
+	const BackendChannel& 	channel;
+	Backend& 				backend;
 };
 
 } /* namespace Mattermost */

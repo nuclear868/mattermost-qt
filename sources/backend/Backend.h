@@ -60,7 +60,7 @@ public:
 	void logout (std::function<void ()> callback);
 
 	//get specific user (/users/userID)
-	void retrieveUser (QString userID, std::function<void(BackendUser&)> callback);
+	void retrieveUser (QString userID, std::function<void(const BackendUser&)> callback);
 
 	//get user's preferences (/users/{user_id}/preferences)
 	void retrieveUserPreferences ();
@@ -116,8 +116,11 @@ public:
 	//get first unread post in a channel (/users/{user_id}/channels/{channel_id}/posts/unread)
 	void retrieveChannelUnreadPost (BackendChannel& channel, std::function<void(const QString&)> responseHandler);
 
-	//get channel members (/channels/{channel_id}/members)
+	//get all channel members (/channels/{channel_id}/members)
 	void retrieveChannelMembers (BackendChannel& channel, std::function<void ()> callback);
+
+	//get a single channel member (/channels/{channel_id}/members/{user_id})
+	void retrieveChannelMember (BackendChannel& channel, const BackendUser& user, std::function<void ()> callback);
 
 	//get poll metadata (/plugins/com.github.matterpoll.matterpoll/api/v1/polls/{poll_id}/metadata)
 	void retrievePollMetadata (BackendPoll& poll);
@@ -157,6 +160,9 @@ public:
 
 	//add a user to a channel (/channels/{channel_id}/members)
 	void addUserToChannel (const BackendChannel& channel, const QString& userID);
+
+	//remove a user from a channel (/channels/{channel_id}/members/{user_id})
+	void removeUserFromChannel (const BackendChannel& channel, const QString& userID);
 
 	//join a channel (addUserToChannel for loginUser)
 	void joinChannel (const BackendChannel& channel);

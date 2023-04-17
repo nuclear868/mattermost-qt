@@ -25,7 +25,7 @@
 #include "post/PostWidget.h"
 #include "backend/Backend.h"
 #include "channel-tree/ChannelItemWidget.h"
-#include "channel-tree-dialogs/UserListDialog.h"
+#include "channel-tree-dialogs/ViewChannelMembersListDialog.h"
 #include "PinnedPostsList.h"
 #include "log.h"
 
@@ -152,11 +152,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 	});
 
-	//initiate editing of post, when edit is selected from the context menu
-	connect (ui->listWidget, &PostsListWidget::postEditInitiated, ui->outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
-
-	connect (ui->outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
-
 	connect (&channel, &BackendChannel::onPostDeleted, [this] (const QString& postId) {
 		PostWidget* postWidget = ui->listWidget->findPost (postId);
 
@@ -165,6 +160,20 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			ui->listWidget->adjustSize();
 		}
 	});
+
+	connect (&channel, &BackendChannel::onUserAdded, [this] (const BackendUser&) {
+		ui->usersButton->setText (QString::number (this->channel.members.size()) + " members");
+	});
+
+	connect (&channel, &BackendChannel::onUserRemoved, [this] (const BackendUser&) {
+		ui->usersButton->setText (QString::number (this->channel.members.size()) + " members");
+	});
+
+	//initiate editing of post, when edit is selected from the context menu
+	connect (ui->listWidget, &PostsListWidget::postEditInitiated, ui->outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
+
+	connect (ui->outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
+
 
 	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
@@ -189,14 +198,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	});
 
 	connect (ui->usersButton, &QPushButton::clicked, [this] {
-		FilterListDialogConfig dialogCfg {
-			"Channel Members - Mattermost",
-			"Members of channel '" + this->channel.display_name + "':",
-			"Filter users by name:",
-			{QDialogButtonBox::Close}
-		};
-
-		ViewChannelMembersDialog* dialog = new ViewChannelMembersDialog (dialogCfg, this->channel.members, this);
+		ViewChannelMembersListDialog* dialog = new ViewChannelMembersListDialog (this->backend, this->channel, this);
 		dialog->show ();
 	});
 
@@ -419,7 +421,7 @@ void ChatArea::onMainWindowActivate ()
 	backend.markChannelAsViewed (channel);
 }
 
-void ChatArea::onMove (QPoint pos)
+void ChatArea::onMove (QPoint)
 {
 	if (!pinnedPostsDockWidget) {
 		return;

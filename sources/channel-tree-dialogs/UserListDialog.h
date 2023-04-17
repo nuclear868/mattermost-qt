@@ -25,6 +25,7 @@
 #pragma once
 
 #include <set>
+#include <QVariant>
 #include "FilterListDialog.h"
 
 namespace Mattermost {
@@ -35,31 +36,47 @@ class UserListEntry;
 
 class UserListDialog: public FilterListDialog {
 public:
+	using FilterListDialog::FilterListDialog;
+
 	//"Add direct channel"
 	UserListDialog (const FilterListDialogConfig& cfg, const std::map<QString, BackendUser>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
-
-	//"View Channel members"
-	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendChannelMember>& allChannelMembers, QWidget *parent);
-
-	//"View Team members"
-	UserListDialog (const FilterListDialogConfig& cfg, const QList<BackendTeamMember>& allTeamMembers, QWidget *parent);
 
 	UserListDialog (const FilterListDialogConfig& cfg, const std::vector<const BackendUser*>& allUsers, const QSet<const BackendUser*>* alreadyExistingUsers, QWidget *parent);
 	virtual ~UserListDialog ();
 public:
     const BackendUser* getSelectedUser ();
-    void showContextMenu (const QPoint& pos, QVariant&& selectedItemData)	override;
+    void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)	override;
     void setItemCountLabel (uint32_t count) 								override;
-private:
-
-    struct NameComparator {
-    	bool operator () (const BackendUser* const& lhs, const BackendUser* const& rhs);
-    };
+protected:
     void create (const FilterListDialogConfig& cfg, const std::set<UserListEntry>& users, const QStringList& columnNames);
-
 };
 
 using ViewTeamMembersDialog = UserListDialog;
-using ViewChannelMembersDialog = UserListDialog;
+
+struct UserListEntry {
+public:
+
+	enum fields {
+		userName,
+		userStatus,
+		userMessageCount,
+	};
+
+	UserListEntry (const BackendTeamMember& teamMember);
+	UserListEntry (const BackendChannelMember& teamMember);
+	UserListEntry (const BackendUser* user, bool disabledItem = false);
+	bool operator < (const UserListEntry& other) const
+	{
+		return fields[userName] < other.fields[userName];
+	}
+public:
+	const QByteArray*		userAvatar;
+	QVariant				dataPointer;
+
+	std::array<QString, 4> 	fields;
+	bool					disabledItem;
+	bool					highlight;
+};
+
 
 } /* namespace Mattermost */

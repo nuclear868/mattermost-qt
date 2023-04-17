@@ -28,7 +28,7 @@
 #include "channel-tree/channel-item/GroupChannelItem.h"
 #include "backend/Backend.h"
 #include "channel-tree-dialogs/TeamChannelsListDialog.h"
-#include "channel-tree-dialogs/UserListDialog.h"
+#include "channel-tree-dialogs/ViewTeamMembersListDialog.h"
 
 namespace Mattermost {
 
@@ -50,15 +50,7 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 			return;
 		}
 
-		FilterListDialogConfig dialogCfg {
-			"Team Members - Mattermost",
-			"Members of team '" + team->display_name + "':",
-			"Filter users by name:",
-			QDialogButtonBox::Close
-		};
-
-		qDebug() << "View Team members " << team->members.size();
-		ViewTeamMembersDialog* dialog = new ViewTeamMembersDialog (dialogCfg, team->members, treeWidget());
+		ViewTeamMembersDialog* dialog = new ViewTeamMembersListDialog (backend, *team, treeWidget());
 		dialog->show ();
 	});
 
@@ -107,7 +99,8 @@ void GroupTeamItem::showContextMenu (const QPoint& pos)
 				"Public Channels - Mattermost",
 				"Public Channels in team '" + team->display_name + "':",
 				"Filter channels by name:",
-				QDialogButtonBox::Close
+				QDialogButtonBox::Close,
+				""
 			};
 
 			TeamChannelsListDialog* dialog = new TeamChannelsListDialog (backend, dialogCfg, channels, treeWidget());

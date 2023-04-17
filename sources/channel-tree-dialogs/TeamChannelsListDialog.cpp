@@ -31,7 +31,6 @@
 #include "info-dialogs/ChannelInfoDialog.h"
 #include "ui_FilterListDialog.h"
 
-
 namespace Mattermost {
 
 namespace {
@@ -99,34 +98,27 @@ void TeamChannelsListDialog::setItemCountLabel (uint32_t count)
 	ui->usersCountLabel->setText(QString::number(count) + (count == 1 ? " channel" : " channels"));
 }
 
-void TeamChannelsListDialog::showContextMenu (const QPoint& pos, QVariant&& selectedItemData)
+void TeamChannelsListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)
 {
-	// Create menu and insert some actions
-	QMenu myMenu;
-
 	BackendChannel *channel = selectedItemData.value<BackendChannel*>();
 
 	if (!channel) {
-		qDebug() << "No channel at pointed item at " << pos;
+		qDebug() << "No channel at pointed item";
 		return;
 	}
 
 	//direct channel
-	myMenu.addAction ("Join this channel", [this, channel] {
+	menu.addAction ("Join this channel", [this, channel] {
 		backend.joinChannel (*channel);
 	//	qDebug() << "View Profile for " << user->getDisplayName();
 		//UserProfileDialog* dialog = new UserProfileDialog (*user, ui->treeWidget);
 		//dialog->show ();
 	});
 
-	myMenu.addAction ("View channel details", [this, channel] {
+	menu.addAction ("View channel details", [this, channel] {
 		ChannelInfoDialog* dialog = new ChannelInfoDialog (*channel, this);
 		dialog->show ();
 	});
-
-	// Handle global position
-	QPoint globalPos = ui->tableWidget->mapToGlobal(pos);
-	myMenu.exec (globalPos + QPoint (15, 35));
 }
 
 } /* namespace Mattermost */
