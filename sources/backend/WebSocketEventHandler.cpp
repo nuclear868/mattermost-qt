@@ -254,7 +254,10 @@ void WebSocketEventHandler::handleEvent (const UserLeaveTeamEvent& event)
 		emit (team->onLeave());
 		storage.eraseTeam (team->id);
 	} else {
-#warning "TODO: Remove user from the team"
+		for (auto &channel: team->channels) {
+			channel->members.remove (user->id);
+		}
+		#warning "remove team member also"
 	}
 	//printTeams ();
 }

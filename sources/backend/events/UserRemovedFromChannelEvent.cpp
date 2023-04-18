@@ -26,10 +26,23 @@
 
 namespace Mattermost {
 
+/**
+ * There are two types of packets here.
+ * When user A receives event that user B is removed from a channel,
+ * the broadcast->channel_id field and the data->user_id field is set.
+ *
+ * When user A receives event that user A is removed from a channel,
+ * the broadcast->user_id field and the data->channel_id field is set
+ */
 UserRemovedFromChannelEvent::UserRemovedFromChannelEvent (const QJsonObject& data, const QJsonObject& broadcast)
-:userId (broadcast.value("user_id").toString())
-,channelId (data.value("channel_id").toString())
+:removerId (data.value("remover_id").toString())
+,userId (data.value("user_id").toString())
+,channelId (broadcast.value("channel_id").toString())
 {
+	if (userId.isEmpty() && channelId.isEmpty()) {
+		userId = broadcast.value("user_id").toString();
+		channelId = data.value("channel_id").toString();
+	}
 }
 
 UserRemovedFromChannelEvent::~UserRemovedFromChannelEvent () = default;

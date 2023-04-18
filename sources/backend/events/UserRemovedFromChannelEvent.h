@@ -33,6 +33,7 @@ public:
 	UserRemovedFromChannelEvent (const QJsonObject& data, const QJsonObject& broadcast);
 	virtual ~UserRemovedFromChannelEvent ();
 public:
+	QString removerId;
 	QString userId;
 	QString channelId;
 };
