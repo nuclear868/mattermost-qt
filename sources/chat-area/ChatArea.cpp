@@ -317,9 +317,7 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 				qDebug() << "\tAdd post " << post->id;
 			}
 
-			lastPostDate = post->getCreationTime ().date();
-
-			int elapsedDaysSinceThisNewPost = (lastPostDate.daysTo (currentDate));
+			int elapsedDaysSinceThisNewPost = post->getCreationTime ().date().daysTo (currentDate);
 
 			/**
 			 * Add a day separator, if the next added post is from a day, different from the previous added post.
@@ -343,6 +341,10 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 				++unreadMessagesCount;
 			}
 		}
+	}
+
+	if (!gettingOlderPosts && !newPosts.postsToAdd.empty()) {
+		lastPostDate = newPosts.postsToAdd.back().postsToAdd.back()->getCreationTime ().date();
 	}
 
 	gettingOlderPosts = false;
