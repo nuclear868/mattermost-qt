@@ -65,7 +65,7 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	 */
 	if (post.rootPost && post.rootPost != lastRootPost) {
 
-		quoteFrame = std::make_unique<PostQuoteFrame> (post, *post.rootPost, backend.getStorage(), this);
+		quoteFrame = std::make_unique<PostQuoteFrame> (*post.rootPost, backend.getStorage(), this);
 
 		//insert the frame after the post author line
 		ui->verticalLayout->insertWidget (1, quoteFrame.get(), 0, Qt::AlignLeft);
@@ -78,7 +78,7 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	//Add previews for files, if any
 	if (!post.files.empty()) {
 		attachments = std::make_unique<PostAttachmentList> (backend, this);
-		for (BackendFile& file: post.files) {
+		for (const BackendFile& file: post.files) {
 			attachments->addFile (file, post.getDisplayAuthorName());
 		}
 		ui->verticalLayout->addWidget (attachments.get(), 0, Qt::AlignLeft);
@@ -172,7 +172,7 @@ QString PostWidget::getSelectedText ()
 	return ui->message->selectedText();
 }
 
-void replaceEmojis (QString& str)
+static void replaceEmojis (QString& str)
 {
 	int emojiStart = 0;
 	int emojiEnd = 0;

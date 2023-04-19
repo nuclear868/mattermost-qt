@@ -41,7 +41,7 @@ public:
     explicit PostAttachmentList (Backend& backend, QWidget *parent = nullptr);
     ~PostAttachmentList();
 public:
-    void addFile (BackendFile& file, const QString& authorName);
+    void addFile (const BackendFile& file, const QString& authorName);
     void updateDimensions ();
 private:
     Backend& 						backend;

@@ -45,7 +45,7 @@ PostAttachmentList::~PostAttachmentList()
     delete ui;
 }
 
-void PostAttachmentList::addFile (BackendFile& file, const QString& authorName)
+void PostAttachmentList::addFile (const BackendFile& file, const QString& authorName)
 {
 	QListWidgetItem* newItem = new QListWidgetItem();
 	QWidget* fileWidget = nullptr;

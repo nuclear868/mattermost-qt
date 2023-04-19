@@ -58,7 +58,7 @@ public:
     QString getSelectedText ();
 
     QString getMessageTimeString (uint64_t timestamp);
-    QString formatMessageText (const QString& str);
+    static QString formatMessageText (const QString& str);
     QString formatForClipboardSelection (FormatType formatType) const;
 
     void clearMessageText ();

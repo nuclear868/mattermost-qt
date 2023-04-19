@@ -28,13 +28,14 @@
 
 namespace Mattermost {
 
-PostQuoteFrame::PostQuoteFrame (BackendPost& containingPost, const BackendPost& quotedPost, const Storage& storage, PostWidget* containingPostWidget)
+PostQuoteFrame::PostQuoteFrame (const BackendPost& quotedPost, const Storage& storage, PostWidget* containingPostWidget)
 :QFrame (containingPostWidget)
 ,ui (new Ui::PostQuoteFrame)
 {
 	ui->setupUi(this);
 
 	QString headerText;
+	const BackendPost& containingPost = containingPostWidget->post;
 
 	bool isMatterpollQuote = quotedPost.author == storage.matterpollUser && containingPost.author == storage.matterpollUser;
 	if (isMatterpollQuote) {
@@ -60,7 +61,14 @@ PostQuoteFrame::PostQuoteFrame (BackendPost& containingPost, const BackendPost& 
 	} else {
 
 		ui->header->setText ("Originally posted by " + quotedPost.author->getDisplayName ());
-		ui->message->setText (quotedPost.message);
+
+		QString attachmentText;
+		for (auto& file: quotedPost.files) {
+			attachmentText += "[attachment] " + file.name + "\n";
+		}
+
+		ui->message->setText (attachmentText + PostWidget::formatMessageText (quotedPost.message));
+
 	}
 
 	setContentsMargins (20, 4, 4, 4);
@@ -76,6 +84,5 @@ void PostQuoteFrame::setHeaderText (const QString& headerText)
 {
 	ui->header->setText (headerText);
 }
-
 
 } /* namespace Mattermost */

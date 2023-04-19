@@ -36,7 +36,7 @@ class PostQuoteFrame: public QFrame
     Q_OBJECT
 
 public:
-    explicit PostQuoteFrame (BackendPost& containingPost, const BackendPost& quotedPost, const Storage& storage, PostWidget* parent);
+    explicit PostQuoteFrame (const BackendPost& quotedPost, const Storage& storage, PostWidget* parent);
     ~PostQuoteFrame();
 public:
     void setHeaderText (const QString& headerText);
