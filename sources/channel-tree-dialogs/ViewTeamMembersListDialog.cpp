@@ -53,13 +53,11 @@ ViewTeamMembersListDialog::ViewTeamMembersListDialog (Backend& backend, const Ba
 
 	create (dialogCfg, entrySet, {"Full Name", "Status"});
 
-	connect (&team, &BackendTeam::onUserAdded, [this] (const BackendUser&) {
+//	connect (&team, &BackendTeam::onUserAdded, [this] (const BackendUser&) {
+//
+//	});
 
-	});
-
-	connect (&team, &BackendTeam::onUserRemoved, [this] (const BackendUser& user) {
-		removeRowByData (&user);
-	});
+	connect (&team, &BackendTeam::onUserRemoved, this, &UserListDialog::removeRowByData);
 }
 
 ViewTeamMembersListDialog::~ViewTeamMembersListDialog () = default;

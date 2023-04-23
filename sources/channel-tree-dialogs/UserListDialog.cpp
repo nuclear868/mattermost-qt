@@ -233,17 +233,18 @@ void UserListDialog::addContextMenuActions (QMenu& menu, const QVariant& selecte
 	});
 }
 
-void UserListDialog::removeRowByData (const BackendUser* user)
+void UserListDialog::removeRowByData (const BackendUser& user)
 {
-	auto it = dataToItemMap.find (user);
+	auto it = dataToItemMap.find (&user);
 
 	if (it == dataToItemMap.end()) {
-		qDebug() << "removeRowByData: no item found with given data " << user;
+		qDebug() << "removeRowByData: no item found with given data " << &user;
 		return;
 	}
 
 	qDebug() << "Remove item " << it.key() << " " << it.value() << " row " << it.value()->row();
 	ui->tableWidget->removeRow (it.value()->row());
+	dataToItemMap.erase (it);
 }
 
 } /* namespace Mattermost */

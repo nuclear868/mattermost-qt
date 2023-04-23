@@ -50,9 +50,9 @@ public:
     const BackendUser* getSelectedUser ();
     void addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)	override;
     void setItemCountLabel (uint32_t count) 								override;
+    void removeRowByData (const BackendUser& user);
 protected:
     void create (const FilterListDialogConfig& cfg, const std::set<UserListEntry>& users, const QStringList& columnNames);
-    void removeRowByData (const BackendUser* user);
 
     QMap<const BackendUser*, QTableWidgetItem*> dataToItemMap;
 };

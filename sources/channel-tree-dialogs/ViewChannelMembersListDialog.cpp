@@ -54,13 +54,11 @@ ViewChannelMembersListDialog::ViewChannelMembersListDialog (Backend& backend, co
 
 	create (dialogCfg, entrySet, {"Full Name", "Status", "Channel was last viewed"});
 
-	connect (&channel, &BackendChannel::onUserAdded, [this] (const BackendUser&) {
+//	connect (&channel, &BackendChannel::onUserAdded, [this] (const BackendUser&) {
+//
+//	});
 
-	});
-
-	connect (&channel, &BackendChannel::onUserRemoved, [this] (const BackendUser& user) {
-		removeRowByData (&user);
-	});
+	connect (&channel, &BackendChannel::onUserRemoved, this, &UserListDialog::removeRowByData);
 }
 
 ViewChannelMembersListDialog::~ViewChannelMembersListDialog () = default;

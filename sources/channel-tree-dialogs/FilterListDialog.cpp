@@ -60,7 +60,8 @@ FilterListDialog::FilterListDialog (QWidget* parent)
 		}
 	});
 
-connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &FilterListDialog::applyFilter);
+	connect (ui->filterLineEdit, &QLineEdit::textEdited, this, &FilterListDialog::applyFilter);
+	setAttribute (Qt::WA_DeleteOnClose);
 }
 
 FilterListDialog::~FilterListDialog()
