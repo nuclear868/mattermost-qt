@@ -52,11 +52,19 @@ ViewTeamMembersListDialog::ViewTeamMembersListDialog (Backend& backend, const Ba
 	}
 
 	create (dialogCfg, entrySet, {"Full Name", "Status"});
+
+	connect (&team, &BackendTeam::onUserAdded, [this] (const BackendUser&) {
+
+	});
+
+	connect (&team, &BackendTeam::onUserRemoved, [this] (const BackendUser& user) {
+		removeRowByData (&user);
+	});
 }
 
 ViewTeamMembersListDialog::~ViewTeamMembersListDialog () = default;
 
-void ViewTeamMembersListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)
+void ViewTeamMembersListDialog::addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)
 {
 	BackendUser *user = selectedItemData.value<BackendUser*>();
 
@@ -65,7 +73,7 @@ void ViewTeamMembersListDialog::addContextMenuActions (QMenu& menu, QVariant&& s
 		return;
 	}
 
-	UserListDialog::addContextMenuActions (menu, std::move (selectedItemData));
+	UserListDialog::addContextMenuActions (menu, selectedItemData);
 
 	menu.addAction ("Remove from team", [this, user] {
 		backend.removeUserFromTeam (team, user->id);

@@ -175,7 +175,10 @@ static bool printEvent (const QString& name)
 			name == "reaction_added" 	||
 			name == "status_change" 	||
 			name == "posted" 			||
-			name == "reaction_removed") {
+			name == "reaction_removed"	||
+			name == "user_removed"		||
+			name == "leave_team"
+	) {
 		return false;
 	}
 
@@ -212,7 +215,7 @@ void WebSocketConnector::onNewPacket (const QString& string)
 	}
 
 	if (printEvent (it.key())) {
-	qDebug() << "========" << '\n';
+		qDebug() << "========" << '\n';
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << jsonString.toStdString();
 	}

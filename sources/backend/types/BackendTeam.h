@@ -45,23 +45,33 @@ signals:
 	void onLeave ();
 	void onNewChannel (BackendChannel& channel);
 	void onChannelDeleted (BackendChannel& channel);
-public:
-    QString			id;
-    uint64_t		create_at;
-    uint64_t		update_at;
-    uint64_t		delete_at;
-    QString			display_name;
-    QString			name;
-    QString			description;
-    QString			email;
-    QString			type;
-    QString			company_name;
-    QString			allowed_domains;
-    QString			invite_id;
-    bool 			allow_open_invite;
-    QVariant 		scheme_id;
 
-	QList<BackendTeamMember> 							members;
+	/**
+	 * Called when a user has been added to the team
+	 */
+	void onUserAdded (const BackendUser& user);
+
+	/**
+	 * Called when a user (other than the logged-in user) has been removed from the team
+	 */
+	void onUserRemoved (const BackendUser& user);
+public:
+	QString			id;
+	uint64_t		create_at;
+	uint64_t		update_at;
+	uint64_t		delete_at;
+	QString			display_name;
+	QString			name;
+	QString			description;
+	QString			email;
+	QString			type;
+	QString			company_name;
+	QString			allowed_domains;
+	QString			invite_id;
+	bool 			allow_open_invite;
+	QVariant 		scheme_id;
+
+	QMap<QString, BackendTeamMember> 					members;
 	std::list<BackendChannel>							allPublicChannels;
 	std::vector<std::unique_ptr<BackendChannel>>		channels;
 };

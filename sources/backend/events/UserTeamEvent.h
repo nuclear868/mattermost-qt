@@ -33,8 +33,8 @@ public:
 	UserTeamEvent (const QJsonObject& object, const QJsonObject&);
 	virtual ~UserTeamEvent ();
 public:
-	QString team_id;
-	QString user_id;
+	QString teamId;
+	QString userId;
 };
 
 class UserAddedToTeamEvent: public UserTeamEvent {

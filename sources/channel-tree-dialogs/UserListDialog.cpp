@@ -52,8 +52,7 @@ UserListEntry::UserListEntry (const BackendUser* user, bool disabledItem)
 
 	userAvatar = &user->avatar;
 	fields[userStatus] = user->status;
-	dataPointer = QVariant::fromValue ((BackendUser*)user);
-
+	dataPointer = user;
 }
 
 UserListEntry::UserListEntry (const BackendTeamMember& teamMember)
@@ -177,8 +176,10 @@ void UserListDialog::create (const FilterListDialogConfig& cfg, const std::set<U
 	for (const UserListEntry& entry: users) {
 
 		QTableWidgetItem* nameItem = new QTableWidgetItem (QIcon(QPixmap::fromImage(QImage::fromData (*entry.userAvatar))), entry.fields[0]);
-		nameItem->setData (Qt::UserRole, entry.dataPointer);
+		nameItem->setData (Qt::UserRole, QVariant::fromValue (const_cast<BackendUser*> (entry.dataPointer)));
+
 		ui->tableWidget->setItem (usersCount, 0, nameItem);
+		dataToItemMap[entry.dataPointer] = nameItem;
 
 		/**
 		 * Mark entries for already existing users, so that they can be distinguished. They will be still selectable.
@@ -215,7 +216,7 @@ void UserListDialog::setItemCountLabel (uint32_t count)
 	ui->usersCountLabel->setText(QString::number(count) + (count == 1 ? " user" : " users"));
 }
 
-void UserListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)
+void UserListDialog::addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)
 {
 	BackendUser *user = selectedItemData.value<BackendUser*>();
 
@@ -230,6 +231,19 @@ void UserListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItem
 		UserProfileDialog* dialog = new UserProfileDialog (*user, ui->tableWidget);
 		dialog->show ();
 	});
+}
+
+void UserListDialog::removeRowByData (const BackendUser* user)
+{
+	auto it = dataToItemMap.find (user);
+
+	if (it == dataToItemMap.end()) {
+		qDebug() << "removeRowByData: no item found with given data " << user;
+		return;
+	}
+
+	qDebug() << "Remove item " << it.key() << " " << it.value() << " row " << it.value()->row();
+	ui->tableWidget->removeRow (it.value()->row());
 }
 
 } /* namespace Mattermost */

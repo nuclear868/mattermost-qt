@@ -34,7 +34,7 @@ public:
 	TeamChannelsListDialog (Backend& backend, FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, QWidget *parent);
 	virtual ~TeamChannelsListDialog ();
 public:
-	void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)	override;
+	void addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)	override;
 	void setItemCountLabel (uint32_t count) 								override;
 private:
 	void create (const FilterListDialogConfig& cfg, const std::list<BackendChannel>& channels, const QStringList& columnNames);

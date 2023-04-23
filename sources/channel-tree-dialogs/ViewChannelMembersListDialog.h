@@ -35,7 +35,7 @@ public:
 	ViewChannelMembersListDialog (Backend& backend, const BackendChannel& channel, QWidget *parent);
 	virtual ~ViewChannelMembersListDialog ();
 private:
-	void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)		override;
+	void addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)		override;
 private:
 	const BackendChannel& 	channel;
 	Backend& 				backend;

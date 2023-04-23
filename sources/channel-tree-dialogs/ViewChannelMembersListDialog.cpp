@@ -53,11 +53,19 @@ ViewChannelMembersListDialog::ViewChannelMembersListDialog (Backend& backend, co
 	}
 
 	create (dialogCfg, entrySet, {"Full Name", "Status", "Channel was last viewed"});
+
+	connect (&channel, &BackendChannel::onUserAdded, [this] (const BackendUser&) {
+
+	});
+
+	connect (&channel, &BackendChannel::onUserRemoved, [this] (const BackendUser& user) {
+		removeRowByData (&user);
+	});
 }
 
 ViewChannelMembersListDialog::~ViewChannelMembersListDialog () = default;
 
-void ViewChannelMembersListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)
+void ViewChannelMembersListDialog::addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)
 {
 	BackendUser *user = selectedItemData.value<BackendUser*>();
 
@@ -66,7 +74,7 @@ void ViewChannelMembersListDialog::addContextMenuActions (QMenu& menu, QVariant&
 		return;
 	}
 
-	UserListDialog::addContextMenuActions (menu, std::move (selectedItemData));
+	UserListDialog::addContextMenuActions (menu, selectedItemData);
 
 	menu.addAction ("Remove from channel", [this, user] {
 		backend.removeUserFromChannel (channel, user->id);

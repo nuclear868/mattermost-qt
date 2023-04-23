@@ -85,6 +85,9 @@ public:
 	//get own teams (/users/me/teams)
 	void retrieveOwnTeams (std::function<void(BackendTeam&)> callback);
 
+	//get all public teams on the server (/teams)
+	void retrieveAllPublicTeams ();
+
 	//get a team (/teams/teamID)
 	void retrieveTeam (QString teamID);
 
@@ -97,8 +100,11 @@ public:
 	//get own channel memberships from all teams (/users/me/channel_members)
 	//void retrieveOwnAllChannelMemberships (std::function<void()> callback);
 
-	//get team members (/teams/teamID/members)
+	//get multiple team members (/teams/{teamID}/members)
 	void retrieveTeamMembers (BackendTeam& team, int page = 0);
+
+	//get a single team member (/teams/teamID/members/{userID})
+	void retrieveTeamMember (BackendTeam& team, const BackendUser& user, std::function<void ()> callback);
 
 	//get a channel (/channels/channelID)
 	void retrieveChannel (BackendTeam& team, QString channelID);

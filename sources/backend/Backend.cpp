@@ -233,6 +233,7 @@ void Backend::loginSuccess (const QJsonDocument& doc, const QNetworkReply& reply
 	isLoggedIn = true;
 	retrieveUserPreferences ();
 	retrieveCustomEmojis ();
+	//retrieveAllPublicTeams ();
 	callback (NetworkRequest::getToken());
 }
 
@@ -287,6 +288,8 @@ void Backend::logout (std::function<void ()> callback)
 void Backend::retrieveUser (QString userID, std::function<void (const BackendUser&)> callback)
 {
 	NetworkRequest request ("users/" + userID);
+
+	LOG_DEBUG ("retrieveUser " << userID);
 
 	httpConnector.get (request, HttpResponseCallback ([this, callback](const QJsonDocument& doc) {
 
@@ -530,15 +533,28 @@ void Backend::retrieveOwnTeams (std::function<void(BackendTeam&)> callback)
     }));
 }
 
+void Backend::retrieveAllPublicTeams ()
+{
+    NetworkRequest request ("teams");
+
+    LOG_DEBUG ("retrieveOwnTeams request");
+
+    httpConnector.get (request, HttpResponseCallback ([this] (const QJsonDocument& doc) {
+    	LOG_DEBUG ("retrieveAllPublicTeams reply");
+#if 1
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << jsonString.toStdString() << std::endl;
+#endif
+    }));
+}
+
 void Backend::retrieveTeam (QString teamID)
 {
 	NetworkRequest request ("teams/" + teamID);
 
-    std::cout << "get team " << teamID.toStdString() << std::endl;
-
+	LOG_DEBUG ("retrieveTeam '" << teamID << "'");
 
     httpConnector.get (request, HttpResponseCallback ([this] (const QJsonDocument& doc) {
-    	LOG_DEBUG ("getTeam reply");
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -553,7 +569,6 @@ void Backend::retrieveTeam (QString teamID)
 		}
     }));
 }
-
 
 void Backend::retrieveTeamPublicChannels (QString teamID, std::function<void(std::list<BackendChannel>&)> callback)
 {
@@ -666,16 +681,10 @@ void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 		for (const auto &itemRef: qAsConst(root)) {
 			BackendTeamMember member (storage, itemRef.toObject());
 
-#if 0
-			if (member.isAdmin) {
-				std::cout << team.display_name.toStdString() << ": User " << member.getDisplayUsername().toStdString() << " is admin\n";
+			if (member.user) {
+				team.members.insert (member.user->id, std::move (member));
 			}
-#endif
-
-			team.members.append (std::move (member));
 		}
-
-		//LOG_DEBUG ("Team " << team.display_name << " page " << page << " Members Count: " << root.size());
 
 		//there may be more pages
 		if (root.size() == itemsPerPage) {
@@ -694,11 +703,32 @@ void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 	}));
 }
 
+void Backend::retrieveTeamMember (BackendTeam& team, const BackendUser& user, std::function<void ()> callback)
+{
+	NetworkRequest request ("team/" + team.id + "/members/" + user.id);
+
+	LOG_DEBUG ("retrieveTeamMember for team '" << team.name << "', user '" << user.getDisplayName() << "'");
+
+	httpConnector.get (request, HttpResponseCallback ([this, &team, callback](const QJsonDocument& doc) {
+
+#if 0
+		QString jsonString = doc.toJson(QJsonDocument::Indented);
+		std::cout << "retrieveTeamMember reply: " <<  jsonString.toStdString() << std::endl;
+#endif
+		BackendTeamMember member (storage, doc.object());
+		if (member.user) {
+			team.members.insert (member.user->id, std::move (member));
+		}
+
+		callback ();
+	}));
+}
+
 void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 {
 	NetworkRequest request ("channels/" + channelID);
 
-	LOG_DEBUG ("retrieveChannel " << channelID);
+	LOG_DEBUG ("retrieveChannel '" << channelID << "' of team '" << team.name << "'");
 
 	httpConnector.get (request, HttpResponseCallback ([this, &team] (const QJsonDocument& doc) {
 		LOG_DEBUG ("retrieveChannel reply");
@@ -842,17 +872,6 @@ void Backend::retrieveChannelMembers (BackendChannel& channel, std::function<voi
 				channel.members.insert (member.user->id, std::move (member));
 			}
 		}
-
-		//LOG_DEBUG ("Channel Members Count: " << channel.members.size());
-#if 0
-		for (auto& it: team.members) {
-			if (!it.user) {
-				std::cout << "\t" << it.user_id.toStdString() << " (no user) " << std::endl;
-			} else {
-				std::cout << "\t" << it.user_id.toStdString() << " " << it.user->username.toStdString() << std::endl;
-			}
-		}
-#endif
 		callback ();
 	}));
 }
@@ -861,33 +880,21 @@ void Backend::retrieveChannelMember (BackendChannel& channel, const BackendUser&
 {
 	NetworkRequest request ("channels/" + channel.id + "/members/" + user.id);
 
-	httpConnector.get (request, HttpResponseCallback ([this, &channel, callback](const QJsonDocument& doc) {
+	LOG_DEBUG ("retrieveChannelMember for channel '" << channel.name << "', user '" << user.getDisplayName() << "'");
 
-		//LOG_DEBUG ("retrieveChannelMember reply");
+	httpConnector.get (request, HttpResponseCallback ([this, &channel, callback](const QJsonDocument& doc) {
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
-		std::cout << "retrieveChannelMembers reply: " <<  jsonString.toStdString() << std::endl;
+		std::cout << "retrieveChannelMember reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 		BackendChannelMember member (storage, doc.object());
 		if (member.user) {
 			channel.members.insert (member.user->id, std::move (member));
 		}
-
-		//LOG_DEBUG ("Channel Members Count: " << channel.members.size());
-#if 0
-		for (auto& it: team.members) {
-			if (!it.user) {
-				std::cout << "\t" << it.user_id.toStdString() << " (no user) " << std::endl;
-			} else {
-				std::cout << "\t" << it.user_id.toStdString() << " " << it.user->username.toStdString() << std::endl;
-			}
-		}
-#endif
 		callback ();
 	}));
 }
-
 
 void Backend::retrievePollMetadata (BackendPoll& poll)
 {

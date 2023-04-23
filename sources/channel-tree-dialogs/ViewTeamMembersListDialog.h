@@ -33,7 +33,7 @@ public:
 	ViewTeamMembersListDialog (Backend& backend, const BackendTeam& team, QWidget *parent);
 	virtual ~ViewTeamMembersListDialog ();
 private:
-	void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)		override;
+	void addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)		override;
 private:
 	const BackendTeam&		team;
 	Backend& 				backend;

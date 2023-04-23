@@ -29,6 +29,8 @@
 #include <QVariant>
 #include "FilterListDialog.h"
 
+class QTableWidgetItem;
+
 namespace Mattermost {
 
 class BackendTeamMember;
@@ -46,10 +48,13 @@ public:
 	virtual ~UserListDialog ();
 public:
     const BackendUser* getSelectedUser ();
-    void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)	override;
+    void addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)	override;
     void setItemCountLabel (uint32_t count) 								override;
 protected:
     void create (const FilterListDialogConfig& cfg, const std::set<UserListEntry>& users, const QStringList& columnNames);
+    void removeRowByData (const BackendUser* user);
+
+    QMap<const BackendUser*, QTableWidgetItem*> dataToItemMap;
 };
 
 using ViewTeamMembersDialog = UserListDialog;
@@ -72,7 +77,7 @@ public:
 	}
 public:
 	const QByteArray*		userAvatar;
-	QVariant				dataPointer;
+	const BackendUser*		dataPointer;
 
 	std::array<QString, 4> 	fields;
 	bool					disabledItem;

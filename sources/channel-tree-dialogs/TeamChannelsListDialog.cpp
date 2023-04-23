@@ -98,7 +98,7 @@ void TeamChannelsListDialog::setItemCountLabel (uint32_t count)
 	ui->usersCountLabel->setText(QString::number(count) + (count == 1 ? " channel" : " channels"));
 }
 
-void TeamChannelsListDialog::addContextMenuActions (QMenu& menu, QVariant&& selectedItemData)
+void TeamChannelsListDialog::addContextMenuActions (QMenu& menu, const QVariant& selectedItemData)
 {
 	BackendChannel *channel = selectedItemData.value<BackendChannel*>();
 

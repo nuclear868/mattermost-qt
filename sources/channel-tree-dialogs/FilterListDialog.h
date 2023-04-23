@@ -50,7 +50,7 @@ public:
     void create (const FilterListDialogConfig& cfg);
 private:
     void applyFilter (const QString& filter);
-    virtual void addContextMenuActions (QMenu& menu, QVariant&& selectedItemData) = 0;
+    virtual void addContextMenuActions (QMenu& menu, const QVariant& selectedItemData) = 0;
     virtual void setItemCountLabel (uint32_t count) = 0;
 protected:
     Ui::FilterListDialog *ui;
