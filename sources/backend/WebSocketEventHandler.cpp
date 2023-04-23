@@ -190,15 +190,22 @@ void WebSocketEventHandler::handleEvent (const UserAddedToChannelEvent& event)
 		backend.retrieveChannel (*team, event.channelId);
 	}
 
-	auto addChannelMemberFn = [this, channel] (const BackendUser& user) {
+
+	auto addChannelMemberFn = [this, channel, team] (const BackendUser& user) {
+
+		/**
+		 * Retrieve the team member for this user, if no one
+		 */
+		if (team && team->members.count (user.id) == 0) {
+			backend.retrieveTeamMember (*team, user);
+		}
+
 		/**
 		 * if the channel does not exist, do not notify.
 		 * When the channel is retrieved, it will contain the new user
 		 */
 		if (channel) {
-			backend.retrieveChannelMember (*channel, user, [channel, &user] {
-				emit (channel->onUserAdded (user));
-			});
+			backend.retrieveChannelMember (*channel, user);
 		}
 	};
 
@@ -233,9 +240,7 @@ void WebSocketEventHandler::handleEvent (const UserAddedToTeamEvent& event)
 	} else {
 
 		if (team) {
-			backend.retrieveTeamMember (*team, *user, [team, user] {
-				emit (team->onUserAdded (*user));
-			});
+			backend.retrieveTeamMember (*team, *user);
 		}
 	}
 }

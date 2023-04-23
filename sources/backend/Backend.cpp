@@ -54,6 +54,13 @@
 
 namespace Mattermost {
 
+namespace RequestTrackerID {
+enum type {
+	channelMember,
+	teamMember,
+};
+}
+
 Backend::Backend(QObject *parent)
 :QObject (parent)
 ,serverDialogsMap (*this)
@@ -703,13 +710,21 @@ void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 	}));
 }
 
-void Backend::retrieveTeamMember (BackendTeam& team, const BackendUser& user, std::function<void ()> callback)
+void Backend::retrieveTeamMember (BackendTeam& team, const BackendUser& user)
 {
-	NetworkRequest request ("team/" + team.id + "/members/" + user.id);
+	NetworkRequest request ("teams/" + team.id + "/members/" + user.id);
+	RequestTrackerEntry trackedEntry (RequestTrackerID::teamMember, &team, &user);
+
+	if (requestTracker.hasEntry (trackedEntry)) {
+		LOG_DEBUG ("retrieveTeamMember for team '" << team.name << "', user '" << user.getDisplayName() << "': skipped because of existing request");
+		return;
+	}
 
 	LOG_DEBUG ("retrieveTeamMember for team '" << team.name << "', user '" << user.getDisplayName() << "'");
 
-	httpConnector.get (request, HttpResponseCallback ([this, &team, callback](const QJsonDocument& doc) {
+	requestTracker.addEntry (trackedEntry);
+
+	httpConnector.get (request, HttpResponseCallback ([this, &team, &user, trackedEntry](const QJsonDocument& doc) {
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -720,7 +735,8 @@ void Backend::retrieveTeamMember (BackendTeam& team, const BackendUser& user, st
 			team.members.insert (member.user->id, std::move (member));
 		}
 
-		callback ();
+		requestTracker.eraseEntry (trackedEntry);
+		emit (team.onUserAdded (user));
 	}));
 }
 
@@ -876,13 +892,21 @@ void Backend::retrieveChannelMembers (BackendChannel& channel, std::function<voi
 	}));
 }
 
-void Backend::retrieveChannelMember (BackendChannel& channel, const BackendUser& user, std::function<void ()> callback)
+void Backend::retrieveChannelMember (BackendChannel& channel, const BackendUser& user)
 {
 	NetworkRequest request ("channels/" + channel.id + "/members/" + user.id);
+	RequestTrackerEntry trackedEntry (RequestTrackerID::channelMember, &channel, &user);
+
+	if (requestTracker.hasEntry (trackedEntry)) {
+		LOG_DEBUG ("retrieveChannelMember for channel '" << channel.name << "', user '" << user.getDisplayName() << "': skipped because of existing request");
+		return;
+	}
 
 	LOG_DEBUG ("retrieveChannelMember for channel '" << channel.name << "', user '" << user.getDisplayName() << "'");
 
-	httpConnector.get (request, HttpResponseCallback ([this, &channel, callback](const QJsonDocument& doc) {
+	requestTracker.addEntry (trackedEntry);
+
+	httpConnector.get (request, HttpResponseCallback ([this, &channel, &user, trackedEntry](const QJsonDocument& doc) {
 
 #if 0
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -892,7 +916,9 @@ void Backend::retrieveChannelMember (BackendChannel& channel, const BackendUser&
 		if (member.user) {
 			channel.members.insert (member.user->id, std::move (member));
 		}
-		callback ();
+
+		requestTracker.eraseEntry (trackedEntry);
+		emit (channel.onUserAdded (user));
 	}));
 }
 

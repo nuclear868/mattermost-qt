@@ -35,6 +35,7 @@
 #include "backend/WebSocketEventHandler.h"
 #include "backend/Storage.h"
 #include "backend/ServerDialogsMap.h"
+#include "backend/RequestTracker.h"
 
 namespace Mattermost {
 
@@ -104,7 +105,7 @@ public:
 	void retrieveTeamMembers (BackendTeam& team, int page = 0);
 
 	//get a single team member (/teams/teamID/members/{userID})
-	void retrieveTeamMember (BackendTeam& team, const BackendUser& user, std::function<void ()> callback);
+	void retrieveTeamMember (BackendTeam& team, const BackendUser& user);
 
 	//get a channel (/channels/channelID)
 	void retrieveChannel (BackendTeam& team, QString channelID);
@@ -126,7 +127,7 @@ public:
 	void retrieveChannelMembers (BackendChannel& channel, std::function<void ()> callback);
 
 	//get a single channel member (/channels/{channel_id}/members/{user_id})
-	void retrieveChannelMember (BackendChannel& channel, const BackendUser& user, std::function<void ()> callback);
+	void retrieveChannelMember (BackendChannel& channel, const BackendUser& user);
 
 	//get poll metadata (/plugins/com.github.matterpoll.matterpoll/api/v1/polls/{poll_id}/metadata)
 	void retrievePollMetadata (BackendPoll& poll);
@@ -251,6 +252,7 @@ private:
     WebSocketConnector				webSocketConnector;
     BackendLoginData				loginData;
     QNetworkDiskCache				attachmentsCache;
+    RequestTracker					requestTracker;
     BackendChannel*					currentChannel;
     QTimer 							timeoutTimer;
     bool							isLoggedIn;
