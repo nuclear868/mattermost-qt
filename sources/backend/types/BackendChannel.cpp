@@ -263,6 +263,8 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 
 void BackendChannel::addPinnedPosts (const QJsonArray& orderArray, const QJsonObject& postsObject)
 {
+	pinnedPosts.clear ();
+
 	for (const auto& newPostEl: orderArray) {
 		QString newPostId = newPostEl.toString();
 
