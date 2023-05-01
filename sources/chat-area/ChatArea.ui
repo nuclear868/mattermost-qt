@@ -101,7 +101,6 @@
            <property name="font">
             <font>
              <pointsize>16</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -169,10 +168,6 @@
            <property name="text">
             <string>N members</string>
            </property>
-           <property name="icon">
-            <iconset resource="../../resource.qrc">
-             <normaloff>:/img/user-icon.png</normaloff>:/img/user-icon.png</iconset>
-           </property>
           </widget>
          </item>
          <item>
@@ -181,7 +176,7 @@
             <string>N pinned posts</string>
            </property>
            <property name="icon">
-            <iconset resource="../../resource.qrc">
+            <iconset>
              <normaloff>:/img/pushpin.png</normaloff>:/img/pushpin.png</iconset>
            </property>
           </widget>

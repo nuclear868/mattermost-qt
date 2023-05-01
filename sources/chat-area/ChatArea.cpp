@@ -31,6 +31,12 @@
 
 namespace Mattermost {
 
+static const QIcon& getUserButtonIcon ()
+{
+	static QIcon icon (QString::fromUtf8(":/img/user-icon.png"));
+	return icon;
+}
+
 ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent)
 :QWidget(parent)
 ,ui(new Ui::ChatArea)
@@ -46,6 +52,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	setAcceptDrops(true);
 
 	ui->setupUi(this);
+
+	ui->usersButton->setIcon(getUserButtonIcon());
 
 	ui->outgoingPostCreator->init (backend, channel, *ui->outgoingPostPanel, *ui->listWidget, ui->footerLayout);
 	ui->listWidget->backend = &backend;
