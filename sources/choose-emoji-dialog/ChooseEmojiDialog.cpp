@@ -97,7 +97,14 @@ void ChooseEmojiDialog::restoreEmojiFavorites ()
 	QSettings settings;
 	QByteArray favoritesArray = settings.value("emoji_favorites").value<QByteArray>();
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 	QVector<EmojiID> favoriteEmojisVec ((EmojiID*)favoritesArray.begin(), (EmojiID*)favoritesArray.end());
+#else
+	QVector<EmojiID> favoriteEmojisVec;
+	size_t size = favoritesArray.size() / sizeof (EmojiID);
+	favoriteEmojisVec.reserve (size);
+	std::copy((EmojiID*)favoritesArray.begin(), (EmojiID*)favoritesArray.end(), std::back_inserter(favoriteEmojisVec));
+#endif
 
 	if (favoriteEmojisVec.isEmpty()) {
 

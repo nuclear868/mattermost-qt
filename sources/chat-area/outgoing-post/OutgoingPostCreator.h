@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <memory>
 #include <QTimer>
 #include <QWidget>
 #include "fwd.h"
@@ -83,7 +84,7 @@ private:
 	}
 
 private:
-    Ui::OutgoingPostCreator*			ui;
+	Ui::OutgoingPostCreator*			ui;
 	Backend*							backend;
 	BackendChannel*						channel;
 	OutgoingPostPanel*					panel;

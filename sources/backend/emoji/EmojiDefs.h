@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <QVector>
+
 namespace Mattermost {
 
 namespace EmojiCategory {
