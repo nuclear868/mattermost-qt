@@ -52,6 +52,8 @@ static const QMap<QString, void(*)(WebSocketConnector&, const QJsonObject&, cons
 	{"typing",				handler<TypingEvent>},
 	{"status_change", 		handler<StatusChangeEvent>},
 	{"direct_added", 		handler<NewDirectChannelEvent>}, 		//new direct channel created
+	{"new_user",			handler<NewUserEvent>}, 				//user added to the server
+	{"user_updated",		handler<UserUpdatedEvent>}, 			//user data updated
 	{"user_added",			handler<UserAddedToChannelEvent>}, 		//user added to channel
 	{"added_to_team",		handler<UserAddedToTeamEvent>},			//user added to team
 	{"leave_team",			handler<UserLeaveTeamEvent>},			//a user has left a team
@@ -175,6 +177,7 @@ static bool printEvent (const QString& name)
 			name == "reaction_added" 	||
 			name == "status_change" 	||
 			name == "posted" 			||
+			name == "typing" 			||
 			name == "reaction_removed"	||
 			name == "user_removed"		||
 			name == "leave_team"

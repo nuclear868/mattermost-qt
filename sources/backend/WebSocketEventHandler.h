@@ -35,6 +35,8 @@
 #include "events/TypingEvent.h"
 #include "events/StatusChangeEvent.h"
 #include "events/NewDirectChannelEvent.h"
+#include "events/NewUserEvent.h"
+#include "events/UserUpdatedEvent.h"
 #include "events/UserTeamEvent.h"
 #include "events/UserAddedToChannelEvent.h"
 #include "events/UserRemovedFromChannelEvent.h"
@@ -59,6 +61,8 @@ public:
 	void handleEvent (const TypingEvent& event);
 	void handleEvent (const StatusChangeEvent& event);
 	void handleEvent (const NewDirectChannelEvent& event);
+	void handleEvent (const NewUserEvent& event);
+	void handleEvent (const UserUpdatedEvent& event);
 	void handleEvent (const UserAddedToChannelEvent& event);
 	void handleEvent (const UserAddedToTeamEvent& event);
 	void handleEvent (const UserLeaveTeamEvent& event);

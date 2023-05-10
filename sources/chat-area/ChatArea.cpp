@@ -63,7 +63,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 	setTextEditWidgetHeight (texteditDefaultHeight);
 
-	const Mattermost::BackendUser* user = backend.getStorage().getUserById (channel.name);
+	const BackendUser* user = backend.getStorage().getUserById (channel.name);
 
 	if (user) {
 

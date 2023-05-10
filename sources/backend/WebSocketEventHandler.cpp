@@ -143,14 +143,15 @@ void WebSocketEventHandler::handleEvent (const PostReactionRemovedEvent& event)
 
 void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 {
-	BackendChannel* channel = storage.getChannelById(event.channel_id);
+	BackendChannel* channel = storage.getChannelById(event.channelID);
 
-	BackendUser* user = storage.getUserById (event.user_id);
+	BackendUser* user = storage.getUserById (event.userID);
 
 	if (!user || !channel) {
 		return;
 	}
 
+	LOG_DEBUG ("TypingEvent: User " << user->getDisplayName() << " is typing in channel '" << channel->display_name << "'");
 	emit (channel->onUserTyping(*user));
 }
 
@@ -171,6 +172,27 @@ void WebSocketEventHandler::handleEvent (const NewDirectChannelEvent& event)
 {
 	LOG_DEBUG ("New Direct channel " << event.channelId << " created by: " << event.userId);
 	backend.retrieveDirectChannel (event.channelId);
+}
+
+void WebSocketEventHandler::handleEvent (const NewUserEvent& event)
+{
+	LOG_DEBUG ("New User " << event.userId);
+}
+
+void WebSocketEventHandler::handleEvent (const UserUpdatedEvent& event)
+{
+	BackendUser* user = storage.getUserById (event.userID());
+
+	/**
+	 * When a new user is created, this is the first sent event about him
+	 */
+	if (!user) {
+		LOG_DEBUG ("User updated: new user " << event.userID());
+		storage.addUser (event.userObject);
+	} else {
+		LOG_DEBUG ("User updated: existing user " << user->getDisplayName());
+		user->updateFrom (BackendUser (event.userObject));
+	}
 }
 
 void WebSocketEventHandler::handleEvent (const UserAddedToChannelEvent& event)

@@ -1,8 +1,8 @@
 /**
- * @file TypingEvent.h
+ * @file UserUpdatedEvent.cpp
  * @brief
  * @author Lyubomir Filipov
- * @date Jan 24, 2022
+ * @date Mar 14, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -22,19 +22,21 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
-#pragma once
-
-#include <QJsonObject>
+#include "UserUpdatedEvent.h"
 
 namespace Mattermost {
 
-class TypingEvent {
-public:
-	TypingEvent (const QJsonObject& data, const QJsonObject& broadcast);
-	virtual ~TypingEvent ();
-public:
-	QString		channelID;
-	QString		userID;
-};
+UserUpdatedEvent::UserUpdatedEvent (const QJsonObject& data, const QJsonObject&)
+:userObject (data.value ("user").toObject())
+{
+
+}
+
+UserUpdatedEvent::~UserUpdatedEvent () = default;
+
+QString UserUpdatedEvent::userID () const
+{
+	return userObject.value("id").toString();
+}
 
 } /* namespace Mattermost */

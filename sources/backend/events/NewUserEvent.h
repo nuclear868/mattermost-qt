@@ -1,8 +1,8 @@
 /**
- * @file TypingEvent.h
+ * @file NewUserEvent.h
  * @brief
  * @author Lyubomir Filipov
- * @date Jan 24, 2022
+ * @date Mar 14, 2022
  *
  * Copyright 2021, 2022 Lyubomir Filipov
  *
@@ -28,13 +28,12 @@
 
 namespace Mattermost {
 
-class TypingEvent {
+class NewUserEvent {
 public:
-	TypingEvent (const QJsonObject& data, const QJsonObject& broadcast);
-	virtual ~TypingEvent ();
+	NewUserEvent (const QJsonObject& data, const QJsonObject&);
+	virtual ~NewUserEvent ();
 public:
-	QString		channelID;
-	QString		userID;
+	QString		userId;
 };
 
 } /* namespace Mattermost */

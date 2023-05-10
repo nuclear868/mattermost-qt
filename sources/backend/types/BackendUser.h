@@ -53,8 +53,8 @@ signals:
 
 	void onStatusChanged ();
 public:
-
 	QString getDisplayName () const;
+	void updateFrom (const BackendUser& other);
 public:
     QString 			id;
     QByteArray			avatar;

@@ -26,6 +26,8 @@
 
 #include <QJsonObject>
 #include <QVariant>
+#include <sstream>
+#include "log.h"
 
 namespace Mattermost {
 
@@ -76,6 +78,38 @@ QString BackendUser::getDisplayName () const
 	return username;
 }
 
+#define CHECK_AND_UPDATE_PROPERTY(prop) \
+	if (this->prop != other.prop) {\
+		ss << "\t" << #prop ": '" << this->prop << "' -> '" << other.prop << "'\n";\
+		this->prop = other.prop;\
+	}\
+
+
+std::ostream& operator<< (std::ostream& os, const QString& qstr)
+{
+	return os << qstr.toStdString();
+}
+
+void BackendUser::updateFrom (const BackendUser& other)
+{
+	std::stringstream ss;
+	CHECK_AND_UPDATE_PROPERTY (username);
+	CHECK_AND_UPDATE_PROPERTY (auth_data);
+	CHECK_AND_UPDATE_PROPERTY (auth_service);
+	CHECK_AND_UPDATE_PROPERTY (email);
+	CHECK_AND_UPDATE_PROPERTY (nickname);
+	CHECK_AND_UPDATE_PROPERTY (first_name);
+	CHECK_AND_UPDATE_PROPERTY (last_name);
+	CHECK_AND_UPDATE_PROPERTY (position);
+	//CHECK_AND_UPDATE_PROPERTY (roles);
+	CHECK_AND_UPDATE_PROPERTY (allow_marketing);
+	//CHECK_AND_UPDATE_PROPERTY (notify_preps);
+	CHECK_AND_UPDATE_PROPERTY (last_password_update);
+	CHECK_AND_UPDATE_PROPERTY (locale);
+	CHECK_AND_UPDATE_PROPERTY (update_at);
+
+	LOG_DEBUG ("Modified properties:\n" << QString::fromStdString (ss.str()));
+}
 
 } /* namespace Mattermost */
 

@@ -300,7 +300,7 @@ void Backend::retrieveUser (QString userID, std::function<void (const BackendUse
 
 	httpConnector.get (request, HttpResponseCallback ([this, callback](const QJsonDocument& doc) {
 
-		LOG_DEBUG ("getUser reply");
+		LOG_DEBUG ("retrieveUser reply");
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
@@ -344,6 +344,10 @@ void Backend::updateUserPreferences (const BackendUserPreferences& preferences)
 
 void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void ()> callback)
 {
+	if (userIDs.isEmpty()) {
+		return; //nothing to do
+	}
+
 	QJsonArray userIDsJson;
 
 	for (auto& id: userIDs) {
@@ -354,7 +358,7 @@ void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::functi
 
 	httpConnector.post (request, userIDsJson, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
 
-		LOG_DEBUG ("getStatus reply");
+		LOG_DEBUG ("retrieveMultipleUsersStatus reply");
 
 		for (const auto& element: doc.array()) {
 
@@ -411,7 +415,7 @@ void Backend::retrieveAllUsers ()
 
 		httpConnector.get (request, HttpResponseCallback ([this, page, totalPages] (const QJsonDocument& doc) {
 
-			LOG_DEBUG ("getAllUsers reply");
+			LOG_DEBUG ("retrieveAllUsers reply");
 
 			QString jsonString = doc.toJson(QJsonDocument::Indented);
 			//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
@@ -429,7 +433,9 @@ void Backend::retrieveAllUsers ()
 			retrieveMultipleUsersStatus (userIds, [] {
 			});
 
-			LOG_DEBUG ("Page " << page << " (" << obtainedPages << " of " << totalPages << "): users count " << storage.users.size());
+			LOG_DEBUG ("Page " << page << " (" << obtainedPages << " of " << totalPages
+			           << "): users count: " << doc.array().size()
+			           << " (total: " << storage.users.size() << ")");
 		#if 0
 			for (auto& user: users) {
 				std::cout << user.id.toStdString() << " "
