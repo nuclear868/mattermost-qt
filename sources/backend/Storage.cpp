@@ -151,7 +151,21 @@ BackendTeam* Storage::addTeam (const QJsonObject& json)
 	}
 }
 
-BackendChannel* Storage::addTeamScopeChannel (BackendTeam& team, const QJsonObject& json)
+BackendChannel* Storage::addChannel (BackendTeam& team, const QJsonObject& json)
+{
+	uint32_t channelType = BackendChannel::getChannelType (json);
+
+	switch (channelType) {
+	case BackendChannel::directChannel:
+		return addDirectChannel (json);
+	case BackendChannel::groupChannel:
+		return addGroupChannel (json);
+	default:
+		return addTeamChannel (team, json);
+	}
+}
+
+BackendChannel* Storage::addTeamChannel (BackendTeam& team, const QJsonObject& json)
 {
 	//get channel ID and channel type in order to check if a channel has to be created
 	uint32_t channelType = BackendChannel::getChannelType (json);

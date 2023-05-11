@@ -62,7 +62,8 @@ public:
 
 	BackendTeam* addTeam (const QJsonObject& json);
 
-	BackendChannel* addTeamScopeChannel (BackendTeam& team, const QJsonObject& json);
+	BackendChannel* addChannel (BackendTeam& team, const QJsonObject& json);
+	BackendChannel* addTeamChannel (BackendTeam& team, const QJsonObject& json);
 	BackendChannel* addDirectChannel (const QJsonObject& json);
 	BackendChannel* addGroupChannel (const QJsonObject& json);
 

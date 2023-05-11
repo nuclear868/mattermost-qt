@@ -72,6 +72,7 @@ public:
 	static uint32_t getChannelType (const QJsonObject& jsonObject);
 
 	QString getChannelDescription () const;
+	QString getTeamAndChannelName ();
 
 	QSet<const BackendUser*> getAllMembers () const;
 	void addMember (const Storage& storage, const QJsonObject& jsonObject);

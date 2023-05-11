@@ -54,6 +54,18 @@ QString BackendChannel::getChannelDescription () const
 	return !header.isEmpty() ? header : purpose;
 }
 
+QString BackendChannel::getTeamAndChannelName ()
+{
+	switch (type) {
+	case directChannel:
+		return "(direct channel)/" + display_name;
+	case groupChannel:
+		return "(group channel)/" + display_name;
+	default:
+		return (team ? team->name : "(no team)") + "/" + display_name;
+	}
+}
+
 void ChannelNewPosts::addChunk (ChannelNewPostsChunk&& chunk)
 {
 	//do not add empty chunk

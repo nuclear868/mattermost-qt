@@ -627,21 +627,7 @@ void Backend::retrieveOwnChannelMembershipsForTeam (BackendTeam& team, std::func
 
     	LOG_DEBUG ("Team " << team.display_name << ":");
 		for (const auto &itemRef: doc.array()) {
-
-			const QJsonObject& channelObject = itemRef.toObject();
-			uint32_t channelType = BackendChannel::getChannelType (channelObject);
-
-			switch (channelType) {
-			case BackendChannel::directChannel:
-				storage.addDirectChannel (channelObject);
-				break;
-			case BackendChannel::groupChannel:
-				storage.addGroupChannel (channelObject);
-				break;
-			default:
-				storage.addTeamScopeChannel (team, channelObject);
-				break;
-			}
+			storage.addChannel (team, itemRef.toObject());
 		}
 
 		for (auto& channel: team.channels) {
@@ -743,7 +729,7 @@ void Backend::retrieveChannel (BackendTeam& team, QString channelID)
 		std::cout << "retrieveChannel reply: " <<  jsonString.toStdString() << std::endl;
 #endif
 
-		BackendChannel* channel =  storage.addTeamScopeChannel (team, doc.object());
+		BackendChannel* channel =  storage.addTeamChannel (team, doc.object());
 		LOG_DEBUG ("\tNew Channel added: " << channel->id << " " << channel->display_name);
 
 		emit team.onNewChannel (*channel);
