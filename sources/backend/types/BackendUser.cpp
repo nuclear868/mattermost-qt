@@ -31,13 +31,9 @@
 
 namespace Mattermost {
 
-BackendUser::BackendUser ()
-:allow_marketing (false)
-,isLoginUser (false)
-{
-}
-
 BackendUser::BackendUser (const QJsonObject& jsonObject)
+:props (jsonObject.value("props"))
+,timezone (jsonObject.value("timezone").toObject())
 {
 	id = jsonObject.value("id").toString();
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();
@@ -56,7 +52,6 @@ BackendUser::BackendUser (const QJsonObject& jsonObject)
 	notify_preps.deserialize (jsonObject.value("notify_props").toObject());
 	last_password_update = jsonObject.value("last_password_update").toVariant().toULongLong();
 	locale = jsonObject.value("locale").toString();
-	timezone.deserialize (jsonObject.value("timezone").toObject());
 	isLoginUser = false;
 }
 
@@ -85,14 +80,14 @@ QString BackendUser::getDisplayName () const
 	}\
 
 
-std::ostream& operator<< (std::ostream& os, const QString& qstr)
+static std::ostream& operator<< (std::ostream& os, const QString& qstr)
 {
 	return os << qstr.toStdString();
 }
 
-void BackendUser::updateFrom (const BackendUser& other)
+void BackendUser::updateFrom (const BackendUser& other, QString& resultString)
 {
-	std::stringstream ss;
+	std::ostringstream ss;
 	CHECK_AND_UPDATE_PROPERTY (username);
 	CHECK_AND_UPDATE_PROPERTY (auth_data);
 	CHECK_AND_UPDATE_PROPERTY (auth_service);
@@ -108,7 +103,9 @@ void BackendUser::updateFrom (const BackendUser& other)
 	CHECK_AND_UPDATE_PROPERTY (locale);
 	CHECK_AND_UPDATE_PROPERTY (update_at);
 
-	LOG_DEBUG ("Modified properties:\n" << QString::fromStdString (ss.str()));
+	props.updateFrom (other.props, ss);
+
+	resultString += QString::fromStdString (ss.str());
 }
 
 } /* namespace Mattermost */

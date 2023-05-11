@@ -26,11 +26,16 @@
 
 #include "BackendTimeZone.h"
 #include "BackendNotifyPreps.h"
+#include "BackendUserProps.h"
 
 class QJsonObject;
 
 namespace Mattermost {
 
+/**
+ * Holds settings that control the behavior of the Mattermost client
+ * for a particular user. For example: display settings, visible channels and recent statuses
+ */ 
 struct BackendUserPreferences {
 	QString category;
 	QString	name;
@@ -40,7 +45,6 @@ struct BackendUserPreferences {
 class BackendUser: public QObject {
 	Q_OBJECT
 public:
-	BackendUser ();
 	BackendUser (const QJsonObject& jsonObject);
 	virtual ~BackendUser ();
 signals:
@@ -54,28 +58,29 @@ signals:
 	void onStatusChanged ();
 public:
 	QString getDisplayName () const;
-	void updateFrom (const BackendUser& other);
+	void updateFrom (const BackendUser& other, QString& resultString);
 public:
-    QString 			id;
-    QByteArray			avatar;
-    uint64_t 			create_at;
-    uint64_t			update_at;
-    uint64_t 			delete_at;
-    QString 			username;
-    QString 			auth_data;
-    QString 			auth_service;
-    QString 			email;
-    QString 			nickname;
-    QString 			first_name;
-    QString 			last_name;
-    QString 			position;
-    QStringList 		roles;
-    bool 				allow_marketing;
-    BackendNotifyPreps 	notify_preps;
-    uint64_t 			last_password_update;
-    QString 			locale;
-    BackendTimeZone		timezone;
-    bool				isLoginUser;
+	QString 			id;
+	QByteArray			avatar;
+	uint64_t 			create_at;
+	uint64_t			update_at;
+	uint64_t 			delete_at;
+	QString 			username;
+	QString 			auth_data;
+	QString 			auth_service;
+	QString 			email;
+	QString 			nickname;
+	QString 			first_name;
+	QString 			last_name;
+	QString 			position;
+	QStringList 		roles;
+	bool 				allow_marketing;
+	BackendNotifyPreps 	notify_preps;
+	BackendUserProps	props;
+	uint64_t 			last_password_update;
+	QString 			locale;
+	BackendTimeZone		timezone;
+	bool				isLoginUser;
 
     //filled when status is requested
 	QString 			status;

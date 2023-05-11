@@ -24,6 +24,7 @@
 
 #include "BackendTeam.h"
 #include <QSet>
+#include "log.h"
 
 namespace Mattermost {
 
@@ -61,6 +62,18 @@ QSet<const BackendUser*> BackendTeam::getAllMembers () const
 	}
 
 	return ret;
+}
+
+void BackendTeam::addMember (const Storage& storage, const QJsonObject& jsonObject)
+{
+	BackendTeamMember member (storage, jsonObject);
+
+	if (member.user) {
+		members.insert (member.user->id, std::move (member));
+	} else {
+		QString userID = jsonObject.value("user_id").toString();
+		LOG_DEBUG ("Team " << display_name << " addMember: null user: " << userID);
+	}
 }
 
 } /* namespace Mattermost */

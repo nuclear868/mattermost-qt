@@ -37,15 +37,12 @@ uint32_t BackendChannel::getChannelType (const QJsonObject& jsonObject)
 	switch (jsonObject.value("type").toString()[0].unicode()) {
 	case 'O':
 		return publicChannel;
-		break;
 	case 'P':
 		return privateChannel;
-		break;
 	case 'D':
 		return directChannel;
 	case 'G':
 		return groupChannel;
-		break;
 	default:
 		return unknown;
 		break;
@@ -324,6 +321,17 @@ QSet<const BackendUser*> BackendChannel::getAllMembers () const
 	}
 
 	return ret;
+}
+
+void BackendChannel::addMember (const Storage& storage, const QJsonObject& jsonObject)
+{
+	BackendChannelMember member (storage, jsonObject);
+	if (member.user) {
+		members.insert (member.user->id, std::move (member));
+	} else {
+		QString userID = jsonObject.value("user_id").toString();
+		LOG_DEBUG ("Channel " << display_name << " addMember: null user: " << userID);
+	}
 }
 
 BackendPost* BackendChannel::findPostById (QString postID)

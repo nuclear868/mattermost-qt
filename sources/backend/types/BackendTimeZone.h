@@ -24,16 +24,16 @@
 
 #pragma once
 
-#include <QObject>
+#include <QString>
+
+class QJsonObject;
 
 namespace Mattermost {
 
 class BackendTimeZone {
 public:
-	BackendTimeZone ();
+	BackendTimeZone (const QJsonObject& jsonObject);
 	virtual ~BackendTimeZone ();
-public:
-	void deserialize (const QJsonObject& jsonObject);
 public:
     QString 			automaticTimezone;
     QString 			manualTimezone;

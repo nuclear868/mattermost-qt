@@ -74,6 +74,7 @@ public:
 	QString getChannelDescription () const;
 
 	QSet<const BackendUser*> getAllMembers () const;
+	void addMember (const Storage& storage, const QJsonObject& jsonObject);
 
 	BackendPost* addPost (const QJsonObject& postObject);
 

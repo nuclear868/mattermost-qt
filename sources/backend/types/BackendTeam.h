@@ -41,6 +41,7 @@ public:
 	virtual ~BackendTeam ();
 public:
 	QSet<const BackendUser*> getAllMembers () const;
+	void addMember (const Storage& storage, const QJsonObject& jsonObject);
 signals:
 	void onLeave ();
 	void onNewChannel (BackendChannel& channel);

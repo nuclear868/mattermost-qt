@@ -36,11 +36,6 @@ BackendChannelMember::BackendChannelMember (const Storage& storage, const QJsonO
 ,user (storage.getUserById (jsonObject.value("user_id").toString()))
 ,isAdmin (jsonObject.value("scheme_admin").toBool())
 {
-	QString userID = jsonObject.value("user_id").toString();
-
-	if (!user) {
-		LOG_DEBUG ("BackendTeamMember: null user " << userID);
-	}
 }
 
 BackendChannelMember::~BackendChannelMember () = default;

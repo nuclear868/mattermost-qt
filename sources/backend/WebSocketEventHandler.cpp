@@ -151,7 +151,6 @@ void WebSocketEventHandler::handleEvent (const TypingEvent& event)
 		return;
 	}
 
-	LOG_DEBUG ("TypingEvent: User " << user->getDisplayName() << " is typing in channel '" << channel->display_name << "'");
 	emit (channel->onUserTyping(*user));
 }
 
@@ -190,8 +189,10 @@ void WebSocketEventHandler::handleEvent (const UserUpdatedEvent& event)
 		LOG_DEBUG ("User updated: new user " << event.userID());
 		storage.addUser (event.userObject);
 	} else {
-		LOG_DEBUG ("User updated: existing user " << user->getDisplayName());
-		user->updateFrom (BackendUser (event.userObject));
+		QString updatedPropertiesString;
+		user->updateFrom (BackendUser (event.userObject), updatedPropertiesString);
+		LOG_DEBUG ("User updated: existing user " << user->getDisplayName()
+		           << ". Modified properties:\n" << updatedPropertiesString);
 	}
 }
 

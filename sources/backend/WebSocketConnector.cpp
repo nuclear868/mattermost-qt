@@ -180,6 +180,7 @@ static bool printEvent (const QString& name)
 			name == "typing" 			||
 			name == "reaction_removed"	||
 			name == "user_removed"		||
+			name == "user_updated"		||
 			name == "leave_team"
 	) {
 		return false;

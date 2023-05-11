@@ -417,9 +417,10 @@ void Backend::retrieveAllUsers ()
 
 			LOG_DEBUG ("retrieveAllUsers reply");
 
+#if 0
 			QString jsonString = doc.toJson(QJsonDocument::Indented);
-			//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
-			//std::cout << jsonString.toStdString() << std::endl;
+			std::cout << jsonString.toStdString() << std::endl;
+#endif
 
 			QVector<QString> userIds;
 			userIds.reserve (200);
@@ -692,27 +693,13 @@ void Backend::retrieveTeamMembers (BackendTeam& team, int page)
 #endif
 		auto root = doc.array();
 		for (const auto &itemRef: qAsConst(root)) {
-			BackendTeamMember member (storage, itemRef.toObject());
-
-			if (member.user) {
-				team.members.insert (member.user->id, std::move (member));
-			}
+			team.addMember (storage, itemRef.toObject());
 		}
 
 		//there may be more pages
 		if (root.size() == itemsPerPage) {
 			retrieveTeamMembers (team, page + 1);
 		}
-
-#if 0
-		for (auto& it: team.members) {
-			if (!it.user) {
-				std::cout << "\t" << it.user_id.toStdString() << " (no user) " << std::endl;
-			} else {
-				std::cout << "\t" << it.user_id.toStdString() << " " << it.user->username.toStdString() << std::endl;
-			}
-		}
-#endif
 	}));
 }
 
@@ -736,11 +723,7 @@ void Backend::retrieveTeamMember (BackendTeam& team, const BackendUser& user)
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "retrieveTeamMember reply: " <<  jsonString.toStdString() << std::endl;
 #endif
-		BackendTeamMember member (storage, doc.object());
-		if (member.user) {
-			team.members.insert (member.user->id, std::move (member));
-		}
-
+		team.addMember (storage, doc.object());
 		requestTracker.eraseEntry (trackedEntry);
 		emit (team.onUserAdded (user));
 	}));
@@ -889,10 +872,7 @@ void Backend::retrieveChannelMembers (BackendChannel& channel, std::function<voi
 #endif
 		auto root = doc.array();
 		for (const auto &itemRef: qAsConst(root)) {
-			BackendChannelMember member (storage, itemRef.toObject());
-			if (member.user) {
-				channel.members.insert (member.user->id, std::move (member));
-			}
+			channel.addMember (storage, itemRef.toObject());
 		}
 		callback ();
 	}));
@@ -918,11 +898,7 @@ void Backend::retrieveChannelMember (BackendChannel& channel, const BackendUser&
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 		std::cout << "retrieveChannelMember reply: " <<  jsonString.toStdString() << std::endl;
 #endif
-		BackendChannelMember member (storage, doc.object());
-		if (member.user) {
-			channel.members.insert (member.user->id, std::move (member));
-		}
-
+		channel.addMember (storage, doc.object());
 		requestTracker.eraseEntry (trackedEntry);
 		emit (channel.onUserAdded (user));
 	}));

@@ -109,7 +109,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	}
 
 	connect (&channel, &BackendChannel::onViewed, [this] {
-		LOG_DEBUG ("Channel viewed: " << this->channel.name);
+		LOG_DEBUG ("Channel viewed: " << this->channel.display_name);
 		setUnreadMessagesCount (0);
 		ui->listWidget->removeNewMessagesSeparatorAfterTimeout (1000);
 	});
@@ -407,7 +407,7 @@ void ChatArea::appendChannelPost (BackendPost& post)
 
 void ChatArea::handleUserTyping (const BackendUser& user)
 {
-	LOG_DEBUG (channel.display_name << ": " << user.getDisplayName() << " is typing");
+	LOG_DEBUG ("Channel " << channel.display_name << ": " << user.getDisplayName() << " is typing");
 }
 
 void ChatArea::onActivate ()

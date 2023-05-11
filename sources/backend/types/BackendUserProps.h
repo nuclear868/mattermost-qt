@@ -1,5 +1,5 @@
 /**
- * @file BackendTimeZone.cpp
+ * @file BackendUserProps.h
  * @brief
  * @author Lyubomir Filipov
  * @date Nov 28, 2021
@@ -22,20 +22,39 @@
  * along with Mattermost-QT. if not, see https://www.gnu.org/licenses/.
  */
 
-#include "BackendTimeZone.h"
+#pragma once
 
-#include <QJsonObject>
+#include <cstdint>
+#include <QString>
+#include <sstream>
+
+class QJsonValue;
+class QJsonObject;
 
 namespace Mattermost {
 
-BackendTimeZone::BackendTimeZone (const QJsonObject& jsonObject)
-:automaticTimezone (jsonObject.value("automaticTimezone").toString())
-,manualTimezone (jsonObject.value("manualTimezone").toString())
-,useAutomaticTimezone (jsonObject.value("useAutomaticTimezone").toBool())
-{
-}
+struct BackendUserCustomStatus {
+	
+	void deserialize (const QJsonObject& json);
+	
+	QString emoji;
+	QString text;
+	QString duration;
+	QString expiresAt;
+};
 
-BackendTimeZone::~BackendTimeZone () = default;
+/**
+ * Holds additional properties, visible to other users. For example: custom statuses
+ */
+class BackendUserProps {
+public:
+	BackendUserProps (const QJsonValue& json);
+	virtual ~BackendUserProps ();
+public:
+	void updateFrom (const BackendUserProps& other, std::ostringstream& resultString);
+public:		
+	uint32_t					lastSearchPointer;
+	BackendUserCustomStatus		customStatus;
+};
 
 } /* namespace Mattermost */
-
