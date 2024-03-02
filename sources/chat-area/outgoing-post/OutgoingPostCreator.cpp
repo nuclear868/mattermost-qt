@@ -174,23 +174,23 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 
 static NewPollDialog* newPollDialog;
 
-static QStringRef getStringInsideQuotes (const QString& str, int& nextPos)
+static QStringView getStringInsideQuotes (const QString& str, int& nextPos)
 {
 	int firstQuoute = str.indexOf('"', nextPos);
 
 	if (firstQuoute == -1) {
-		return QStringRef();
+		return QStringView();
 	}
 
 	int lastQuote = str.indexOf('"', firstQuoute + 1);
 
 	if (lastQuote == -1) {
-		return QStringRef();
+		return QStringView();
 	}
 
 	nextPos = lastQuote + 1;
 
-	return QStringRef (&str, firstQuoute + 1, lastQuote - firstQuoute - 1);
+	return QStringView(str).sliced(firstQuoute + 1, lastQuote - firstQuoute - 1);
 }
 
 void OutgoingPostCreator::sendPostButtonAction ()
@@ -214,7 +214,7 @@ void OutgoingPostCreator::sendPostButtonAction ()
 		BackendNewPollData initialPollData;
 
 		int startPos = 6;
-		QStringRef str (getStringInsideQuotes (message, startPos));
+		QStringView str (getStringInsideQuotes (message, startPos));
 		qDebug () << "got " << str << " pos " << startPos;
 
 		if (!str.isEmpty()) {

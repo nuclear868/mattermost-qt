@@ -21,7 +21,7 @@
 #include "ui_FilePreview.h"
 
 #include <QResizeEvent>
-#include <QDesktopWidget>
+#include <QGuiApplication>
 #include <QDebug>
 
 namespace Mattermost  {
@@ -56,7 +56,7 @@ QSize FilePreview::getMinimumSize (const QPixmap& pixmap)
 {
 	QSize ret = pixmap.size();
 
-	QRect screenGeometry = QApplication::desktop()->screenGeometry (this);
+	QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
 
 	screenGeometry.setWidth(screenGeometry.width() * 0.9);
 	screenGeometry.setHeight(screenGeometry.height() * 0.8);

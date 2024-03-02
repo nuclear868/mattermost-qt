@@ -32,13 +32,13 @@ set(APPID "mattermost-qt")
 
 option(BUILD_MULTIMEDIA "Enable Multimedia" OFF)
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt5 COMPONENTS Network REQUIRED)
-find_package(Qt5 COMPONENTS WebSockets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Network REQUIRED)
+find_package(Qt6 COMPONENTS WebSockets REQUIRED)
 
 if(BUILD_MULTIMEDIA)
-	find_package(Qt5 COMPONENTS Multimedia REQUIRED)
-	find_package(Qt5 COMPONENTS MultimediaWidgets REQUIRED)
+	find_package(Qt6 COMPONENTS Multimedia REQUIRED)
+	find_package(Qt6 COMPONENTS MultimediaWidgets REQUIRED)
 endif()
 
 include_directories(${Qt5Network_INCLUDE_DIRS} sources/)
@@ -62,16 +62,16 @@ else()
     ${SOURCES}
     resource.qrc
   )
-  
+
   if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 	set_property(TARGET ${APPID} PROPERTY WIN32_EXECUTABLE true)
   endif()
-  
+
 endif()
 
 add_subdirectory (tools)
 
-target_link_libraries (${APPID} PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets)
+target_link_libraries (${APPID} PRIVATE Qt6::Widgets Qt6::Network Qt6::WebSockets)
 
 if(UNIX)
 	include(GNUInstallDirs)
@@ -96,5 +96,5 @@ if(UNIX)
 endif()
 
 if(BUILD_MULTIMEDIA)
-	target_link_libraries(qmattermost PRIVATE Qt5::Multimedia Qt5::MultimediaWidgets)
+	target_link_libraries(qmattermost PRIVATE Qt6::Multimedia Qt6::MultimediaWidgets)
 endif()

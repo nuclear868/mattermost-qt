@@ -5,5 +5,5 @@ add_executable(${APP}
 )
 
 target_link_libraries(${APP}
-        PRIVATE Qt5::Widgets
+        PRIVATE Qt6::Widgets
 )
