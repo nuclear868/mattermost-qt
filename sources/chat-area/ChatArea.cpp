@@ -59,7 +59,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	ui->listWidget->backend = &backend;
 
 	ui->titleLabel->setText (channel.display_name);
-	ui->statusLabel->setText (channel.getChannelDescription ());
+	ui->headerLabel->setText (channel.getChannelDescription ());
 
 	setTextEditWidgetHeight (texteditDefaultHeight);
 
@@ -117,7 +117,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	connect (&channel, &BackendChannel::onUpdated, [this] {
 		ui->titleLabel->setText (this->channel.display_name);
 		this->treeItem->setLabel (this->channel.display_name);
-		ui->statusLabel->setText (this->channel.getChannelDescription ());
+		ui->headerLabel->setText (this->channel.getChannelDescription ());
 	});
 
 

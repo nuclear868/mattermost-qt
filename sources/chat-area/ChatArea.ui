@@ -136,7 +136,7 @@
             <enum>QFrame::NoFrame</enum>
            </property>
            <property name="text">
-            <string>TextLabel</string>
+            <string>Status</string>
            </property>
           </widget>
          </item>
@@ -168,6 +168,9 @@
            <property name="text">
             <string>N members</string>
            </property>
+           <property name="maximumWidth">
+            <number>120</number>
+           </property>
           </widget>
          </item>
          <item>
@@ -175,9 +178,31 @@
            <property name="text">
             <string>N pinned posts</string>
            </property>
+           <property name="maximumWidth">
+            <number>120</number>
+           </property>
            <property name="icon">
             <iconset>
              <normaloff>:/img/pushpin.png</normaloff>:/img/pushpin.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignBottom">
+          <widget class="QLabel" name="headerLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">padding-left:1px; padding-bottom: 3px</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="text">
+            <string>Channel header</string>
            </property>
           </widget>
          </item>
