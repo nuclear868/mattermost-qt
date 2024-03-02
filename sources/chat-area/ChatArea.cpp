@@ -79,9 +79,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			ui->statusLabel->setText (user->status);
 		});
 
-		if (ui->statusLabel->text().isEmpty()) {
-			ui->statusLabel->setText (user->status);
-		}
+		ui->statusLabel->setText (user->status);
 
 	} else {
 		ui->userAvatar->clear();
