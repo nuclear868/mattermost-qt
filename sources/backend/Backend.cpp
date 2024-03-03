@@ -460,6 +460,7 @@ void Backend::retrieveAllUsers ()
 
 void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 {
+	(void)lastUpdateTime;
 	NetworkRequest request ("users/" + userID + "/image", true);
 
 	//LOG_DEBUG ("getUserImage request");
@@ -1035,7 +1036,8 @@ void Backend::deletePost (const QString postID)
 
 void Backend::pinPost (const QString postID)
 {
-
+#warning Implement post pinning
+	(void)postID;
 }
 
 void Backend::addPoll (BackendChannel& channel, const BackendNewPollData& pollData)
