@@ -64,7 +64,7 @@ public:
 	void removeChannelToItem (QString channelID);
 private:
 	void showContextMenu (const QPoint& pos);
-	QStackedWidget*						chatAreaStackedWidget;
+	QStackedWidget*						chatAreaStackedWidget = nullptr;
 	QMap<QString, QTreeWidgetItem*>		channelToItemMap;
 };
 

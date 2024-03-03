@@ -201,6 +201,10 @@ void ChannelTree::showContextMenu (const QPoint& pos)
 
 ChatArea* ChannelTree::getCurrentPage ()
 {
+	if (chatAreaStackedWidget == nullptr) {
+		return nullptr;
+	}
+
 	return static_cast<ChatArea*> (chatAreaStackedWidget->currentWidget());
 }
 
