@@ -173,12 +173,13 @@ BackendChannel* Storage::addTeamChannel (BackendTeam& team, const QJsonObject& j
 
 	BackendChannel* newChannel;
 
+	newChannel = new BackendChannel (*this, json);
+
 	if (channelType == BackendChannel::directChannel) {
 		LOG_DEBUG ("Storage::addNonDirectChannel called for direct channel " << newChannel->id << " " << newChannel->display_name);
+		delete newChannel;
 		return nullptr;
 	}
-
-	newChannel = new BackendChannel (*this, json);
 
 	team.channels.emplace_back (newChannel);
 	channels[newChannel->id] = team.channels.back().get();
