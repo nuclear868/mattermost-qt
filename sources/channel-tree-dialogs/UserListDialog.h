@@ -35,7 +35,7 @@ namespace Mattermost {
 
 class BackendTeamMember;
 class BackendChannelMember;
-class UserListEntry;
+struct UserListEntry;
 
 class UserListDialog: public FilterListDialog {
 public:
