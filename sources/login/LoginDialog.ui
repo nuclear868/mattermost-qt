@@ -52,46 +52,7 @@
     </layout>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>48</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="username_lineEdit">
-       <property name="maxLength">
-        <number>512</number>
-       </property>
-       <property name="placeholderText">
-        <string>Username</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="password_lineEdit">
-       <property name="maxLength">
-        <number>512</number>
-       </property>
-       <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
-       </property>
-       <property name="placeholderText">
-        <string>Password</string>
-       </property>
-      </widget>
-     </item>
+    <layout class="QGridLayout" name="gridLayout" columnstretch="1,5">
      <item row="0" column="0">
       <widget class="QLabel" name="domain_label">
        <property name="toolTip">
@@ -102,6 +63,16 @@
        </property>
        <property name="buddy">
         <cstring>domain_lineEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="username_lineEdit">
+       <property name="maxLength">
+        <number>512</number>
+       </property>
+       <property name="placeholderText">
+        <string>Username</string>
        </property>
       </widget>
      </item>
@@ -141,6 +112,59 @@
        </property>
        <property name="placeholderText">
         <string>Domain</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="password_lineEdit">
+       <property name="maxLength">
+        <number>512</number>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>Password</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="toolTip">
+      <string>Some servers uses SSO auth. This client doesn't support it natevly.
+Instead you should bypass SSO auth into your browser, find 'MMAUTHTOKEN'
+cookie in developer tools and copy its content into field below.
+Password and token can't be used simultenusly</string>
+     </property>
+     <property name="text">
+      <string>Token authentication</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,5">
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="token_lineEdit">
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>Token (optional)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="token_label">
+       <property name="toolTip">
+        <string>Token that should be used for authentication instead of password</string>
+       </property>
+       <property name="text">
+        <string>&amp;Token</string>
+       </property>
+       <property name="buddy">
+        <cstring>token_lineEdit</cstring>
        </property>
       </widget>
      </item>
