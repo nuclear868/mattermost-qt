@@ -77,7 +77,7 @@ void OutgoingPostCreator::init (Backend& backend, BackendChannel& channel, Outgo
 	});
 
 	//initiate editing of last post, after an up arrow is pressed
-	connect (ui->textEdit, &MessageTextEditWidget::upArrowPressed, [this, &postsListWidget] {
+	connect (ui->textEdit, &MessageTextEditWidget::upArrowPressed, [&postsListWidget] {
 		QListWidgetItem* post = postsListWidget.getLastOwnPost ();
 
 		if (post) {

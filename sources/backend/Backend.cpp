@@ -315,7 +315,7 @@ void Backend::retrieveUserPreferences ()
 {
 	NetworkRequest request ("users/" + getLoginUser().id + "/preferences");
 
-	httpConnector.get (request, HttpResponseCallback ([this](const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrieveUserPreferences reply");
 
@@ -336,7 +336,7 @@ void Backend::updateUserPreferences (const BackendUserPreferences& preferences)
 		{"value", preferences.value},
 	});
 
-	httpConnector.put (request, jsonArr, HttpResponseCallback ([this](const QJsonDocument& doc) {
+	httpConnector.put (request, jsonArr, HttpResponseCallback ([](const QJsonDocument& doc) {
 
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
 	}));
@@ -460,6 +460,7 @@ void Backend::retrieveAllUsers ()
 
 void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 {
+	(void)lastUpdateTime;
 	NetworkRequest request ("users/" + userID + "/image", true);
 
 	//LOG_DEBUG ("getUserImage request");
@@ -553,7 +554,7 @@ void Backend::retrieveAllPublicTeams ()
 
     LOG_DEBUG ("retrieveOwnTeams request");
 
-    httpConnector.get (request, HttpResponseCallback ([this] (const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([] (const QJsonDocument& doc) {
     	LOG_DEBUG ("retrieveAllPublicTeams reply");
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -789,7 +790,7 @@ void Backend::retrieveChannelPinnedPosts (BackendChannel& channel)
     NetworkRequest request ("channels/" + channel.id + "/pinned");
     //LOG_DEBUG ("retrieveChannelPinnedPosts request for " << channel.display_name << " (" << channel.id << ")");
 
-    httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([&channel](const QJsonDocument& doc) {
 
 		//LOG_DEBUG ("retrieveChannelPinnedPosts reply for " << channel.display_name << " (" << channel.id << ")");
 		//QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -804,7 +805,7 @@ void Backend::retrieveChannelOlderPosts (BackendChannel& channel, int perPage)
 {
     NetworkRequest request ("channels/" + channel.id + "/posts?page=" + QString::number(0) + "&per_page=" + QString::number(perPage) + "&before=" + channel.posts.front().id);
 
-    httpConnector.get (request, HttpResponseCallback ([this, &channel](const QJsonDocument& doc) {
+    httpConnector.get (request, HttpResponseCallback ([&channel](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrieveChannelOlderPosts reply for " << channel.display_name << " (" << channel.id << ") - since " << channel.posts.front().id);
 
@@ -896,7 +897,7 @@ void Backend::retrievePollMetadata (BackendPoll& poll)
 
 	LOG_DEBUG ("retrievePollMetadata request");
 
-	httpConnector.get (request, HttpResponseCallback ([this, &poll](const QJsonDocument& doc) {
+	httpConnector.get (request, HttpResponseCallback ([&poll](const QJsonDocument& doc) {
 
 		LOG_DEBUG ("retrievePollMetadata reply");
 
@@ -918,7 +919,7 @@ void Backend::markChannelAsViewed (BackendChannel& channel)
 
 	NetworkRequest request ("channels/members/me/view");
 
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 
 		//no callbacks are required. the server will send a WebSocket packet 'channel_viewed'
 
@@ -949,7 +950,7 @@ void Backend::editChannelProperties (BackendChannel& channel, const BackendChann
 	NetworkRequest request ("channels/" + channel.id);
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.put (request, data, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.put (request, data, HttpResponseCallback ([](QVariant, QByteArray) {
 #if 0
 	QJsonDocument doc = QJsonDocument::fromJson(data);
 	QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -983,7 +984,7 @@ void Backend::addPost (BackendChannel& channel, const QString& message, const QL
 
 	NetworkRequest request ("posts");
 
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -1016,7 +1017,7 @@ void Backend::editPost (const QString& postID, const QString& message, const QLi
 	NetworkRequest request ("posts/" + postID + "/patch");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	httpConnector.put (request, data, HttpResponseCallback ([this](const QJsonDocument& doc) {
+	httpConnector.put (request, data, HttpResponseCallback ([](const QJsonDocument& doc) {
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -1035,7 +1036,8 @@ void Backend::deletePost (const QString postID)
 
 void Backend::pinPost (const QString postID)
 {
-
+#warning Implement post pinning
+	(void)postID;
 }
 
 void Backend::addPoll (BackendChannel& channel, const BackendNewPollData& pollData)
@@ -1072,7 +1074,7 @@ void Backend::addPoll (BackendChannel& channel, const BackendNewPollData& pollDa
 
 	json.insert ("submission", submission);
 
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -1092,7 +1094,7 @@ void Backend::addPostReaction (const QString& postID, const QString& emojiName)
 	};
 
 	NetworkRequest request ("reactions");
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 		//no callbacks are required. the server will send a WebSocket packet 'reaction_added'
 	}));
 }
@@ -1133,7 +1135,7 @@ void Backend::uploadFile (BackendChannel& channel, const QString& filePath, std:
 	QByteArray data = file.readAll();
 	qDebug() << data.size();
 
-	httpConnector.post (request, data, HttpResponseCallback ([this, responseHandler](QVariant, const QJsonDocument& doc) {
+	httpConnector.post (request, data, HttpResponseCallback ([responseHandler](QVariant, const QJsonDocument& doc) {
 
 #if 1
 		QString jsonString = doc.toJson(QJsonDocument::Indented);
@@ -1157,7 +1159,7 @@ void Backend::createDirectChannel (const BackendUser& user)
 
 	NetworkRequest request ("channels/direct");
 
-	httpConnector.post (request, json, HttpResponseCallback ([this, &user](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -1175,7 +1177,7 @@ void Backend::addUserToChannel (const BackendChannel& channel, const QString& us
 
 	NetworkRequest request ("channels/" + channel.id + "/members");
 
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -1213,7 +1215,7 @@ void Backend::addUserToTeam (const BackendTeam& team, const QString& userID)
 
 	NetworkRequest request ("teams/" + team.id + "/members");
 
-	httpConnector.post (request, json, HttpResponseCallback ([this](QVariant, QByteArray) {
+	httpConnector.post (request, json, HttpResponseCallback ([](QVariant, QByteArray) {
 #if 0
 		QJsonDocument doc = QJsonDocument::fromJson(data);
 

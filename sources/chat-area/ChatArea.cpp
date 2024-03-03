@@ -281,7 +281,6 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 	QDate currentDate = QDateTime::currentDateTime().date();
 	int insertPos = 0;
 	int startPos = 0;
-	int postSeq = 0;
 
 	//elapsed days since the last post that was added from the new posts packet
 	int elapsedDaysSinceLastNewPost = INT32_MAX;
@@ -341,7 +340,6 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 			ui->listWidget->insertPost (insertPos, new PostWidget (backend, *post, ui->listWidget, this, lastRootPost));
 			lastRootPost = post->rootPost;
 			++insertPos;
-			++postSeq;
 
 			if (post->id == lastReadPostId) {
 				ui->listWidget->addNewMessagesSeparator ();

@@ -82,7 +82,7 @@ AttachedImageFile::AttachedImageFile (Backend& backend, const BackendFile& file,
 				return;
 			}
 
-			backend.retrieveFile (file.id, [&backend, saveFileDestination] (const QByteArray& fileContents) {
+			backend.retrieveFile (file.id, [saveFileDestination] (const QByteArray& fileContents) {
 				QFile destFile (saveFileDestination);
 				destFile.open (QIODevice::WriteOnly);
 				destFile.write (fileContents);
