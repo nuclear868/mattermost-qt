@@ -67,7 +67,7 @@ WebSocketConnector::WebSocketConnector (WebSocketEventHandler& eventHandler)
 :eventHandler (eventHandler)
 ,hasReconnect (false)
 {
-	connect (&webSocket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), [this] (QAbstractSocket::SocketError error){
+	connect (&webSocket, &QWebSocket::errorOccurred, [this] (QAbstractSocket::SocketError error){
 		LOG_DEBUG ("WebSocket error " << error << " " << webSocket.errorString());
 		doReconnect ();
 	});

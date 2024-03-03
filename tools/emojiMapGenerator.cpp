@@ -186,13 +186,13 @@ static void addSkinVariadicEmoji (const QVector<QString>& names, const QVector<Q
 
 static QString getUnicodeFromJson (QString unicodeText)
 {
-	QVector<uint32_t> vec;
+	QVector<char32_t> vec;
 
 	for (QString& it: unicodeText.split("-")) {
-		vec += it.toInt(0, 16);
+		vec += it.toInt(nullptr, 16);
 	}
 
-	QString result = QString::fromUcs4 (&vec[0], vec.size());
+	QString result = QString::fromUcs4 (vec.data(), vec.size());
 
 	if (result.size() > 0 && result[0] == '\0') {
 		result = "";
