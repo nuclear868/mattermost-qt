@@ -295,7 +295,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	if (post->post.isOwnPost()) {
 
 		if (selectedItemsCount == 1) {
-			myMenu.addAction ("Edit", [this, pointedItem, post] {
+			myMenu.addAction ("Edit", [this, pointedItem] {
 				initiatePostEdit (*pointedItem);
 			});
 
@@ -310,7 +310,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 
 
 	if (!post->hoveredLink.isEmpty() && selectedItemsCount == 1) {
-		myMenu.addAction ("Copy link to clipboard", [this, post] {
+		myMenu.addAction ("Copy link to clipboard", [post] {
 			//qDebug() << "Copy " << post->post.message;
 			QApplication::clipboard()->setText (post->hoveredLink);
 		});
@@ -319,19 +319,19 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	QString selectedText = post->getSelectedText ();
 
 	if (!selectedText.isEmpty()) {
-		myMenu.addAction ("Copy selected text", [this, post, selectedText] {
+		myMenu.addAction ("Copy selected text", [selectedText] {
 			qDebug() << "Copy selected text";
 			QApplication::clipboard()->setText (selectedText);
 		});
 	}
 
-	myMenu.addAction ("Copy entire post (formatted)", [this, post] {
+	myMenu.addAction ("Copy entire post (formatted)", [this] {
 		//qDebug() << "Copy " << post->post.message;
 		copySelectedItemsToClipboard (PostWidget::entirePost);
 	});
 
 	if (selectedItemsCount == 1) {
-		myMenu.addAction ("Copy post message", [this, post] {
+		myMenu.addAction ("Copy post message", [this] {
 			//qDebug() << "Copy " << post->post.message;
 			copySelectedItemsToClipboard (PostWidget::messageOnly);
 		});
